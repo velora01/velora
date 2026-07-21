@@ -15,4 +15,8 @@ router.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+router.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "velora-backend" });
+});
+
 export default router;

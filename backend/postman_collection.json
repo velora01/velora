@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "Velora Backend API",
+    "_postman_id": "b9c8afbb-2f2e-4d4f-9f1d-5d4b6d9e9a8e",
+    "description": "Postman collection for Velora backend API routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Home",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/hello",
+          "host": ["{{baseUrl}}"],
+          "path": ["hello"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Services",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/services",
+          "host": ["{{baseUrl}}"],
+          "path": ["services"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Service by Slug",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/services/{{slug}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["services", "{{slug}}"],
+          "variable": [
+            {
+              "key": "slug",
+              "value": "example-service"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Service",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Example Service\",\n  \"description\": \"Service description here.\",\n  \"thumbnail\": \"https://example.com/thumb.jpg\",\n  \"banner\": \"https://example.com/banner.jpg\",\n  \"gallery\": [\"https://example.com/1.jpg\", \"https://example.com/2.jpg\"],\n  \"features\": [\"Fast\", \"Reliable\"],\n  \"priceFrom\": \"$99\",\n  \"seoTitle\": \"Example Service SEO Title\",\n  \"seoDescription\": \"SEO description for the example service.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/admin/services",
+          "host": ["{{baseUrl}}"],
+          "path": ["admin", "services"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    }
+  ]
+}

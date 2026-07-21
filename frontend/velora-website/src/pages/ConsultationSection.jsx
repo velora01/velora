@@ -43,7 +43,7 @@ export default function ConsultationSection() {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:3000/api/consult",
+        "https://velora-backend-usq1.onrender.com/api/consult",
         form
       );
 

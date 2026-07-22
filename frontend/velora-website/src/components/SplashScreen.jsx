@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./SplashScreen.css";
 
 const SplashScreen = ({ onFinish }) => {
-  const imageSrc = encodeURI("/velora pic.jpeg");
+  const imageSrc = encodeURI("/velora pic.png");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

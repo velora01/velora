@@ -38,6 +38,9 @@ export const login = async (req, res) => {
     return res.status(200).json({ success: true, message: "Login endpoint (not fully implemented)", data: { email } });
 };
 
+export const logout = async (req, res)=>{
+
+}
 
 export const updateUser = async (req, res)=>{
     

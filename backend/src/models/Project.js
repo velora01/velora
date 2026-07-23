@@ -21,6 +21,10 @@ const projectSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    images: {
+      type: [String],
+      default: [],
+    },
     slug: {
       type: String,
       required: true,

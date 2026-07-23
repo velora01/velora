@@ -7,9 +7,25 @@ const makeSlug = (value) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const normalizeProjectImages = (image, images) => {
+  const normalizedImages = Array.isArray(images)
+    ? images.filter((value) => typeof value === "string" && value.trim() !== "")
+    : [];
+
+  if (normalizedImages.length > 0) {
+    return normalizedImages.map((value) => value.trim());
+  }
+
+  if (typeof image === "string" && image.trim() !== "") {
+    return [image.trim()];
+  }
+
+  return [];
+};
+
 export const createProject = async (req, res) => {
   try {
-    const { tag, heading, description, image } = req.body;
+    const { tag, heading, description, image, images } = req.body;
 
     if (!tag || !heading || !description) {
       return res.status(400).json({
@@ -27,11 +43,13 @@ export const createProject = async (req, res) => {
       });
     }
 
+    const normalizedImages = normalizeProjectImages(image, images);
     const project = await Project.create({
       tag,
       heading,
       description,
-      image: image || "",
+      image: normalizedImages[0] || image || "",
+      images: normalizedImages,
       slug,
     });
 

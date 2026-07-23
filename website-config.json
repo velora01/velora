@@ -1,0 +1,281 @@
+{
+  "website": {
+    "name": "Velora Premium Interior Design",
+    "tagline": "Luxury Interiors, Timeless Elegance",
+    "description": "Award-winning interior design studio specializing in luxury residential, commercial, and hospitality spaces.",
+    "version": "1.0.0",
+    "status": "production-ready"
+  },
+  "company": {
+    "founded": 2015,
+    "yearsInBusiness": 8,
+    "team": {
+      "total": 25,
+      "designers": 12,
+      "consultants": 8,
+      "support": 5
+    },
+    "awards": [
+      "Best Interior Design Studio 2023",
+      "Excellence in Commercial Design 2022",
+      "Sustainable Design Leadership 2023",
+      "Customer Choice Award 2022"
+    ],
+    "certifications": [
+      "NID Certified Designers",
+      "Sustainable Design",
+      "Project Management Excellence"
+    ]
+  },
+  "contact": {
+    "email": "hello@velora.com",
+    "phone": "+1 (555) 123-4567",
+    "address": "12 Velvet Lane, Interior District, City Center",
+    "website": "https://velora.com",
+    "hours": {
+      "weekday": "9:00 AM - 6:00 PM",
+      "weekend": "By Appointment",
+      "timezone": "EST"
+    }
+  },
+  "social": {
+    "instagram": "https://instagram.com/velora_design",
+    "facebook": "https://facebook.com/veloradesign",
+    "linkedin": "https://linkedin.com/company/velora-design",
+    "pinterest": "https://pinterest.com/veloradesign",
+    "twitter": "https://twitter.com/veloradesign"
+  },
+  "services": [
+    {
+      "name": "Full Interior Design",
+      "slug": "full-interior-design",
+      "category": "Comprehensive",
+      "priceFrom": 5000,
+      "priceCurrency": "USD",
+      "estimatedDuration": "3-6 months",
+      "description": "Complete design solution from concept to execution",
+      "targetClients": ["Homeowners", "Property Developers", "Hospitality Businesses"]
+    },
+    {
+      "name": "Furniture Curation",
+      "slug": "furniture-curation",
+      "category": "Selection",
+      "priceFrom": 2000,
+      "priceCurrency": "USD",
+      "estimatedDuration": "2-4 weeks",
+      "description": "Expert selection of premium furniture pieces",
+      "targetClients": ["Residential", "Commercial", "Hospitality"]
+    },
+    {
+      "name": "Space Planning & Layout",
+      "slug": "space-planning-layout",
+      "category": "Planning",
+      "priceFrom": 1500,
+      "priceCurrency": "USD",
+      "estimatedDuration": "1-2 weeks",
+      "description": "Strategic space optimization and planning",
+      "targetClients": ["All"]
+    },
+    {
+      "name": "Color & Material Consultation",
+      "slug": "color-material-consultation",
+      "category": "Consultation",
+      "priceFrom": 800,
+      "priceCurrency": "USD",
+      "estimatedDuration": "1 week",
+      "description": "Expert guidance on colors, textures, and materials",
+      "targetClients": ["DIY Projects", "Renovations", "Professional Designers"]
+    },
+    {
+      "name": "Lighting Design",
+      "slug": "lighting-design",
+      "category": "Specialized",
+      "priceFrom": 1200,
+      "priceCurrency": "USD",
+      "estimatedDuration": "2-3 weeks",
+      "description": "Sophisticated lighting solutions and design",
+      "targetClients": ["Residential", "Commercial", "Retail"]
+    },
+    {
+      "name": "Styling & Accessories",
+      "slug": "styling-accessories",
+      "category": "Enhancement",
+      "priceFrom": 600,
+      "priceCurrency": "USD",
+      "estimatedDuration": "1-2 weeks",
+      "description": "Curated accessories and professional styling",
+      "targetClients": ["All"]
+    }
+  ],
+  "projects": {
+    "total": 150,
+    "categories": [
+      "Luxury Residential",
+      "Contemporary Home",
+      "Luxury Hospitality",
+      "Commercial Space",
+      "Luxury Retail",
+      "Mixed-Use Development"
+    ],
+    "averageProjectValue": "25000-50000"
+  },
+  "clients": {
+    "total": 200,
+    "satisfaction": "98%",
+    "repeatClientRate": "85%",
+    "regions": [
+      "North America",
+      "Europe",
+      "Asia"
+    ]
+  },
+  "statistics": {
+    "projectsCompleted": 150,
+    "satisfiedClients": 200,
+    "yearsExperience": 8,
+    "teamMembers": 25,
+    "averageProjectDuration": "4 months",
+    "clientSatisfactionRate": "98%"
+  },
+  "mission": {
+    "statement": "To create beautiful, functional spaces that make life feel effortless and inspired.",
+    "vision": "Be the most trusted interior design studio for luxury spaces globally.",
+    "values": [
+      "Excellence in Design",
+      "Client Satisfaction",
+      "Sustainable Practices",
+      "Professional Integrity",
+      "Creative Innovation"
+    ]
+  },
+  "designPhilosophy": {
+    "approach": "Timeless Luxury with Modern Functionality",
+    "principles": [
+      "Balance aesthetics with practicality",
+      "Prioritize client lifestyle",
+      "Source premium materials",
+      "Create harmonious color palettes",
+      "Maximize spatial efficiency",
+      "Integrate sustainability"
+    ]
+  },
+  "branding": {
+    "primaryColor": "#C9A227",
+    "primaryColorName": "Gold",
+    "accentColor": "#faf8f4",
+    "accentColorName": "Cream",
+    "fontFamily": "Inter, Segoe UI, Roboto",
+    "borderRadius": "24px",
+    "logoFormats": ["PNG", "SVG", "WEBP"]
+  },
+  "seo": {
+    "keywords": [
+      "Interior Design",
+      "Luxury Interiors",
+      "Interior Designer",
+      "Home Design",
+      "Interior Styling",
+      "Furniture Design",
+      "Commercial Design",
+      "Residential Design"
+    ],
+    "description": "Award-winning interior design studio creating luxury spaces combining sophisticated aesthetics with functional design.",
+    "author": "Velora Design Studio",
+    "language": "en-US"
+  },
+  "marketing": {
+    "targetAudience": [
+      "High-Income Homeowners",
+      "Real Estate Developers",
+      "Hotel & Hospitality Groups",
+      "Commercial Businesses",
+      "Interior Design Enthusiasts"
+    ],
+    "uniqueSellingPoints": [
+      "150+ Completed Projects",
+      "98% Client Satisfaction",
+      "Global Access to Premium Materials",
+      "Award-Winning Designers",
+      "End-to-End Project Management",
+      "Sustainable Design Practices"
+    ]
+  },
+  "gallery": {
+    "images": {
+      "total": 18,
+      "projectImageAverage": 3,
+      "source": "Unsplash (Professional Collection)",
+      "format": "JPEG/WebP",
+      "optimization": "Responsive, Lazy-loaded"
+    }
+  },
+  "testimonials": {
+    "total": 6,
+    "averageRating": 5.0,
+    "clientTypes": [
+      "Homeowners",
+      "Hotel Owners",
+      "Corporate Directors",
+      "Restaurant Owners",
+      "Retail Business Owners"
+    ]
+  },
+  "faq": {
+    "categories": [
+      "Service & Pricing",
+      "Process & Timeline",
+      "Consultation & Booking",
+      "Design Philosophy",
+      "Project Management",
+      "Materials & Sourcing"
+    ],
+    "totalQuestions": 6
+  },
+  "features": {
+    "frontend": [
+      "Responsive Design",
+      "Image Gallery with Navigation",
+      "Animated Components",
+      "Professional Contact Form",
+      "FAQ Section",
+      "Client Reviews",
+      "Service Showcase",
+      "Project Portfolio",
+      "Cost Calculator"
+    ],
+    "backend": [
+      "RESTful API",
+      "MongoDB Database",
+      "Project Management",
+      "Service Catalog",
+      "Consultation Requests",
+      "Contact Form Handling",
+      "Data Validation"
+    ]
+  },
+  "deployment": {
+    "frontend": {
+      "framework": "React 19",
+      "buildTool": "Vite",
+      "hosting": "Recommended: Vercel, Netlify, or AWS",
+      "optimization": ["Code Splitting", "Image Optimization", "Caching"]
+    },
+    "backend": {
+      "runtime": "Node.js",
+      "database": "MongoDB",
+      "hosting": "Recommended: Render, Railway, or AWS",
+      "api": "RESTful"
+    }
+  },
+  "performance": {
+    "targetLighthouseScore": 90,
+    "targetPageLoadTime": "2 seconds",
+    "supportedBrowsers": [
+      "Chrome 90+",
+      "Firefox 88+",
+      "Safari 14+",
+      "Edge 90+"
+    ],
+    "mobileSupport": "Full responsive design"
+  }
+}

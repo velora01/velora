@@ -9,6 +9,10 @@ import About from "../pages/About";
 import Projects from "../pages/Projects";
 import Contact from "../pages/Contact";
 import ConsultationSection from "../pages/ConsultationSection";
+import Guide from "../pages/Guide";
+import Gallery from "../pages/Gallery";
+import Offering from "../pages/Offering";
+import More from "../pages/More";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -32,6 +36,10 @@ const AppRoutes = () => {
         <Route path="/about" element={<About />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/guide" element={<Guide />} />
+        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/more" element={<More />} />
+        <Route path="/offering" element={<Offering />} />
       </Routes>
 
       <Footer />

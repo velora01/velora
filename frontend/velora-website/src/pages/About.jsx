@@ -3,10 +3,10 @@ import { Award, Target, Heart, Globe, Users, Lightbulb } from "lucide-react";
 
 const About = () => {
   const stats = [
-    { icon: Award, value: "8+", label: "Years of Experience" },
+    { icon: Award, value: "20+", label: "Years of Experience" },
     { icon: Users, value: "25", label: "Team Members" },
-    { icon: Target, value: "150+", label: "Projects Completed" },
-    { icon: Heart, value: "120+", label: "Satisfied Clients" }
+    { icon: Target, value: "350+", label: "Projects Completed" },
+    { icon: Heart, value: "320+", label: "Satisfied Clients" }
   ];
 
   const values = [

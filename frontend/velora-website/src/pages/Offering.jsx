@@ -15,6 +15,7 @@ import {
 
 
 
+
 const offerings = [
   {
     icon: <Sofa size={32} />,
@@ -161,7 +162,15 @@ const Offering = () => {
 
   function handleClick() {
     navigate("/consultation");
+    
   }
+  
+
+  function handleGuide(){
+    navigate('/guide')
+  }
+
+
   return (
     <div className="bg-gray-50">
 
@@ -195,7 +204,7 @@ const Offering = () => {
             materials, expert craftsmanship, and complete project execution.
           </p>
 
-          <button className="mt-8 bg-yellow-500 hover:bg-yellow-600 transition px-8 py-4 rounded-full font-semibold flex items-center gap-2 mx-auto">
+          <button onClick={handleGuide} className="mt-8 bg-yellow-500 hover:bg-yellow-600 transition px-8 py-4 rounded-full font-semibold flex items-center gap-2 mx-auto">
             Explore Services
             <ArrowRight size={20} />
           </button>

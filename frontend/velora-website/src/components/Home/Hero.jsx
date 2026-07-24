@@ -2,11 +2,17 @@ import { motion } from "framer-motion";
 import Button from "../Common/Button";
 import { useNavigate } from "react-router-dom";
 
+
 const Hero = () => {
   const navigate = useNavigate();
 
   function handleClick() {
     navigate("/consultation");
+  }
+
+
+  function handleProject(){
+    navigate("/projects");
   }
   return (
     <div className="bg-white text-gray-900">
@@ -56,7 +62,8 @@ const Hero = () => {
               className="flex flex-col gap-5 mt-10 sm:flex-row"
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="bg-[#C9A227] text-white px-8 py-4 rounded-lg font-semibold hover:bg-yellow-700 transition w-full sm:w-auto">
+                <Button  onClick={handleProject}
+              className="bg-[#C9A227] text-white px-8 py-4 rounded-lg font-semibold hover:bg-yellow-700 transition w-full sm:w-auto">
                   Explore Projects
                 </Button>
               </motion.div>

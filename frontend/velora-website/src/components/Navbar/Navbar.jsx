@@ -8,7 +8,7 @@ const Navbar = () => {
           <img src="/logo.png" alt="Velora logo" className="h-10 w-auto object-contain" />
         </a>
 
-        <ul className="flex flex-1 justify-center gap-4 text-sm font-medium sm:gap-8">
+        <ul className="flex flex-1 justify-center gap-4  font-medium sm:gap-8 text-sm ">
           <li>
             <NavLink to="/">Home</NavLink>
           </li>

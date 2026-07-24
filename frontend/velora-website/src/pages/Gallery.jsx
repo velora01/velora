@@ -116,18 +116,20 @@ const filters = [
 ];
 
 export default function Gallery() {
+
   const [active, setActive] = useState("All");
   const [search, setSearch] = useState("");
 
   const filtered = galleryData.filter((item) => {
     const matchCategory =
       active === "All" || item.category === active;
-
+      
     const matchSearch =
       item.title.toLowerCase().includes(search.toLowerCase()) ||
       item.category.toLowerCase().includes(search.toLowerCase());
 
     return matchCategory && matchSearch;
+
   });
 
   return (

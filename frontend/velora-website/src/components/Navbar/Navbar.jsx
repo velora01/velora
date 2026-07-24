@@ -12,11 +12,6 @@ const Navbar = () => {
           <li>
             <NavLink to="/">Home</NavLink>
           </li>
-
-          <li>
-            <NavLink to="/about">About</NavLink>
-          </li>
-
           <li>
             <NavLink to="/projects">Projects</NavLink>
           </li>
@@ -25,16 +20,19 @@ const Navbar = () => {
             <NavLink to="/gallery">Gallery</NavLink>
           </li>
           <li>
-            <NavLink to="/contact">Contact</NavLink>
-          </li>
-           <li>
-            <NavLink to="/more">More</NavLink>
-          </li>
-           <li>
             <NavLink to="/guide">Guide</NavLink>
           </li>
-           <li>
+          <li>
+            <NavLink to="/about">About</NavLink>
+          </li>
+          <li>
+            <NavLink to="/contact">Contact</NavLink>
+          </li>
+          <li>
             <NavLink to="/offering">Offering</NavLink>
+          </li>
+          <li>
+            <NavLink to="/more">More</NavLink>
           </li>
 
         </ul>
@@ -44,4 +42,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-        

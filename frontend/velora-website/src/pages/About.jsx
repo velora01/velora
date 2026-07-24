@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Award, Target, Heart, Globe, Users, Lightbulb } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const About = () => {
   const stats = [
     { icon: Award, value: "20+", label: "Years of Experience" },
-    { icon: Users, value: "25", label: "Team Members" },
+    { icon: Users, value: "25+", label: "Team Members" },
     { icon: Target, value: "350+", label: "Projects Completed" },
     { icon: Heart, value: "320+", label: "Satisfied Clients" }
   ];
@@ -39,9 +40,17 @@ const About = () => {
     "Customer Choice Award 2022"
   ];
 
+
+  const navigate = useNavigate();
+
+  function handleClick(){
+    navigate("/consultation");
+  }
+
+
   return (
     <main className="min-h-screen bg-[#faf8f4] text-gray-900">
-      {/* Hero Section */}
+    
       <section className="max-w-6xl mx-auto px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -152,8 +161,7 @@ const About = () => {
           </div>
         </motion.section>
       </section>
-
-      {/* Core Values Grid */}
+      
       <section className="max-w-6xl mx-auto px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -295,7 +303,7 @@ const About = () => {
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
             Let our team of professional designers create a beautiful, functional space that reflects your vision and lifestyle.
           </p>
-          <button className="inline-block rounded-2xl bg-[#C9A227] text-white font-bold py-4 px-10 hover:bg-[#B8931F] transition text-lg">
+          <button onClick={handleClick} className="inline-block rounded-2xl bg-[#C9A227] text-white font-bold py-4 px-10 hover:bg-[#B8931F] transition text-lg">
             Schedule Your Consultation
           </button>
         </motion.div>

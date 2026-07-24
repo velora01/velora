@@ -101,15 +101,15 @@ const Reviews = () => {
         >
           <div className="grid gap-8 md:grid-cols-3 text-center">
             <div>
-              <p className="text-4xl font-bold text-[#C9A227]">150+</p>
+              <p className="text-4xl font-bold text-[#C9A227]">350+</p>
               <p className="text-gray-700 mt-2 font-medium">Projects Completed</p>
             </div>
             <div>
-              <p className="text-4xl font-bold text-[#C9A227]">200+</p>
+              <p className="text-4xl font-bold text-[#C9A227]">320+</p>
               <p className="text-gray-700 mt-2 font-medium">Satisfied Clients</p>
             </div>
             <div>
-              <p className="text-4xl font-bold text-[#C9A227]">8+</p>
+              <p className="text-4xl font-bold text-[#C9A227]">20+</p>
               <p className="text-gray-700 mt-2 font-medium">Years Experience</p>
             </div>
           </div>

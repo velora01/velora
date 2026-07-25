@@ -47,7 +47,7 @@ const ServicesPreview = () => {
           <p className="uppercase tracking-[4px] text-[#C9A227] font-semibold">
             Featured Projects
           </p>
-          <h2 className="text-5xl font-bold mt-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mt-4">
             Interior Solutions For Every Space
           </h2>
           <p className="mt-6 text-gray-500 max-w-2xl mx-auto">

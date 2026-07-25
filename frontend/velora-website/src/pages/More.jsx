@@ -85,7 +85,7 @@ export default function More() {
 
       {/* HERO */}
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-gray-100 py-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-gray-100 py-12 sm:py-24">
 
         <div className="absolute w-96 h-96 rounded-full bg-amber-200 blur-[120px] opacity-30 -top-20 -left-20"></div>
 
@@ -96,11 +96,11 @@ export default function More() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          <span className="px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold">
+          <span className="px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs sm:text-sm font-semibold">
             Premium Interior Solutions
           </span>
 
-          <h1 className="text-5xl md:text-6xl font-black mt-8">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black mt-8">
             More About
             <span className="text-amber-600"> Velora Interiors</span>
           </h1>
@@ -114,18 +114,18 @@ export default function More() {
       </section>
 
   
-      <section className="py-20 max-w-7xl mx-auto px-6">
+      <section className="py-10 sm:py-20 max-w-7xl mx-auto px-6">
 
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-bold">
             Why Choose Velora?
           </h2>
-          <p className="text-gray-500 mt-3">
+          <p className="text-gray-500 mt-3 text-sm sm:text-base">
             Excellence in every corner.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
 
           {[
             {
@@ -163,15 +163,15 @@ export default function More() {
 
       {/* PROCESS */}
 
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-10 sm:py-20">
 
         <div className="max-w-7xl mx-auto px-6">
 
-          <h2 className="text-center text-4xl font-bold mb-14">
+          <h2 className="text-center text-2xl sm:text-4xl font-bold mb-8 sm:mb-14">
             Our Process
           </h2>
 
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
 
             {process.map((step, i) => (
               <div
@@ -193,13 +193,13 @@ export default function More() {
 
       {/* INCLUDED */}
 
-      <section className="py-20 max-w-7xl mx-auto px-6">
+      <section className="py-10 sm:py-20 max-w-7xl mx-auto px-6">
 
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
 
           <div>
 
-            <h2 className="text-4xl font-bold mb-8">
+            <h2 className="text-2xl sm:text-4xl font-bold mb-6 sm:mb-8">
               What's Included?
             </h2>
 
@@ -218,11 +218,11 @@ export default function More() {
 
           </div>
 
-          <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl p-10">
+          <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl p-6 sm:p-10">
 
             <Home className="text-amber-600 mb-5" size={55}/>
 
-            <h3 className="text-3xl font-bold">
+            <h3 className="text-xl sm:text-3xl font-bold">
               Complete Home Interior
             </h3>
 
@@ -239,9 +239,9 @@ export default function More() {
 
       {/* WARRANTY */}
 
-      <section className="bg-amber-50 py-20">
+      <section className="bg-amber-50 py-10 sm:py-20">
 
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
 
           <div className="bg-white rounded-3xl p-8">
             <ShieldCheck className="text-amber-600 mb-5" size={45}/>
@@ -279,9 +279,9 @@ export default function More() {
 
       {/* FAQ */}
 
-      <section className="py-24 max-w-5xl mx-auto px-6">
+      <section className="py-12 sm:py-24 max-w-5xl mx-auto px-6">
 
-        <h2 className="text-center text-4xl font-bold mb-14">
+        <h2 className="text-center text-2xl sm:text-4xl font-bold mb-8 sm:mb-14">
           Frequently Asked Questions
         </h2>
 
@@ -327,11 +327,11 @@ export default function More() {
 
       {/* CTA */}
 
-      <section className="py-24 bg-gradient-to-r from-amber-600 to-orange-500 text-white">
+      <section className="py-12 sm:py-24 bg-gradient-to-r from-amber-600 to-orange-500 text-white">
 
         <div className="max-w-5xl mx-auto text-center px-6">
 
-          <h2 className="text-5xl font-black">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black">
             Ready to Design Your Dream Home?
           </h2>
 

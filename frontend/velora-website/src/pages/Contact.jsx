@@ -58,18 +58,18 @@ const Contact = () => {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* Header Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Get In Touch
           </p>
 
-          <h1 className="text-5xl font-bold leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
             Let's bring your interior vision to life.
           </h1>
 
@@ -189,18 +189,18 @@ const Contact = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Questions & Answers
           </p>
-          <h2 className="text-5xl font-bold leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
             Frequently Asked Questions
           </h2>
           <p className="mt-6 text-gray-600 leading-8 max-w-3xl mx-auto">

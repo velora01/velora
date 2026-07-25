@@ -57,7 +57,7 @@ const Projects = () => {
 
   return (
     <main className="min-h-screen bg-[#faf8f4] text-gray-900">
-      <section className="max-w-7xl mx-auto px-6 py-24">
+      <section className="max-w-7xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -65,15 +65,15 @@ const Projects = () => {
           transition={{ duration: 0.8 }}
           className="text-center"
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Recent Projects
           </p>
 
-          <h1 className="text-5xl font-bold leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
             Explore Our Latest Interior Designs
           </h1>
 
-          <p className="mt-6 text-gray-600 leading-8 max-w-3xl mx-auto">
+          <p className="mt-6 text-gray-600 leading-relaxed sm:leading-8 max-w-3xl mx-auto text-sm sm:text-base">
             Discover a selection of recent design projects that showcase luxury, comfort, and a strong sense of place.
           </p>
         </motion.div>
@@ -91,7 +91,7 @@ const Projects = () => {
         )}
 
         {!loading && !error && projects.length > 0 && (
-          <div className="grid gap-8 mt-16 lg:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16">
             {projects.map((project, index) => {
               const gallery = getProjectGallery(project);
               const coverImage = gallery[0] || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80";
@@ -151,7 +151,7 @@ const Projects = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-h-[95vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
+              className="relative max-w-5xl w-full max-h-[95vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
               {/* Close Button */}
@@ -170,7 +170,7 @@ const Projects = () => {
               {/* Main Container */}
               <div className="h-full overflow-y-auto">
                 {/* Large Image Gallery */}
-                <div className="relative bg-black/95 w-full h-96 md:h-[500px] lg:h-[600px] flex items-center justify-center">
+                <div className="relative bg-black/95 w-full h-64 sm:h-96 md:h-[500px] lg:h-[600px] flex items-center justify-center">
                   <img
                     src={getProjectGallery(selectedProject)[currentImageIndex] || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"}
                     alt={`${selectedProject.heading} view ${currentImageIndex + 1}`}
@@ -219,13 +219,13 @@ const Projects = () => {
                 <div className="p-6 md:p-8 lg:p-10">
                   {/* Project Header */}
                   <div className="mb-8 border-b border-gray-200 pb-8">
-                    <p className="text-sm uppercase tracking-[4px] text-[#C9A227] font-semibold">
+                    <p className="text-xs sm:text-sm uppercase tracking-[4px] text-[#C9A227] font-semibold">
                       {selectedProject.tag}
                     </p>
-                    <h1 className="mt-3 text-4xl md:text-5xl font-bold text-gray-900">
+                    <h1 className="mt-3 text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900">
                       {selectedProject.heading}
                     </h1>
-                    <p className="mt-6 text-gray-700 leading-8 text-lg max-w-3xl">
+                    <p className="mt-4 sm:mt-6 text-gray-700 leading-relaxed sm:leading-8 text-base sm:text-lg max-w-3xl">
                       {selectedProject.description}
                     </p>
                   </div>

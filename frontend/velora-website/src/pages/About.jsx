@@ -51,18 +51,18 @@ const About = () => {
   return (
     <main className="min-h-screen bg-[#faf8f4] text-gray-900">
     
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             About Velora
           </p>
 
-          <h1 className="text-5xl font-bold leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
             The art of interior design, crafted for modern living.
           </h1>
 
@@ -126,33 +126,33 @@ const About = () => {
 
         {/* Design Philosophy Section */}
         <motion.section
-          className="mt-20 grid gap-10 lg:grid-cols-3"
+          className="mt-10 lg:mt-20 grid gap-8 lg:grid-cols-3"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="rounded-3xl bg-gradient-to-br from-[#fff9eb] to-[#fffef5] p-10 shadow-xl border border-[#C9A227]/20">
-            <h3 className="text-3xl font-bold text-[#C9A227] mb-4">Design Philosophy</h3>
-            <p className="text-gray-700 leading-8 mb-4">
+          <div className="rounded-3xl bg-gradient-to-br from-[#fff9eb] to-[#fffef5] p-6 sm:p-10 shadow-xl border border-[#C9A227]/20">
+            <h3 className="text-2xl sm:text-3xl font-bold text-[#C9A227] mb-4">Design Philosophy</h3>
+            <p className="text-gray-700 leading-relaxed sm:leading-8 mb-4">
               We design with balance in mind: layered textures, soft palettes, and strong spatial flow create spaces that feel calm yet luxurious.
             </p>
             <p className="text-gray-600 text-sm">
               Every element is carefully considered to create harmony between form and function.
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-10 shadow-xl border border-gray-100 hover:shadow-2xl transition">
-            <h3 className="text-3xl font-bold text-[#C9A227] mb-4">What We Do</h3>
-            <p className="text-gray-700 leading-8 mb-4">
+          <div className="rounded-3xl bg-white p-6 sm:p-10 shadow-xl border border-gray-100 hover:shadow-2xl transition">
+            <h3 className="text-2xl sm:text-3xl font-bold text-[#C9A227] mb-4">What We Do</h3>
+            <p className="text-gray-700 leading-relaxed sm:leading-8 mb-4">
               From residential interiors to boutique commercial spaces, we offer full-service design, styling, and furniture curation.
             </p>
             <p className="text-gray-600 text-sm">
               Our comprehensive approach ensures seamless execution and stunning results.
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-10 shadow-xl border border-gray-100 hover:shadow-2xl transition">
-            <h3 className="text-3xl font-bold text-[#C9A227] mb-4">Studio Values</h3>
-            <p className="text-gray-700 leading-8 mb-4">
+          <div className="rounded-3xl bg-white p-6 sm:p-10 shadow-xl border border-gray-100 hover:shadow-2xl transition">
+            <h3 className="text-2xl sm:text-3xl font-bold text-[#C9A227] mb-4">Studio Values</h3>
+            <p className="text-gray-700 leading-relaxed sm:leading-8 mb-4">
               Quality, sustainability, and joyful collaboration guide every decision we make for our clients and projects.
             </p>
             <p className="text-gray-600 text-sm">
@@ -162,18 +162,18 @@ const About = () => {
         </motion.section>
       </section>
       
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Our Core Values
           </p>
-          <h2 className="text-5xl font-bold leading-tight">What Drives Us</h2>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">What Drives Us</h2>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -198,18 +198,18 @@ const About = () => {
       </section>
 
       {/* Awards Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Recognition
           </p>
-          <h2 className="text-5xl font-bold leading-tight">Awards & Accolades</h2>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">Awards & Accolades</h2>
           <p className="mt-6 text-gray-600 leading-8 max-w-3xl mx-auto">
             Our commitment to excellence and innovation has been recognized by industry leaders and satisfied clients worldwide.
           </p>
@@ -235,18 +235,18 @@ const About = () => {
       </section>
 
       {/* Team Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24 bg-gradient-to-br from-white to-[#faf8f4] rounded-3xl my-12">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24 bg-gradient-to-br from-white to-[#faf8f4] rounded-3xl my-6 sm:my-12">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
+          <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4 text-xs sm:text-sm">
             Our Team
           </p>
-          <h2 className="text-5xl font-bold leading-tight">Meet the Professionals</h2>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">Meet the Professionals</h2>
           <p className="mt-6 text-gray-600 leading-8 max-w-3xl mx-auto">
             Our diverse team of designers, consultants, and specialists brings together decades of combined experience and creative expertise.
           </p>
@@ -292,18 +292,18 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="max-w-6xl mx-auto px-6 py-24 text-center">
+      <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24 text-center">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Ready to Transform Your Space?</h2>
-          <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Ready to Transform Your Space?</h2>
+          <p className="text-gray-600 text-base sm:text-lg mb-8 max-w-2xl mx-auto">
             Let our team of professional designers create a beautiful, functional space that reflects your vision and lifestyle.
           </p>
-          <button onClick={handleClick} className="inline-block rounded-2xl bg-[#C9A227] text-white font-bold py-4 px-10 hover:bg-[#B8931F] transition text-lg">
+          <button onClick={handleClick} className="inline-block rounded-2xl bg-[#C9A227] text-white font-bold py-4 px-8 sm:px-10 hover:bg-[#B8931F] transition text-base sm:text-lg">
             Schedule Your Consultation
           </button>
         </motion.div>

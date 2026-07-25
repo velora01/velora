@@ -54,7 +54,7 @@ const Reviews = () => {
           <p className="text-[#C9A227] uppercase tracking-[6px] font-semibold mb-4">
             Client Reviews
           </p>
-          <h2 className="text-5xl font-bold leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
             What our clients are saying
           </h2>
           <p className="mt-6 text-gray-600 leading-8 max-w-3xl mx-auto">

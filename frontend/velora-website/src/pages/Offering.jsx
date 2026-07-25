@@ -193,7 +193,7 @@ const Offering = () => {
             Premium Interior Solutions
           </p>
 
-          <h1 className="text-5xl md:text-6xl font-bold mt-5 leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mt-5 leading-tight">
             Everything You Need
             <br />
             For Your Dream Home
@@ -211,14 +211,14 @@ const Offering = () => {
         </motion.div>
       </section>
 
-      <section className="max-w-7xl mx-auto py-24 px-6">
+      <section className="max-w-7xl mx-auto py-12 sm:py-24 px-6">
 
         <div className="text-center mb-16">
-          <p className="text-yellow-600 font-semibold uppercase">
+          <p className="text-yellow-600 font-semibold uppercase text-xs sm:text-sm">
             What We Offer
           </p>
 
-          <h2 className="text-4xl font-bold mt-3">
+          <h2 className="text-2xl sm:text-4xl font-bold mt-3">
             Premium Services For Every Space
           </h2>
 
@@ -282,17 +282,17 @@ const Offering = () => {
 
       </section>
 
-      <section className="bg-white py-24">
+      <section className="bg-white py-12 sm:py-24">
 
         <div className="max-w-7xl mx-auto px-6">
 
           <div className="text-center">
 
-            <p className="text-yellow-600 font-semibold uppercase">
+            <p className="text-yellow-600 font-semibold uppercase text-xs sm:text-sm">
               Trusted Material Partners
             </p>
 
-            <h2 className="text-4xl font-bold mt-4">
+            <h2 className="text-2xl sm:text-4xl font-bold mt-4">
               We Use Only Premium Brands
             </h2>
 
@@ -342,9 +342,9 @@ const Offering = () => {
 
       </section >
 
-      <section className="py-24 max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-24 max-w-7xl mx-auto px-6">
 
-        <div className="grid lg:grid-cols-2 gap-14 items-center">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
 
           <motion.img
             variants={slideLeft}
@@ -363,11 +363,11 @@ const Offering = () => {
             viewport={{ once: true }}
           >
 
-            <p className="text-yellow-600 font-semibold uppercase">
+            <p className="text-yellow-600 font-semibold uppercase text-xs sm:text-sm">
               Why Choose Us
             </p>
 
-            <h2 className="text-4xl font-bold mt-4">
+            <h2 className="text-2xl sm:text-4xl font-bold mt-4">
               Interior Excellence That Lasts
             </h2>
 
@@ -408,11 +408,11 @@ const Offering = () => {
       </section >
 
 
-      <section className="bg-yellow-500 py-20">
+      <section className="bg-yellow-500 py-12 sm:py-20">
 
         <div className="max-w-5xl mx-auto text-center px-6">
 
-          <h2 className="text-4xl font-bold text-white">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white">
             Ready To Build Your Dream Home?
           </h2>
 

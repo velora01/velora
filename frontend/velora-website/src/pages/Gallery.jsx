@@ -133,13 +133,13 @@ export default function Gallery() {
   });
 
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="bg-gray-50 py-12 sm:py-20">
 
       <div className="max-w-7xl mx-auto px-5">
 
-        <div className="text-center mb-14">
+        <div className="text-center mb-10 sm:mb-14">
 
-          <h2 className="text-5xl font-bold text-gray-900">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
             Design Gallery
           </h2>
 

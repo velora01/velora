@@ -42,7 +42,7 @@ const ProjectsPreview = () => {
           <p className="uppercase tracking-[4px] text-[#C9A227] font-semibold">
             Featured Projects
           </p>
-          <h2 className="text-5xl font-bold mt-4 text-gray-900">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mt-4 text-gray-900">
             Explore Our Latest Interior Work
           </h2>
           <p className="mt-6 text-gray-600 max-w-2xl mx-auto leading-8">

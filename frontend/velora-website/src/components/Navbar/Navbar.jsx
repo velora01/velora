@@ -17,10 +17,10 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-yellow-600/95 px-4 py-4 text-white shadow-lg backdrop-blur-md sm:px-8">
+    <nav className="sticky top-0 z-50 bg-yellow-600/95 px-4 py-3 sm:py-4 text-white shadow-lg backdrop-blur-md sm:px-8">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" className="bg-white px-5 py-2 rounded-full shadow-md border border-amber-100/50 flex items-center justify-center transition hover:bg-amber-50" aria-label="Velora home">
-          <img src="/logo.png" alt="Velora logo" className="h-11 sm:h-13 w-auto object-contain" />
+        <a href="/" className="bg-white px-5 py-1 rounded-full shadow-md border border-amber-100/50 flex items-center justify-center transition hover:bg-amber-50" aria-label="Velora home">
+          <img src="/logo.png" alt="Velora logo" className="h-13 sm:h-15 w-auto object-contain" />
         </a>
 
         {/* Desktop Menu */}
@@ -30,8 +30,7 @@ const Navbar = () => {
               <NavLink
                 to={link.to}
                 className={({ isActive }) =>
-                  `transition duration-300 hover:text-yellow-200 py-1.5 border-b-2 ${
-                    isActive ? "border-white text-yellow-100 font-semibold" : "border-transparent"
+                  `transition duration-300 hover:text-yellow-200 py-1.5 border-b-2 ${isActive ? "border-white text-yellow-100 font-semibold" : "border-transparent"
                   }`
                 }
               >
@@ -61,8 +60,7 @@ const Navbar = () => {
                   to={link.to}
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
-                    `block py-2.5 px-4 rounded-xl text-sm font-medium transition ${
-                      isActive ? "bg-white/20 text-yellow-100 font-semibold" : "hover:bg-white/10 text-white"
+                    `block py-2.5 px-4 rounded-xl text-sm font-medium transition ${isActive ? "bg-white/20 text-yellow-100 font-semibold" : "hover:bg-white/10 text-white"
                     }`
                   }
                 >

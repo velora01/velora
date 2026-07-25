@@ -25,14 +25,22 @@ const SplashScreen = ({ onFinish }) => {
 
   return (
     <div className="splash-screen">
-      <div
-        className="curtain-panel curtain-left"
-        style={{ backgroundImage: `url(${imageSrc})` }}
-      />
-      <div
-        className="curtain-panel curtain-right"
-        style={{ backgroundImage: `url(${imageSrc})` }}
-      />
+      <div className="curtain-panel curtain-left">
+        <div className="curtain-image-wrapper">
+          <div
+            className="curtain-image"
+            style={{ backgroundImage: `url(${imageSrc})` }}
+          />
+        </div>
+      </div>
+      <div className="curtain-panel curtain-right">
+        <div className="curtain-image-wrapper">
+          <div
+            className="curtain-image"
+            style={{ backgroundImage: `url(${imageSrc})` }}
+          />
+        </div>
+      </div>
       <div className="splash-overlay" />
     </div>
   );

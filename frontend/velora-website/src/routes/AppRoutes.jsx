@@ -13,6 +13,7 @@ import Guide from "../pages/Guide";
 import Gallery from "../pages/Gallery";
 import Offering from "../pages/Offering";
 import More from "../pages/More";
+import UploadProject from "../pages/UploadProject";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/more" element={<More />} />
         <Route path="/offering" element={<Offering />} />
+        <Route path="/upload" element={<UploadProject />} />
       </Routes>
 
       <Footer />

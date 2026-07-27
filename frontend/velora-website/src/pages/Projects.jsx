@@ -1,15 +1,34 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchProjects } from "../services/projects";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Sparkles, MapPin, ArrowRight, CheckCircle } from "lucide-react";
 
 const Projects = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Calculator States
+  const [calcArea, setCalcArea] = useState("");
+  const [calcQuality, setCalcQuality] = useState("Luxury");
+  const [calcEstimate, setCalcEstimate] = useState(0);
+
+  const calculateCost = () => {
+    const area = parseFloat(calcArea);
+    if (!area || isNaN(area)) return;
+    
+    let rate = 1500; // Rate in INR per sq ft
+    if (calcQuality === "Luxury") rate = 2500;
+    if (calcQuality === "Ultra-Luxury") rate = 4000;
+    
+    setCalcEstimate(area * rate);
+  };
 
   const getProjectGallery = (project) => {
     const images = Array.isArray(project?.images)
@@ -54,6 +73,19 @@ const Projects = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (location.state?.selectedProjectId && projects.length > 0) {
+      const project = projects.find(
+        (p) => p._id === location.state.selectedProjectId
+      );
+      if (project) {
+        setSelectedProject(project);
+        // Clear history state to prevent reopening on reload
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, projects]);
 
   return (
     <main className="min-h-screen bg-[#faf8f4] text-gray-900">
@@ -140,44 +172,48 @@ const Projects = () => {
 
         {selectedProject && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-4 md:py-6"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-2 sm:p-4 md:p-6 backdrop-blur-xs"
             onClick={() => {
               setSelectedProject(null);
               setCurrentImageIndex(0);
               setActiveTab("overview");
+              setCalcArea("");
+              setCalcEstimate(0);
             }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative max-w-5xl w-full max-h-[95vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="relative bg-white w-full max-w-6xl h-[92vh] max-h-[820px] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100"
               onClick={(event) => event.stopPropagation()}
             >
               {/* Close Button */}
               <button
                 type="button"
-                className="absolute right-4 top-4 z-20 rounded-full bg-white shadow-lg p-2 text-gray-800 hover:bg-gray-100 transition"
+                className="absolute right-4 top-4 z-50 bg-black/75 hover:bg-black text-white p-2 rounded-full transition shadow-lg"
                 onClick={() => {
                   setSelectedProject(null);
                   setCurrentImageIndex(0);
                   setActiveTab("overview");
+                  setCalcArea("");
+                  setCalcEstimate(0);
                 }}
               >
-                <span className="text-2xl">×</span>
+                <X size={20} />
               </button>
 
-              {/* Main Container */}
-              <div className="h-full overflow-y-auto">
-                {/* Large Image Gallery */}
-                <div className="relative bg-black/95 w-full h-64 sm:h-96 md:h-[500px] lg:h-[600px] flex items-center justify-center">
+              {/* Left Column: Interactive Image Gallery */}
+              <div className="w-full md:w-[58%] h-[38vh] md:h-full bg-[#141414] flex flex-col justify-between p-4 relative border-b md:border-b-0 md:border-r border-gray-100">
+                {/* Main Carousel View */}
+                <div className="relative flex-1 rounded-2xl overflow-hidden bg-neutral-950 flex items-center justify-center group/carousel">
                   <img
                     src={getProjectGallery(selectedProject)[currentImageIndex] || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"}
                     alt={`${selectedProject.heading} view ${currentImageIndex + 1}`}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition-all duration-500"
                   />
 
-                  {/* Navigation Arrows */}
+                  {/* Arrows */}
                   {getProjectGallery(selectedProject).length > 1 && (
                     <>
                       <button
@@ -189,9 +225,9 @@ const Projects = () => {
                               : currentImageIndex - 1
                           )
                         }
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/90 hover:bg-white p-2 transition shadow-lg"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 hover:bg-[#C9A227] text-white p-2.5 transition shadow-md opacity-0 group-hover/carousel:opacity-100 duration-300 animate-fade-in"
                       >
-                        <ChevronLeft size={24} className="text-gray-800" />
+                        <ChevronLeft size={20} />
                       </button>
                       <button
                         type="button"
@@ -202,361 +238,262 @@ const Projects = () => {
                               : currentImageIndex + 1
                           )
                         }
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/90 hover:bg-white p-2 transition shadow-lg"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 hover:bg-[#C9A227] text-white p-2.5 transition shadow-md opacity-0 group-hover/carousel:opacity-100 duration-300 animate-fade-in"
                       >
-                        <ChevronRight size={24} className="text-gray-800" />
+                        <ChevronRight size={20} />
                       </button>
                     </>
                   )}
 
-                  {/* Image Counter */}
-                  <div className="absolute bottom-4 right-4 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  {/* Image Counter Pill */}
+                  <div className="absolute bottom-4 right-4 bg-black/75 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider backdrop-blur-xs">
                     {currentImageIndex + 1} / {getProjectGallery(selectedProject).length}
                   </div>
                 </div>
 
-                {/* Content Section */}
-                <div className="p-6 md:p-8 lg:p-10">
-                  {/* Project Header */}
-                  <div className="mb-8 border-b border-gray-200 pb-8">
-                    <p className="text-xs sm:text-sm uppercase tracking-[4px] text-[#C9A227] font-semibold">
+                {/* Thumbnails Row */}
+                {getProjectGallery(selectedProject).length > 1 && (
+                  <div className="flex gap-2.5 mt-4 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent shrink-0">
+                    {getProjectGallery(selectedProject).map((image, idx) => (
+                      <button
+                        type="button"
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition duration-200 shrink-0 ${
+                          currentImageIndex === idx
+                            ? "border-[#C9A227] scale-95"
+                            : "border-transparent opacity-50 hover:opacity-100"
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Thumbnail ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Title, Metadata, Tabs, and Cost Calculator */}
+              <div className="w-full md:w-[42%] h-[54vh] md:h-full flex flex-col bg-white">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+                  
+                  {/* Title & Tag */}
+                  <div>
+                    <span className="inline-block text-[10px] font-extrabold uppercase tracking-[2px] text-[#C9A227] border border-[#C9A227]/25 px-2 py-0.5 rounded bg-[#C9A227]/5">
                       {selectedProject.tag}
-                    </p>
-                    <h1 className="mt-3 text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900">
+                    </span>
+                    <h1 className="mt-3 text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
                       {selectedProject.heading}
                     </h1>
-                    <p className="mt-4 sm:mt-6 text-gray-700 leading-relaxed sm:leading-8 text-base sm:text-lg max-w-3xl">
+                    <p className="mt-3 text-sm text-gray-500 leading-relaxed">
                       {selectedProject.description}
                     </p>
                   </div>
-                  {/* Sticky Tab Navigation Header */}
-                  <div className="sticky top-0 z-40 bg-white border-b-2 border-[#C9A227]/20 shadow-md -mx-6 md:-mx-8 lg:-mx-10 px-6 md:px-8 lg:px-10">
-                    <div className="flex items-center justify-start gap-1 py-0 overflow-x-auto">
+
+                  {/* Minimal Tab Headers */}
+                  <div className="border-b border-gray-100 sticky top-0 bg-white z-20 -mx-6 md:-mx-8 px-6 md:px-8">
+                    <div className="flex gap-2 overflow-x-auto pb-px scrollbar-none">
                       {[
-                        { id: "overview", label: "Overview", icon: "📋" },
-                        { id: "gallery", label: "Gallery", icon: "🖼️" },
-                        { id: "review", label: "Review", icon: "✨" },
-                        { id: "offerings", label: "Offerings", icon: "🎁" },
-                        { id: "calculator", label: "Calculator", icon: "💰" }
+                        { id: "overview", label: "Overview" },
+                        { id: "guide", label: "Design Guide" },
+                        { id: "offerings", label: "Offerings" },
+                        { id: "calculator", label: "Cost Est." }
                       ].map((tab) => (
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`flex items-center gap-2 px-4 py-4 font-semibold text-sm uppercase tracking-wider transition-all duration-300 border-b-4 whitespace-nowrap ${
+                          className={`py-3.5 px-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 whitespace-nowrap ${
                             activeTab === tab.id
-                              ? "text-[#C9A227] border-[#C9A227] bg-[#C9A227]/5"
-                              : "text-gray-600 hover:text-[#C9A227] border-transparent hover:border-[#C9A227]/30 hover:bg-gray-50"
+                              ? "text-[#C9A227] border-[#C9A227]"
+                              : "text-gray-400 hover:text-gray-600 border-transparent"
                           }`}
                         >
-                          <span className="text-xl hidden sm:inline">{tab.icon}</span>
-                          <span>{tab.label}</span>
+                          {tab.label}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Tab Content */}
-                  <div className="space-y-8">
-                    {/* Overview Tab */}
+                  {/* Tab Body Contents */}
+                  <div className="pt-2">
+                    {/* Overview */}
                     {activeTab === "overview" && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
+                        className="space-y-5"
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          <div className="bg-gradient-to-br from-[#C9A227]/10 to-transparent rounded-2xl p-6 border border-[#C9A227]/20">
-                            <h3 className="text-[#C9A227] font-semibold uppercase tracking-wide mb-2">
-                              Project Type
-                            </h3>
-                            <p className="text-gray-800 text-lg font-medium">
-                              {selectedProject.tag || "Interior Design"}
-                            </p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                            <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Project Type</span>
+                            <span className="block text-sm font-semibold text-gray-800 mt-1">{selectedProject.tag || "Interior"}</span>
                           </div>
-                          <div className="bg-gradient-to-br from-[#C9A227]/10 to-transparent rounded-2xl p-6 border border-[#C9A227]/20">
-                            <h3 className="text-[#C9A227] font-semibold uppercase tracking-wide mb-2">
-                              Status
-                            </h3>
-                            <p className="text-gray-800 text-lg font-medium">
-                              Completed
-                            </p>
+                          <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                            <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Timeline</span>
+                            <span className="block text-sm font-semibold text-gray-800 mt-1">8 - 12 Weeks</span>
                           </div>
-                          <div className="bg-gradient-to-br from-[#C9A227]/10 to-transparent rounded-2xl p-6 border border-[#C9A227]/20">
-                            <h3 className="text-[#C9A227] font-semibold uppercase tracking-wide mb-2">
-                              Gallery Items
-                            </h3>
-                            <p className="text-gray-800 text-lg font-medium">
-                              {getProjectGallery(selectedProject).length} Images
-                            </p>
+                          <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                            <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Deliverable</span>
+                            <span className="block text-sm font-semibold text-gray-800 mt-1">Full Turnkey</span>
+                          </div>
+                          <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                            <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Warranty</span>
+                            <span className="block text-sm font-semibold text-gray-800 mt-1">10 Years</span>
                           </div>
                         </div>
-                        <div className="bg-gray-50 rounded-2xl p-8">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                            Project Details
-                          </h3>
-                          <p className="text-gray-700 leading-8">
-                            {selectedProject.description}
+
+                        <div className="bg-[#faf8f4] border border-[#C9A227]/10 rounded-xl p-5">
+                          <h4 className="text-xs uppercase font-bold text-[#C9A227] tracking-wider mb-2">Scope of Work</h4>
+                          <p className="text-xs text-gray-600 leading-relaxed">
+                            This luxury space features tailored spatial layout improvements, premium material finishes, customized lighting automation, and curated bespoke furniture designs.
                           </p>
                         </div>
                       </motion.div>
                     )}
 
-                    {/* Gallery Guide Tab */}
-                    {activeTab === "gallery" && (
+                    {/* Design Guide */}
+                    {activeTab === "guide" && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
+                        className="space-y-5"
                       >
-                        <div className="bg-gray-50 rounded-2xl p-8">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                            Gallery Guide
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            {getProjectGallery(selectedProject).map((image, idx) => (
-                              <div
-                                key={idx}
-                                className="relative group cursor-pointer rounded-xl overflow-hidden"
-                                onClick={() => setCurrentImageIndex(idx)}
-                              >
-                                <img
-                                  src={image}
-                                  alt={`Gallery item ${idx + 1}`}
-                                  className="h-48 w-full object-cover group-hover:scale-110 transition duration-300"
+                        {/* Luxury Color Palette */}
+                        <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                          <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider mb-3">Color Palette</h4>
+                          <div className="grid grid-cols-4 gap-2">
+                            {[
+                              { hex: "#C9A227", name: "Gold" },
+                              { hex: "#F5F2EB", name: "Ivory" },
+                              { hex: "#2C2C2C", name: "Charcoal" },
+                              { hex: "#7E715C", name: "Taupe" }
+                            ].map((color, idx) => (
+                              <div key={idx} className="text-center">
+                                <div
+                                  className="h-10 rounded-lg border border-gray-200 mx-auto"
+                                  style={{ backgroundColor: color.hex }}
                                 />
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition flex items-center justify-center">
-                                  <span className="text-white font-semibold text-lg">
-                                    View {idx + 1}
-                                  </span>
-                                </div>
+                                <span className="text-[10px] text-gray-500 font-semibold mt-1 block">{color.name}</span>
                               </div>
                             ))}
                           </div>
-                          <p className="text-gray-700 leading-8">
-                            Explore our complete gallery showcasing every detail of this luxury interior design project. Each image captures the essence of craftsmanship, elegance, and attention to detail.
-                          </p>
                         </div>
-                      </motion.div>
-                    )}
 
-                    {/* Guide Review Tab */}
-                    {activeTab === "review" && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
-                      >
-                        <div className="bg-gray-50 rounded-2xl p-8">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                            Design Guide & Review
-                          </h3>
-                          <div className="space-y-4">
-                            <div className="border-l-4 border-[#C9A227] pl-6 py-2">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                Design Concept
-                              </h4>
-                              <p className="text-gray-700">
-                                This project embodies modern luxury combined with timeless elegance, creating a space that is both functional and aesthetically stunning.
-                              </p>
-                            </div>
-                            <div className="border-l-4 border-[#C9A227] pl-6 py-2">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                Materials & Finishes
-                              </h4>
-                              <p className="text-gray-700">
-                                Premium materials including marble, oak wood, and custom upholstery were carefully selected to ensure durability and visual appeal.
-                              </p>
-                            </div>
-                            <div className="border-l-4 border-[#C9A227] pl-6 py-2">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                Color Palette
-                              </h4>
-                              <p className="text-gray-700">
-                                A sophisticated blend of neutral tones with gold accents creates a warm, inviting atmosphere while maintaining elegance.
-                              </p>
-                            </div>
-                            <div className="border-l-4 border-[#C9A227] pl-6 py-2">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                Spatial Planning
-                              </h4>
-                              <p className="text-gray-700">
-                                Every element is thoughtfully positioned to maximize flow, functionality, and visual harmony throughout the space.
-                              </p>
-                            </div>
+                        {/* Finishes */}
+                        <div className="space-y-3">
+                          <div className="border-l-2 border-[#C9A227] pl-3 py-0.5">
+                            <h5 className="text-xs font-bold text-gray-800">Materials & Finishes</h5>
+                            <p className="text-xs text-gray-500 mt-1">Italian marble slabs, polished oak cabinetry, and brass fixtures.</p>
+                          </div>
+                          <div className="border-l-2 border-[#C9A227] pl-3 py-0.5">
+                            <h5 className="text-xs font-bold text-gray-800">Lighting Design</h5>
+                            <p className="text-xs text-gray-500 mt-1">Indirect dimmable LED warm profiles, luxury crystal chandeliers.</p>
                           </div>
                         </div>
                       </motion.div>
                     )}
 
-                    {/* Offerings Tab */}
+                    {/* Offerings */}
                     {activeTab === "offerings" && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
+                        className="grid gap-3"
                       >
-                        <div className="bg-gradient-to-br from-[#C9A227]/5 to-transparent rounded-2xl p-8">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-8">
-                            Our Premium Offerings
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-2xl p-6 border-2 border-[#C9A227]/30 hover:border-[#C9A227] transition">
-                              <div className="text-3xl mb-3">✨</div>
-                              <h4 className="text-lg font-bold text-gray-900 mb-3">
-                                Full Interior Design
-                              </h4>
-                              <p className="text-gray-600 mb-4">
-                                Complete design solution from concept to execution with professional consultation.
-                              </p>
-                              <ul className="text-sm text-gray-700 space-y-2">
-                                <li>✓ Space planning & layout</li>
-                                <li>✓ Material selection</li>
-                                <li>✓ Color coordination</li>
-                              </ul>
-                            </div>
-                            <div className="bg-white rounded-2xl p-6 border-2 border-[#C9A227]/30 hover:border-[#C9A227] transition">
-                              <div className="text-3xl mb-3">🛋️</div>
-                              <h4 className="text-lg font-bold text-gray-900 mb-3">
-                                Furniture Curation
-                              </h4>
-                              <p className="text-gray-600 mb-4">
-                                Expert selection of premium furniture pieces that complement your design.
-                              </p>
-                              <ul className="text-sm text-gray-700 space-y-2">
-                                <li>✓ Designer collaborations</li>
-                                <li>✓ Custom options</li>
-                                <li>✓ Quality assurance</li>
-                              </ul>
-                            </div>
-                            <div className="bg-white rounded-2xl p-6 border-2 border-[#C9A227]/30 hover:border-[#C9A227] transition">
-                              <div className="text-3xl mb-3">🎨</div>
-                              <h4 className="text-lg font-bold text-gray-900 mb-3">
-                                Decor & Styling
-                              </h4>
-                              <p className="text-gray-600 mb-4">
-                                Curated accessories and styling that bring your space to life with personality.
-                              </p>
-                              <ul className="text-sm text-gray-700 space-y-2">
-                                <li>✓ Art & wall decor</li>
-                                <li>✓ Lighting design</li>
-                                <li>✓ Styling consultation</li>
-                              </ul>
-                            </div>
-                            <div className="bg-white rounded-2xl p-6 border-2 border-[#C9A227]/30 hover:border-[#C9A227] transition">
-                              <div className="text-3xl mb-3">🔧</div>
-                              <h4 className="text-lg font-bold text-gray-900 mb-3">
-                                Project Management
-                              </h4>
-                              <p className="text-gray-600 mb-4">
-                                End-to-end management ensuring timely delivery and quality execution.
-                              </p>
-                              <ul className="text-sm text-gray-700 space-y-2">
-                                <li>✓ Contractor coordination</li>
-                                <li>✓ Timeline management</li>
-                                <li>✓ Quality control</li>
-                              </ul>
+                        {[
+                          { title: "Turnkey Interiors", desc: "From structure layouts to decor styling." },
+                          { title: "Bespoke Furniture", desc: "Custom sofas, beds, and modular fittings." },
+                          { title: "Modular Wardrobes", desc: "Sleek, high-capacity, scratch-free finishes." }
+                        ].map((offering, idx) => (
+                          <div key={idx} className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex items-start gap-3">
+                            <CheckCircle size={16} className="text-[#C9A227] mt-0.5 shrink-0" />
+                            <div>
+                              <h5 className="text-xs font-bold text-gray-800">{offering.title}</h5>
+                              <p className="text-xs text-gray-500 mt-0.5">{offering.desc}</p>
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </motion.div>
                     )}
 
-                    {/* Cost Calculator Tab */}
+                    {/* Cost Calculator */}
                     {activeTab === "calculator" && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
+                        className="space-y-4"
                       >
-                        <div className="bg-gradient-to-br from-[#C9A227]/5 to-transparent rounded-2xl p-8">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-8">
-                            Cost Breakdown & Calculator
-                          </h3>
-                          <div className="space-y-6">
-                            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                  <h4 className="text-lg font-bold text-gray-900 mb-6">
-                                    Service Pricing
-                                  </h4>
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                                      <span className="text-gray-700">Design Consultation</span>
-                                      <span className="font-semibold text-gray-900">$500 - $1,000</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                                      <span className="text-gray-700">Space Planning</span>
-                                      <span className="font-semibold text-gray-900">$2,000 - $5,000</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                                      <span className="text-gray-700">Material Selection</span>
-                                      <span className="font-semibold text-gray-900">Varies</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                                      <span className="text-gray-700">Project Management</span>
-                                      <span className="font-semibold text-gray-900">10% of total</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-3 border-t-2 border-[#C9A227]">
-                                      <span className="text-lg font-bold text-gray-900">
-                                        Estimated Base
-                                      </span>
-                                      <span className="text-xl font-bold text-[#C9A227]">
-                                        $15,000+
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div>
-                                  <h4 className="text-lg font-bold text-gray-900 mb-6">
-                                    Quick Estimate
-                                  </h4>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Project Size (sq ft)
-                                      </label>
-                                      <input
-                                        type="number"
-                                        placeholder="Enter area"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Budget Range
-                                      </label>
-                                      <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A227]">
-                                        <option>Select budget range</option>
-                                        <option>$15,000 - $25,000</option>
-                                        <option>$25,000 - $50,000</option>
-                                        <option>$50,000 - $100,000</option>
-                                        <option>$100,000+</option>
-                                      </select>
-                                    </div>
-                                    <button className="w-full bg-[#C9A227] text-white font-semibold py-3 rounded-lg hover:bg-[#B8931F] transition">
-                                      Get Estimate
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
+                        <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 space-y-4">
+                          <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider">Budget Estimator (INR)</h4>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Area (Sq Ft)</label>
+                              <input
+                                type="number"
+                                placeholder="e.g. 1200"
+                                value={calcArea}
+                                onChange={(e) => setCalcArea(e.target.value)}
+                                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C9A227] text-gray-900 bg-white"
+                              />
                             </div>
-                            <p className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              💡 <span className="font-semibold">Note:</span> This is an estimated guide. Final costs depend on specific requirements, materials chosen, and project scope. Contact us for a personalized quote.
-                            </p>
+                            
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Design Class</label>
+                              <select
+                                value={calcQuality}
+                                onChange={(e) => setCalcQuality(e.target.value)}
+                                className="w-full h-10 px-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C9A227] text-gray-900 bg-white"
+                              >
+                                <option value="Premium">Premium</option>
+                                <option value="Luxury">Luxury</option>
+                                <option value="Ultra-Luxury">Ultra-Luxury</option>
+                              </select>
+                            </div>
                           </div>
+
+                          <button
+                            type="button"
+                            onClick={calculateCost}
+                            className="w-full h-10 bg-[#C9A227] hover:bg-[#B8931F] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition"
+                          >
+                            Calculate Cost
+                          </button>
                         </div>
+
+                        {calcEstimate > 0 && (
+                          <div className="bg-[#faf8f4] border border-[#C9A227]/25 rounded-xl p-4 text-center">
+                            <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider">Estimated Budget</span>
+                            <span className="block text-2xl font-black text-[#C9A227] mt-1">₹{calcEstimate.toLocaleString("en-IN")}*</span>
+                            <span className="text-[9px] text-gray-400 mt-1 block">*Excludes custom structural civil alterations.</span>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </div>
 
-                  {/* CTA Button */}
-                  <div className="mt-12 pt-8 border-t border-gray-200">
-                    <button className="w-full bg-gradient-to-r from-[#C9A227] to-[#B8931F] text-white font-bold py-4 px-6 rounded-2xl hover:shadow-lg transition text-lg uppercase tracking-wide">
-                      Schedule a Consultation
-                    </button>
-                  </div>
                 </div>
+
+                {/* Sticky CTA Bottom */}
+                <div className="p-6 border-t border-gray-100 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProject(null);
+                      navigate("/consultation");
+                    }}
+                    className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-[#C9A227] border border-[#C9A227] text-xs font-bold uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2"
+                  >
+                    <span>Schedule Consultation</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+
               </div>
+
             </motion.div>
           </div>
         )}

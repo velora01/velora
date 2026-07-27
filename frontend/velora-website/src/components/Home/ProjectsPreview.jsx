@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { fetchProjects } from "../../services/projects";
 
 const ProjectsPreview = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,7 +74,8 @@ const ProjectsPreview = () => {
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.6, delay: index * 0.08 }}
                 whileHover={{ y: -8, scale: 1.01 }}
-                className="overflow-hidden rounded-3xl bg-[#faf8f4] shadow-lg border border-gray-100"
+                onClick={() => navigate("/projects", { state: { selectedProjectId: project._id } })}
+                className="overflow-hidden rounded-3xl bg-[#faf8f4] shadow-lg border border-gray-100 cursor-pointer hover:shadow-2xl transition duration-300"
               >
                 <div className="h-64 overflow-hidden">
                   <img
@@ -88,7 +91,7 @@ const ProjectsPreview = () => {
                   <h3 className="mt-4 text-2xl font-bold text-gray-900">
                     {project.heading}
                   </h3>
-                  <p className="mt-4 text-gray-600 leading-7">
+                  <p className="mt-4 text-gray-600 leading-7 line-clamp-3">
                     {project.description}
                   </p>
                 </div>

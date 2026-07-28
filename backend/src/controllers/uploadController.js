@@ -3,10 +3,10 @@ import cloudinary from "../config/cloudinary.js";
 import fs from "fs-extra";
 import path from "path";
 
-const uploadStream = (fileBuffer, folder = "uploads") => {
+const uploadStream = (fileBuffer, folder = "uploads", resourceType = "auto") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder },
+      { folder, resource_type: resourceType },
       (error, result) => {
         if (error) return reject(error);
         resolve(result);
@@ -30,13 +30,15 @@ const saveLocally = async (req, res) => {
     // Determine backend host dynamically
     const host = req.get("host") || "localhost:3000";
     const protocol = req.protocol || "http";
-    const imageUrl = `${protocol}://${host}/uploads/${filename}`;
+    const fileUrl = `${protocol}://${host}/uploads/${filename}`;
 
-    console.log(`Saved file locally: ${filePath}. URL: ${imageUrl}`);
+    console.log(`Saved file locally: ${filePath}. URL: ${fileUrl}`);
 
     return res.status(200).json({
       success: true,
-      imageUrl,
+      imageUrl: fileUrl,
+      videoUrl: fileUrl,
+      url: fileUrl,
       publicId: filename,
       originalName: req.file.originalname,
       isLocal: true,
@@ -45,7 +47,7 @@ const saveLocally = async (req, res) => {
     console.error("Local save error:", err);
     return res.status(500).json({
       success: false,
-      message: "Failed to upload image locally.",
+      message: "Failed to upload file locally.",
     });
   }
 };
@@ -71,7 +73,7 @@ export const uploadImage = async (req, res) => {
     }
 
     try {
-      const uploaded = await uploadStream(req.file.buffer, "uploads");
+      const uploaded = await uploadStream(req.file.buffer, "uploads", "image");
 
       return res.status(200).json({
         success: true,
@@ -89,6 +91,49 @@ export const uploadImage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Image upload failed.",
+    });
+  }
+};
+
+export const uploadVideo = async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded. Please attach a video under the 'video' field.",
+      });
+    }
+
+    // Check for default placeholder Cloudinary credentials
+    const isPlaceholder =
+      !process.env.CLOUDINARY_API_KEY ||
+      process.env.CLOUDINARY_API_KEY === "your_api_key" ||
+      process.env.CLOUDINARY_CLOUD_NAME === "your_cloud_name";
+
+    if (isPlaceholder) {
+      console.warn("Placeholder Cloudinary keys detected. Saving file locally.");
+      return await saveLocally(req, res);
+    }
+
+    try {
+      const uploaded = await uploadStream(req.file.buffer, "uploads", "video");
+
+      return res.status(200).json({
+        success: true,
+        videoUrl: uploaded.secure_url,
+        publicId: uploaded.public_id,
+        originalName: req.file.originalname,
+        raw: uploaded,
+      });
+    } catch (cloudinaryError) {
+      console.error("Cloudinary upload failed, falling back to local file storage. Error:", cloudinaryError);
+      return await saveLocally(req, res);
+    }
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Video upload failed.",
     });
   }
 };

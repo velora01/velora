@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, Trash2, Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { createProject, uploadProjectImage } from "../services/projects";
+import { createProject, uploadProjectImage, uploadProjectVideo } from "../services/projects";
 
 const PRESET_TAGS = [
   "Living Room",
@@ -23,11 +23,13 @@ export default function UploadProject() {
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [galleryImages, setGalleryImages] = useState([]);
+  const [video, setVideo] = useState("");
 
   // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   // Message States
   const [error, setError] = useState("");
@@ -83,6 +85,29 @@ export default function UploadProject() {
     }
   };
 
+  // Handle Video Upload
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    setError("");
+
+    try {
+      const result = await uploadProjectVideo(file);
+      if (result.success && result.videoUrl) {
+        setVideo(result.videoUrl);
+      } else {
+        throw new Error("Failed to get video URL from server.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to upload video. Please try again.");
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
   // Remove Gallery Image
   const removeGalleryImage = (indexToRemove) => {
     setGalleryImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
@@ -122,6 +147,7 @@ export default function UploadProject() {
         description: description.trim(),
         image: coverImage,
         images: [coverImage, ...galleryImages],
+        video: video,
       };
 
       await createProject(projectData);
@@ -134,6 +160,7 @@ export default function UploadProject() {
       setDescription("");
       setCoverImage("");
       setGalleryImages([]);
+      setVideo("");
 
       // Redirect to projects page after short delay
       setTimeout(() => {
@@ -302,6 +329,53 @@ export default function UploadProject() {
             )}
           </div>
 
+          {/* Video Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Project Video (Optional)
+            </label>
+            
+            {video ? (
+              <div className="relative rounded-lg overflow-hidden border border-gray-300 bg-gray-50 h-48 group">
+                <video
+                  src={video}
+                  controls
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVideo("")}
+                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm"
+                  title="Remove Video"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-[#C9A227] transition bg-white text-center px-4">
+                {isUploadingVideo ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 size={24} className="animate-spin text-[#C9A227]" />
+                    <span className="text-xs text-gray-500 font-medium">Uploading video...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 text-gray-500">
+                    <Upload size={24} />
+                    <span className="text-xs font-semibold">Click to upload Video</span>
+                    <span className="text-[10px] text-gray-400">MP4, WEBM, OGG, or MOV (No size limit)</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  disabled={isUploadingVideo}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+
           {/* Gallery Images Upload */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -358,7 +432,7 @@ export default function UploadProject() {
           <div className="pt-4 border-t border-gray-100">
             <button
               type="submit"
-              disabled={isSubmitting || isUploadingCover || isUploadingGallery}
+              disabled={isSubmitting || isUploadingCover || isUploadingGallery || isUploadingVideo}
               className="w-full bg-[#C9A227] hover:bg-[#B8931F] text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow transition duration-200 text-sm uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (

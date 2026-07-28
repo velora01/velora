@@ -47,3 +47,19 @@ export const uploadProjectImage = async (file) => {
   }
   return result;
 };
+
+export const uploadProjectVideo = async (file) => {
+  const formData = new FormData();
+  formData.append("video", file);
+
+  const response = await fetch(`${getBaseUrl()}/upload/video`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to upload video.");
+  }
+  return result;
+};

@@ -25,6 +25,10 @@ const projectSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    video: {
+      type: String,
+      default: "",
+    },
     slug: {
       type: String,
       required: true,

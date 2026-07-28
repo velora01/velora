@@ -31,19 +31,28 @@ const Projects = () => {
   };
 
   const getProjectGallery = (project) => {
-    const images = Array.isArray(project?.images)
-      ? project.images.filter(Boolean)
-      : [];
-
-    if (images.length > 0) {
-      return images;
+    const gallery = [];
+    
+    if (project?.video) {
+      gallery.push({ type: "video", url: project.video });
     }
-
-    if (project?.image) {
-      return [project.image];
+    
+    if (Array.isArray(project?.images)) {
+      project.images.filter(Boolean).forEach((img) => {
+        gallery.push({ type: "image", url: img });
+      });
+    } else if (project?.image) {
+      gallery.push({ type: "image", url: project.image });
     }
-
-    return [];
+    
+    if (gallery.length === 0) {
+      gallery.push({
+        type: "image",
+        url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+      });
+    }
+    
+    return gallery;
   };
 
   useEffect(() => {
@@ -126,7 +135,10 @@ const Projects = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16">
             {projects.map((project, index) => {
               const gallery = getProjectGallery(project);
-              const coverImage = gallery[0] || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80";
+              const firstImageItem = gallery.find((item) => item.type === "image");
+              const coverImage = firstImageItem
+                ? firstImageItem.url
+                : (project.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80");
 
               return (
                 <motion.article
@@ -207,11 +219,21 @@ const Projects = () => {
               <div className="w-full md:w-[58%] h-[38vh] md:h-full bg-[#141414] flex flex-col justify-between p-4 relative border-b md:border-b-0 md:border-r border-gray-100">
                 {/* Main Carousel View */}
                 <div className="relative flex-1 rounded-2xl overflow-hidden bg-neutral-950 flex items-center justify-center group/carousel">
-                  <img
-                    src={getProjectGallery(selectedProject)[currentImageIndex] || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"}
-                    alt={`${selectedProject.heading} view ${currentImageIndex + 1}`}
-                    className="h-full w-full object-cover transition-all duration-500"
-                  />
+                  {getProjectGallery(selectedProject)[currentImageIndex]?.type === "video" ? (
+                    <video
+                      src={getProjectGallery(selectedProject)[currentImageIndex]?.url}
+                      controls
+                      autoPlay
+                      muted
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={getProjectGallery(selectedProject)[currentImageIndex]?.url || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"}
+                      alt={`${selectedProject.heading} view ${currentImageIndex + 1}`}
+                      className="h-full w-full object-cover transition-all duration-500"
+                    />
+                  )}
 
                   {/* Arrows */}
                   {getProjectGallery(selectedProject).length > 1 && (
@@ -254,7 +276,7 @@ const Projects = () => {
                 {/* Thumbnails Row */}
                 {getProjectGallery(selectedProject).length > 1 && (
                   <div className="flex gap-2.5 mt-4 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent shrink-0">
-                    {getProjectGallery(selectedProject).map((image, idx) => (
+                    {getProjectGallery(selectedProject).map((item, idx) => (
                       <button
                         type="button"
                         key={idx}
@@ -265,11 +287,28 @@ const Projects = () => {
                             : "border-transparent opacity-50 hover:opacity-100"
                         }`}
                       >
-                        <img
-                          src={image}
-                          alt={`Thumbnail ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        {item.type === "video" ? (
+                          <div className="w-full h-full bg-neutral-800 flex items-center justify-center relative">
+                            <video
+                              src={item.url}
+                              className="w-full h-full object-cover opacity-60"
+                              muted
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-black/50 text-white p-1 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={item.url}
+                            alt={`Thumbnail ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </button>
                     ))}
                   </div>

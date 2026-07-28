@@ -25,7 +25,7 @@ const normalizeProjectImages = (image, images) => {
 
 export const createProject = async (req, res) => {
   try {
-    const { tag, heading, description, image, images } = req.body;
+    const { tag, heading, description, image, images, video } = req.body;
 
     if (!tag || !heading || !description) {
       return res.status(400).json({
@@ -50,6 +50,7 @@ export const createProject = async (req, res) => {
       description,
       image: normalizedImages[0] || image || "",
       images: normalizedImages,
+      video: video || "",
       slug,
     });
 

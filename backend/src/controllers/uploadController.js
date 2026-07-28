@@ -2,6 +2,47 @@ import { Readable } from "stream";
 import cloudinary from "../config/cloudinary.js";
 import fs from "fs-extra";
 import path from "path";
+import sharp from "sharp";
+
+const optimizeImage = async (fileBuffer) => {
+  try {
+    const image = sharp(fileBuffer);
+    const metadata = await image.metadata();
+
+    // Only process standard formats that sharp supports
+    if (!["jpeg", "png", "webp", "tiff", "gif"].includes(metadata.format)) {
+      return fileBuffer;
+    }
+
+    let pipeline = image.rotate(); // Auto-rotate based on EXIF data
+
+    // Resize if dimensions exceed 2560px (Retina/2K resolution max size)
+    if (metadata.width > 2560 || metadata.height > 2560) {
+      pipeline = pipeline.resize({
+        width: 2560,
+        height: 2560,
+        fit: "inside",
+        withoutEnlargement: true,
+      });
+    }
+
+    // Compress based on format while maintaining high visual quality
+    if (metadata.format === "jpeg" || metadata.format === "jpg") {
+      pipeline = pipeline.jpeg({ quality: 85, progressive: true });
+    } else if (metadata.format === "png") {
+      pipeline = pipeline.png({ compressionLevel: 8, quality: 85 });
+    } else if (metadata.format === "webp") {
+      pipeline = pipeline.webp({ quality: 85 });
+    }
+
+    const optimizedBuffer = await pipeline.toBuffer();
+    console.log(`Optimized image from ${fileBuffer.length} bytes to ${optimizedBuffer.length} bytes.`);
+    return optimizedBuffer;
+  } catch (err) {
+    console.error("Image optimization failed, using original buffer:", err);
+    return fileBuffer;
+  }
+};
 
 const uploadStream = (fileBuffer, folder = "uploads", resourceType = "auto") => {
   return new Promise((resolve, reject) => {
@@ -60,6 +101,9 @@ export const uploadImage = async (req, res) => {
         message: "No file uploaded. Please attach an image under the 'image' field.",
       });
     }
+
+    // Optimize image buffer using sharp before storing or uploading
+    req.file.buffer = await optimizeImage(req.file.buffer);
 
     // Check for default placeholder Cloudinary credentials
     const isPlaceholder =

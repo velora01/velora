@@ -666,3 +666,241 @@ export const reviewsData = [
   }
 ];
 
+export const crmLeadsData = [
+  {
+    clientName: "Aarav Mehta",
+    clientEmail: "aarav.mehta@example.com",
+    clientPhone: "+91 98200 12345",
+    projectCategory: "Full Home Interior",
+    status: "Inquiry",
+    propertyAddress: "Flat 402, Oberoi Splendor, Andheri East, Mumbai",
+    estimatedBudget: "20L+",
+    notes: "Requires premium modern minimalist design. 3BHK flat. Looking for Italian marble flooring, false ceiling with smart home automation.",
+    source: "Website Consultation",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-07-25T10:00:00Z"),
+        comment: "Lead received from online space planner query."
+      }
+    ]
+  },
+  {
+    clientName: "Neha Kulkarni",
+    clientEmail: "neha.k@example.com",
+    clientPhone: "+91 91670 98765",
+    projectCategory: "Modular Kitchen",
+    status: "Consultation",
+    propertyAddress: "B-1204, Rohan Mithila, Viman Nagar, Pune",
+    estimatedBudget: "5-10L",
+    notes: "Parallel kitchen configuration. Needs matte black finishes with high-quality BWP marine ply. Likes soft-close tandem boxes.",
+    source: "Website Contact",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-07-20T11:30:00Z"),
+        comment: "Contact form request."
+      },
+      {
+        status: "Consultation",
+        updatedAt: new Date("2026-07-22T15:00:00Z"),
+        comment: "Virtual consultation completed. Site measurement scheduled."
+      }
+    ]
+  },
+  {
+    clientName: "Rahul Sharma",
+    clientEmail: "rahul.sharma@example.com",
+    clientPhone: "+91 98110 54321",
+    projectCategory: "Living Room",
+    status: "Proposal",
+    propertyAddress: "Flat 103, DLF Phase 5, Gurugram",
+    estimatedBudget: "10-20L",
+    notes: "Requires fluted wooden paneling, custom floating TV console, and ambient warm LED lighting. Shared initial 2D layout.",
+    source: "Manual Entry",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-07-15T09:00:00Z"),
+        comment: "Walked into showroom."
+      },
+      {
+        status: "Consultation",
+        updatedAt: new Date("2026-07-17T11:00:00Z"),
+        comment: "Showroom walkthrough done. Requirements gathered."
+      },
+      {
+        status: "Proposal",
+        updatedAt: new Date("2026-07-21T16:30:00Z"),
+        comment: "Shared 2D design layouts & primary quotation estimation."
+      }
+    ]
+  },
+  {
+    clientName: "Priya Nair",
+    clientEmail: "priya.nair@example.com",
+    clientPhone: "+91 98450 67890",
+    projectCategory: "Bedroom",
+    status: "Booked",
+    propertyAddress: "Villa 45, Prestige Lakeside Habitat, Whitefield, Bengaluru",
+    estimatedBudget: "10-20L",
+    notes: "King-sized velvet bed with floor-to-ceiling padded headboard and sliding glass wardrobes. Contract signed, advance received.",
+    source: "Website Consultation",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-07-02T10:15:00Z"),
+        comment: "Consultation request from website."
+      },
+      {
+        status: "Consultation",
+        updatedAt: new Date("2026-07-05T14:00:00Z"),
+        comment: "Online consultation with lead designer."
+      },
+      {
+        status: "Proposal",
+        updatedAt: new Date("2026-07-10T12:00:00Z"),
+        comment: "3D rendering draft submitted. Client loved it."
+      },
+      {
+        status: "Booked",
+        updatedAt: new Date("2026-07-14T18:00:00Z"),
+        comment: "Contract signed, 50% advance payment confirmed."
+      }
+    ],
+    startDate: new Date("2026-07-15T00:00:00Z")
+  },
+  {
+    clientName: "Kabir Malhotra",
+    clientEmail: "kabir.m@example.com",
+    clientPhone: "+91 98710 43210",
+    projectCategory: "Commercial Office",
+    status: "Designing",
+    propertyAddress: "Unit 305, Cyber City Phase 2, Gurugram",
+    estimatedBudget: "20L+",
+    notes: "Corporate workspace for 20 people. Open planning, biophilic design, custom collaboration zones. Working on electrical layout.",
+    source: "Manual Entry",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-06-25T11:00:00Z"),
+        comment: "Referred by previous commercial client."
+      },
+      {
+        status: "Consultation",
+        updatedAt: new Date("2026-06-28T10:00:00Z"),
+        comment: "Site layout mapping done."
+      },
+      {
+        status: "Booked",
+        updatedAt: new Date("2026-07-08T15:00:00Z"),
+        comment: "Design agreement signed. Advance paid."
+      },
+      {
+        status: "Designing",
+        updatedAt: new Date("2026-07-18T16:00:00Z"),
+        comment: "3D visual draft shared. Working on final technical drawings."
+      }
+    ],
+    startDate: new Date("2026-07-10T00:00:00Z")
+  },
+  {
+    clientName: "Rajesh Patil",
+    clientEmail: "rajesh.patil@example.com",
+    clientPhone: "+91 99230 45678",
+    projectCategory: "Wardrobes",
+    status: "Production",
+    propertyAddress: "Flat A-504, Windsor County, Kothrud, Pune",
+    estimatedBudget: "5-10L",
+    notes: "3-door sliding tinted glass wardrobes with profile light. Material sent to modular manufacturing plant.",
+    source: "Manual Entry",
+    statusHistory: [
+      {
+        status: "Inquiry",
+        updatedAt: new Date("2026-06-10T09:30:00Z"),
+        comment: "Walked into Pune studio."
+      },
+      {
+        status: "Booked",
+        updatedAt: new Date("2026-06-22T17:00:00Z"),
+        comment: "Booked with advance payment."
+      },
+      {
+        status: "Designing",
+        updatedAt: new Date("2026-07-01T12:00:00Z"),
+        comment: "Technical drawings finalized and sent to client."
+      },
+      {
+        status: "Production",
+        updatedAt: new Date("2026-07-15T10:00:00Z"),
+        comment: "Materials pushed to production queue at factory."
+      }
+    ],
+    startDate: new Date("2026-06-25T00:00:00Z")
+  },
+  {
+    clientName: "Vikram Sen",
+    clientEmail: "vikram.sen@example.com",
+    clientPhone: "+91 98300 76543",
+    projectCategory: "Full Home Interior",
+    status: "Installation",
+    propertyAddress: "Tower 2 - Flat 1801, South City, Kolkata",
+    estimatedBudget: "20L+",
+    notes: "Full home transformation. Modular cabinets delivered on-site. Tiling and false ceiling completed. Electrical wiring finalized.",
+    source: "Website Consultation",
+    statusHistory: [
+      {
+        status: "Booked",
+        updatedAt: new Date("2026-05-15T11:00:00Z"),
+        comment: "Project booked."
+      },
+      {
+        status: "Designing",
+        updatedAt: new Date("2026-06-01T10:00:00Z"),
+        comment: "Drawings approved by client."
+      },
+      {
+        status: "Production",
+        updatedAt: new Date("2026-06-15T12:00:00Z"),
+        comment: "Factory manufacturing completed."
+      },
+      {
+        status: "Installation",
+        updatedAt: new Date("2026-07-10T14:30:00Z"),
+        comment: "Material delivered to site. Assembly and painting team started."
+      }
+    ],
+    startDate: new Date("2026-05-20T00:00:00Z")
+  },
+  {
+    clientName: "Sanjay Singhal",
+    clientEmail: "sanjay.s@example.com",
+    clientPhone: "+91 98100 88888",
+    projectCategory: "Full Home Interior",
+    status: "Completed",
+    propertyAddress: "E-45, Greater Kailash 2, New Delhi",
+    estimatedBudget: "20L+",
+    notes: "Luxury duplex villa interior. High-end veneer and Italian marble detailing. Handover completed. Client review submitted.",
+    source: "Manual Entry",
+    statusHistory: [
+      {
+        status: "Booked",
+        updatedAt: new Date("2026-03-01T10:00:00Z"),
+        comment: "Contract finalized."
+      },
+      {
+        status: "Installation",
+        updatedAt: new Date("2026-04-15T09:00:00Z"),
+        comment: "Site installation."
+      },
+      {
+        status: "Completed",
+        updatedAt: new Date("2026-07-05T17:00:00Z"),
+        comment: "Final snagging completed, deep clean done, keys handed over."
+      }
+    ],
+    startDate: new Date("2026-03-05T00:00:00Z"),
+    endDate: new Date("2026-07-05T00:00:00Z")
+  }
+];
+

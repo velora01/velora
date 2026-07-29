@@ -5,19 +5,22 @@ import Service from "../models/Service.js";
 import Gallery from "../models/Gallery.js";
 import Guide from "../models/Guide.js";
 import Review from "../models/Review.js";
+import CRMLead from "../models/crm.model.js";
 import {
   projectsData,
   servicesData,
   galleryData,
   guidesData,
   reviewsData,
+  crmLeadsData,
 } from "./seedData.js";
 
 dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/velora");
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI || "mongodb://localhost:27017/velora";
+    await mongoose.connect(uri);
     console.log("MongoDB connected for seeding");
   } catch (error) {
     console.error("MongoDB connection error:", error);
@@ -36,6 +39,7 @@ const seedDatabase = async () => {
     await Gallery.deleteMany({});
     await Guide.deleteMany({});
     await Review.deleteMany({});
+    await CRMLead.deleteMany({});
     console.log("Cleared existing database collections");
 
     // Insert new data
@@ -44,6 +48,7 @@ const seedDatabase = async () => {
     const galleryItems = await Gallery.insertMany(galleryData);
     const guides = await Guide.insertMany(guidesData);
     const reviews = await Review.insertMany(reviewsData);
+    const crmLeads = await CRMLead.insertMany(crmLeadsData);
 
     console.log("\n✅ Database seeding completed successfully!");
     console.log(`📦 Created ${projects.length} projects`);
@@ -51,6 +56,7 @@ const seedDatabase = async () => {
     console.log(`📦 Created ${galleryItems.length} gallery items`);
     console.log(`📦 Created ${guides.length} design guides`);
     console.log(`📦 Created ${reviews.length} client reviews`);
+    console.log(`📦 Created ${crmLeads.length} CRM leads`);
 
     await mongoose.connection.close();
     console.log("Database connection closed");

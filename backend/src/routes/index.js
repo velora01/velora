@@ -9,6 +9,7 @@ import guideRoute from "./guide.route.js";
 import reviewRoute from "./review.route.js";
 import estimatorRoute from "./estimator.route.js";
 import contactRoute from "./contact.route.js";
+import crmRoute from "./crm.route.js";
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use("/guides", guideRoute);
 router.use("/reviews", reviewRoute);
 router.use("/estimator", estimatorRoute);
 router.use("/contact", contactRoute);
+router.use("/crm", crmRoute);
 
 router.get("/", (req, res) => {
   res.send("Hello World!");

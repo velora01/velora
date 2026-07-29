@@ -15,6 +15,7 @@ const Navbar = () => {
     { to: "/contact", label: "Contact" },
     { to: "/offering", label: "Offering" },
     { to: "/more", label: "More" },
+    { to: "/crm", label: "CRM Admin" },
   ];
 
   return (

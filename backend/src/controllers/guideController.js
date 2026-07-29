@@ -20,6 +20,7 @@ export const getGuides = async (req, res) => {
       }
       grouped[cat].push(guide);
     });
+    console.log("guides data ", grouped);
 
     return res.status(200).json({
       success: true,

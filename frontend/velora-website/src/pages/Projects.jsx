@@ -22,21 +22,21 @@ const Projects = () => {
   const calculateCost = () => {
     const area = parseFloat(calcArea);
     if (!area || isNaN(area)) return;
-    
+
     let rate = 1500; // Rate in INR per sq ft
     if (calcQuality === "Luxury") rate = 2500;
     if (calcQuality === "Ultra-Luxury") rate = 4000;
-    
+
     setCalcEstimate(area * rate);
   };
 
   const getProjectGallery = (project) => {
     const gallery = [];
-    
+
     if (project?.video) {
       gallery.push({ type: "video", url: project.video });
     }
-    
+
     if (Array.isArray(project?.images)) {
       project.images.filter(Boolean).forEach((img) => {
         gallery.push({ type: "image", url: img });
@@ -44,14 +44,14 @@ const Projects = () => {
     } else if (project?.image) {
       gallery.push({ type: "image", url: project.image });
     }
-    
+
     if (gallery.length === 0) {
       gallery.push({
         type: "image",
         url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
       });
     }
-    
+
     return gallery;
   };
 
@@ -281,11 +281,10 @@ const Projects = () => {
                         type="button"
                         key={idx}
                         onClick={() => setCurrentImageIndex(idx)}
-                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition duration-200 shrink-0 ${
-                          currentImageIndex === idx
+                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition duration-200 shrink-0 ${currentImageIndex === idx
                             ? "border-[#C9A227] scale-95"
                             : "border-transparent opacity-50 hover:opacity-100"
-                        }`}
+                          }`}
                       >
                         {item.type === "video" ? (
                           <div className="w-full h-full bg-neutral-800 flex items-center justify-center relative">
@@ -297,7 +296,7 @@ const Projects = () => {
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="bg-black/50 text-white p-1 rounded-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
                                 </svg>
                               </div>
                             </div>
@@ -318,7 +317,7 @@ const Projects = () => {
               {/* Right Column: Title, Metadata, Tabs, and Cost Calculator */}
               <div className="w-full md:w-[42%] h-[54vh] md:h-full flex flex-col bg-white">
                 <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
-                  
+
                   {/* Title & Tag */}
                   <div>
                     <span className="inline-block text-[10px] font-extrabold uppercase tracking-[2px] text-[#C9A227] border border-[#C9A227]/25 px-2 py-0.5 rounded bg-[#C9A227]/5">
@@ -339,16 +338,15 @@ const Projects = () => {
                         { id: "overview", label: "Overview" },
                         { id: "guide", label: "Design Guide" },
                         { id: "offerings", label: "Offerings" },
-                        { id: "calculator", label: "Cost Est." }
+                        { id: "scope", label: "Design Scope" }
                       ].map((tab) => (
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`py-3.5 px-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 whitespace-nowrap ${
-                            activeTab === tab.id
+                          className={`py-3.5 px-2 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 whitespace-nowrap ${activeTab === tab.id
                               ? "text-[#C9A227] border-[#C9A227]"
                               : "text-gray-400 hover:text-gray-600 border-transparent"
-                          }`}
+                            }`}
                         >
                           {tab.label}
                         </button>
@@ -458,58 +456,20 @@ const Projects = () => {
                       </motion.div>
                     )}
 
-                    {/* Cost Calculator */}
-                    {activeTab === "calculator" && (
+                    {/* Scope Plan */}
+                    {activeTab === "scope" && (
                       <motion.div
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-4"
                       >
-                        <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 space-y-4">
-                          <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider">Budget Estimator (INR)</h4>
-                          
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Area (Sq Ft)</label>
-                              <input
-                                type="number"
-                                placeholder="e.g. 1200"
-                                value={calcArea}
-                                onChange={(e) => setCalcArea(e.target.value)}
-                                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C9A227] text-gray-900 bg-white"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Design Class</label>
-                              <select
-                                value={calcQuality}
-                                onChange={(e) => setCalcQuality(e.target.value)}
-                                className="w-full h-10 px-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C9A227] text-gray-900 bg-white"
-                              >
-                                <option value="Premium">Premium</option>
-                                <option value="Luxury">Luxury</option>
-                                <option value="Ultra-Luxury">Ultra-Luxury</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={calculateCost}
-                            className="w-full h-10 bg-[#C9A227] hover:bg-[#B8931F] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition"
-                          >
-                            Calculate Cost
-                          </button>
+                        <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 space-y-3">
+                          <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider">Project Quality Tier</h4>
+                          <span className="block text-sm font-bold text-[#C9A227]">Luxury Bespoke Craftsmanship</span>
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            Includes complete 3D design renders, factory manufacturing, marine-grade materials, and on-site white-glove installation.
+                          </p>
                         </div>
-
-                        {calcEstimate > 0 && (
-                          <div className="bg-[#faf8f4] border border-[#C9A227]/25 rounded-xl p-4 text-center">
-                            <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider">Estimated Budget</span>
-                            <span className="block text-2xl font-black text-[#C9A227] mt-1">₹{calcEstimate.toLocaleString("en-IN")}*</span>
-                            <span className="text-[9px] text-gray-400 mt-1 block">*Excludes custom structural civil alterations.</span>
-                          </div>
-                        )}
                       </motion.div>
                     )}
                   </div>

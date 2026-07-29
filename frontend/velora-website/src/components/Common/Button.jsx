@@ -8,7 +8,7 @@ const Button = ({
     <button
       type={type}
       onClick={onClick}
-      className={`bg-[#A67C52] hover:bg-[#8b6542] text-black-300 
+      className={`bg-[#C9A227] hover:bg-[#A8861C] text-white 
         px-6 py-3 rounded-lg font-medium transition-all 
         duration-300 ${className}`}
     >

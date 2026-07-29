@@ -8,7 +8,7 @@ const OutlineButton = ({
     <button
       type={type}
       onClick={onClick}
-      className={`border border-[#A67C52] text-[#A67C52] hover:bg-[#A67C52] hover:text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 ${className}`}
+      className={`border border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227] hover:text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 ${className}`}
     >
       {children}
     </button>

@@ -14,6 +14,7 @@ import Gallery from "../pages/Gallery";
 import Offering from "../pages/Offering";
 import More from "../pages/More";
 import UploadProject from "../pages/UploadProject";
+import Showroom3D from "../pages/Showroom3D";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -33,7 +34,7 @@ const AppRoutes = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/consultation" element={<ConsultationSection/>} />
+        <Route path="/consultation" element={<ConsultationSection />} />
         <Route path="/about" element={<About />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/contact" element={<Contact />} />
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/more" element={<More />} />
         <Route path="/offering" element={<Offering />} />
         <Route path="/upload" element={<UploadProject />} />
+        <Route path="/3d" element={<Showroom3D />} />
       </Routes>
 
       <Footer />

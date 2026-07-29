@@ -8,6 +8,7 @@ const Navbar = () => {
   const links = [
     { to: "/", label: "Home" },
     { to: "/projects", label: "Projects" },
+    { to: "/3d", label: "3D Showroom" },
     { to: "/gallery", label: "Gallery" },
     { to: "/guide", label: "Guide" },
     { to: "/about", label: "About" },
@@ -17,7 +18,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-yellow-600/95 px-4 py-3 sm:py-4 text-white shadow-lg backdrop-blur-md sm:px-8">
+    <nav className="sticky top-0 z-50 bg-[#c9a227]/95 px-4 py-3 sm:py-4 text-white shadow-lg backdrop-blur-md sm:px-8">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <a href="/" className="bg-white px-5 py-1 rounded-full shadow-md border border-amber-100/50 flex items-center justify-center transition hover:bg-amber-50" aria-label="Velora home">
           <img src="/logo.png" alt="Velora logo" className="h-13 sm:h-15 w-auto object-contain" />
@@ -30,7 +31,7 @@ const Navbar = () => {
               <NavLink
                 to={link.to}
                 className={({ isActive }) =>
-                  `transition duration-300 hover:text-yellow-200 py-1.5 border-b-2 ${isActive ? "border-white text-yellow-100 font-semibold" : "border-transparent"
+                  `transition duration-300 hover:text-amber-100 py-1.5 border-b-2 ${isActive ? "border-white text-white font-semibold" : "border-transparent text-white"
                   }`
                 }
               >
@@ -43,7 +44,7 @@ const Navbar = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden p-2 text-white hover:bg-yellow-700/50 rounded-lg transition"
+          className="block md:hidden p-2 text-white hover:bg-amber-800/40 rounded-lg transition"
           aria-label="Toggle menu"
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -60,7 +61,7 @@ const Navbar = () => {
                   to={link.to}
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
-                    `block py-2.5 px-4 rounded-xl text-sm font-medium transition ${isActive ? "bg-white/20 text-yellow-100 font-semibold" : "hover:bg-white/10 text-white"
+                    `block py-2.5 px-4 rounded-xl text-sm font-medium transition ${isActive ? "bg-white/20 text-white font-semibold" : "hover:bg-white/10 text-white"
                     }`
                   }
                 >

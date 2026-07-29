@@ -1,9 +1,20 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 import Project from "../models/Project.js";
 import Service from "../models/Service.js";
-import { projectsData, servicesData } from "./seedData.js";
+import Gallery from "../models/Gallery.js";
+import Guide from "../models/Guide.js";
+import Review from "../models/Review.js";
+import {
+  projectsData,
+  servicesData,
+  galleryData,
+  guidesData,
+  reviewsData,
+} from "./seedData.js";
 
-// Database connection setup
+dotenv.config();
+
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/velora");
@@ -14,52 +25,32 @@ const connectDB = async () => {
   }
 };
 
-// Seed projects
-const seedProjects = async () => {
-  try {
-    // Clear existing projects
-    await Project.deleteMany({});
-    console.log("Cleared existing projects");
-
-    // Insert new projects
-    const createdProjects = await Project.insertMany(projectsData);
-    console.log(`Successfully created ${createdProjects.length} projects`);
-    return createdProjects;
-  } catch (error) {
-    console.error("Error seeding projects:", error);
-    throw error;
-  }
-};
-
-// Seed services
-const seedServices = async () => {
-  try {
-    // Clear existing services
-    await Service.deleteMany({});
-    console.log("Cleared existing services");
-
-    // Insert new services
-    const createdServices = await Service.insertMany(servicesData);
-    console.log(`Successfully created ${createdServices.length} services`);
-    return createdServices;
-  } catch (error) {
-    console.error("Error seeding services:", error);
-    throw error;
-  }
-};
-
-// Main seed function
 const seedDatabase = async () => {
   try {
     console.log("Starting database seeding...");
     await connectDB();
 
-    const projects = await seedProjects();
-    const services = await seedServices();
+    // Clear existing collections
+    await Project.deleteMany({});
+    await Service.deleteMany({});
+    await Gallery.deleteMany({});
+    await Guide.deleteMany({});
+    await Review.deleteMany({});
+    console.log("Cleared existing database collections");
+
+    // Insert new data
+    const projects = await Project.insertMany(projectsData);
+    const services = await Service.insertMany(servicesData);
+    const galleryItems = await Gallery.insertMany(galleryData);
+    const guides = await Guide.insertMany(guidesData);
+    const reviews = await Review.insertMany(reviewsData);
 
     console.log("\n✅ Database seeding completed successfully!");
     console.log(`📦 Created ${projects.length} projects`);
     console.log(`📦 Created ${services.length} services`);
+    console.log(`📦 Created ${galleryItems.length} gallery items`);
+    console.log(`📦 Created ${guides.length} design guides`);
+    console.log(`📦 Created ${reviews.length} client reviews`);
 
     await mongoose.connection.close();
     console.log("Database connection closed");
@@ -69,5 +60,4 @@ const seedDatabase = async () => {
   }
 };
 
-// Run the seed function
 seedDatabase();

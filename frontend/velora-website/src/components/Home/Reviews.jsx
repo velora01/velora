@@ -3,39 +3,39 @@ import { Star, Quote } from "lucide-react";
 
 const reviews = [
   {
-    name: "Sarah Mitchell",
-    role: "Homeowner",
-    quote: "Velora transformed our house into a home we absolutely love. The attention to detail and professionalism was exceptional. Highly recommended!",
+    name: "Rohan Shinde",
+    role: "Homeowner, Wakad (Pune)",
+    quote: "Velora transformed our 3BHK flat in Wakad into a luxury home we absolutely love. The attention to detail and professionalism was exceptional. Highly recommended!",
     rating: 5
   },
   {
-    name: "James Chen",
-    role: "Hotel Owner",
-    quote: "Working with Velora on our boutique hotel was a game-changer. Our guests consistently comment on the beautiful design and comfortable ambiance.",
+    name: "Priyadarshini Kulkarni",
+    role: "Boutique Owner, Koregaon Park (Pune)",
+    quote: "Working with Velora on our boutique clothing store in Koregaon Park was a game-changer. Our clients consistently compliment the elegant, golden-themed interiors.",
     rating: 5
   },
   {
-    name: "Emma Richardson",
-    role: "Corporate Director",
-    quote: "Our new office space has increased employee satisfaction significantly. The design perfectly balances aesthetics with functionality. Truly impressive work.",
+    name: "Rahul Deshmukh",
+    role: "IT Director, Hinjawadi (Pune)",
+    quote: "Our new IT office space in Hinjawadi has boosted employee productivity significantly. The layout perfectly balances modern ergonomics with high-end luxury.",
     rating: 5
   },
   {
-    name: "Michael Rodriguez",
-    role: "Restaurant Owner",
-    quote: "The team at Velora created an atmosphere that perfectly captures our brand. Customer feedback has been overwhelmingly positive. Outstanding results!",
+    name: "Snehal Patil",
+    role: "Cafe Owner, Kothrud (Pune)",
+    quote: "The design team at Velora created a warm, inviting cafe ambiance in Kothrud that captures our brand beautifully. The feedback from customers is amazing!",
     rating: 5
   },
   {
-    name: "Victoria Park",
-    role: "Interior Enthusiast",
-    quote: "Professional, creative, and so attentive to every detail. Velora's team listened to my vision and exceeded all expectations. Worth every penny!",
+    name: "Varsha Joshi",
+    role: "Interior Enthusiast, Baner (Pune)",
+    quote: "Professional, creative, and extremely attentive to detail. Velora's team listened to my ideas for our Baner duplex and delivered far beyond expectations.",
     rating: 5
   },
   {
-    name: "David Thompson",
-    role: "Business Owner",
-    quote: "We hired Velora for our retail showroom and the results are stunning. Our sales have improved since the redesign. Excellent investment!",
+    name: "Dinesh Mehta",
+    role: "Retail Showroom Owner, Aundh (Pune)",
+    quote: "We hired Velora for our retail showroom in Aundh and the results are stunning. The luxury gold and white accents match our premium brand identity perfectly!",
     rating: 5
   }
 ];

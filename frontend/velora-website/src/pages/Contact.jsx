@@ -1,30 +1,68 @@
 import { motion } from "framer-motion";
 import { MapPin, Mail, Phone, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
+import { submitContactForm } from "../services/contactService";
 
 const Contact = () => {
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    projectType: "Residential Interior Design",
+    message: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccess(false);
+    setError("");
+    try {
+      await submitContactForm(formData);
+      setSuccess(true);
+      setFormData({
+        fullName: "",
+        email: "",
+        projectType: "Residential Interior Design",
+        message: ""
+      });
+    } catch (err) {
+      setError(err.message || "Failed to submit contact message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const contactInfo = [
     {
       icon: MapPin,
       label: "Studio Address",
-      content: "12 Velvet Lane, Interior District, City Center"
+      content: "velora antraal, wakad chauk, aundh road, pune 411008"
     },
     {
       icon: Mail,
       label: "Email",
-      content: "hello@velora.com"
+      content: "info@velora.family"
     },
     {
       icon: Phone,
       label: "Phone",
-      content: "+1 (555) 123-4567"
+      content: "+91 88 88 88 8888"
     },
     {
       icon: Clock,
       label: "Office Hours",
-      content: "Mon – Fri: 9:00 AM - 6:00 PM"
+      content: "Mon – Sun: 10:00 AM - 10:00 PM"
     }
   ];
 
@@ -126,6 +164,7 @@ const Contact = () => {
 
           {/* Contact Form */}
           <motion.form
+            onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -133,13 +172,29 @@ const Contact = () => {
             className="rounded-3xl bg-gradient-to-br from-[#faf8f4] to-white p-8 shadow-xl border border-gray-100"
           >
             <h3 className="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h3>
+            
+            {success && (
+              <div className="mb-4 p-4 rounded-xl bg-green-50 text-green-700 border border-green-200 text-sm">
+                Thank you! Your message has been sent successfully. We will get back to you shortly.
+              </div>
+            )}
+            {error && (
+              <div className="mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="grid gap-4">
               <label className="block">
                 <span className="text-sm font-medium text-gray-700">Full Name</span>
                 <input
                   type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
                   placeholder="Your name"
                   required
+                  disabled={loading}
                   className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20"
                 />
               </label>
@@ -148,21 +203,30 @@ const Contact = () => {
                 <span className="text-sm font-medium text-gray-700">Email Address</span>
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="name@example.com"
                   required
+                  disabled={loading}
                   className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20"
                 />
               </label>
 
               <label className="block">
                 <span className="text-sm font-medium text-gray-700">Project Type</span>
-                <select className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20">
-                  <option>Select project type</option>
-                  <option>Residential Interior Design</option>
-                  <option>Commercial Space</option>
-                  <option>Furniture Curation</option>
-                  <option>Consultation Only</option>
-                  <option>Other</option>
+                <select
+                  name="projectType"
+                  value={formData.projectType}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20"
+                >
+                  <option value="Residential Interior Design">Residential Interior Design</option>
+                  <option value="Commercial Space">Commercial Space</option>
+                  <option value="Furniture Curation">Furniture Curation</option>
+                  <option value="Consultation Only">Consultation Only</option>
+                  <option value="Other">Other</option>
                 </select>
               </label>
 
@@ -170,18 +234,23 @@ const Contact = () => {
                 <span className="text-sm font-medium text-gray-700">Message</span>
                 <textarea
                   rows="4"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Tell us about your design goals..."
                   required
+                  disabled={loading}
                   className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20 resize-none"
                 />
               </label>
 
               <button
                 type="submit"
-                className="mt-2 w-full rounded-xl bg-[#C9A227] px-6 py-3 text-white font-semibold transition hover:bg-[#B8931F] flex items-center justify-center gap-2"
+                disabled={loading}
+                className="mt-2 w-full rounded-xl bg-[#C9A227] px-6 py-3 text-white font-semibold transition hover:bg-[#B8931F] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <MessageSquare size={18} />
-                Send Message
+                {loading ? "Sending..." : "Send Message"}
               </button>
             </div>
           </motion.form>

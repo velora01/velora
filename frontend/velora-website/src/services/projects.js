@@ -16,6 +16,8 @@ export const fetchProjects = async () => {
   return Array.isArray(result?.data) ? result.data : [];
 };
 
+
+
 export const createProject = async (projectData) => {
   const response = await fetch(`${getBaseUrl()}/projects`, {
     method: "POST",
@@ -63,3 +65,21 @@ export const uploadProjectVideo = async (file) => {
   }
   return result;
 };
+
+
+const uploeadProjectFile = async (file, endpoint) => {
+  const fromData = new fromData();
+  fromData.append("file", file);
+  
+  const response = await fetch(`${getBaseUrl()}/${endpoint}`, {
+    method: "POST",
+    body: fromData,
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to upload file.");
+  }
+  return result;
+
+}

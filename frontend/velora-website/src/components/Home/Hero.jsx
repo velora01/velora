@@ -69,7 +69,7 @@ const Hero = () => {
               </motion.div>
 
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Button onClick={handleClick} className="border-2 border-[#C9A227] bg-transparent text-[#C9A227] px-8 py-4 rounded-lg font-semibold hover:bg-[#c29604] hover:text-white transition w-full sm:w-auto">
+                <Button onClick={handleClick} className="border-2 border-[#C9A227] text-yellow-600 bg-transparent  px-8 py-4 rounded-lg font-semibold hover:bg-[#c29604] hover:text-white transition w-full sm:w-auto">
                   Book Consultation
                 </Button>
               </motion.div>

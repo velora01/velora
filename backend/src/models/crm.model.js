@@ -39,6 +39,7 @@ const crmSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
+
         "Modular Kitchen",
         "Wardrobes",
         "Living Room",

@@ -14,7 +14,6 @@ if (missing.length) {
     `Missing Cloudinary environment variables: ${missing.join(", ")}`
   );
 }
-
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,4 +21,29 @@ cloudinary.config({
   secure: true,
 });
 
+
+cloudinary.analysis = {
+  async getImageTags(imageUrl) {
+    try {
+      const result = await cloudinary.api.resource(imageUrl, {
+        colors: true,
+        image_metadata: true,
+      });
+      return result.colors || [];
+    }
+    catch (error) {
+      console.error("Error fetching image tags from Cloudinary:", error);
+      return [];
+    }
+  },
+};
+
+
+
+
+
+
+cloudinary.uploader.async = {
+  
+}
 export default cloudinary;

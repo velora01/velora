@@ -20,3 +20,34 @@ export const submitContactForm = async (contactData) => {
   }
   return result;
 };
+
+export const getContactMessages = async () => {
+  const response = await fetch(`${getBaseUrl()}/contact`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch contact messages.");
+  }
+  return result;
+};
+
+
+export const deleteContactMessage = async (messageId) => {
+  const response = await fetch(`${getBaseUrl()}/contact/${messageId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+    
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to delete contact message.");
+  }
+  return result;
+}

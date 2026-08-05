@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, Trash2, Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { createProject, uploadProjectImage, uploadProjectVideo } from "../services/projects";
+import { createProject, uploadProjectImage, uploadProjectVideo } from "../services/projectsService";
 
 const PRESET_TAGS = [
   "Living Room",
@@ -162,9 +162,9 @@ export default function UploadProject() {
       setGalleryImages([]);
       setVideo("");
 
-      // Redirect to projects page after short delay
+      // Redirect to dashboard after short delay
       setTimeout(() => {
-        navigate("/projects");
+        navigate("/");
       }, 2000);
     } catch (err) {
       console.error(err);
@@ -175,16 +175,16 @@ export default function UploadProject() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f4] py-12 px-4 sm:px-6 lg:px-8 text-gray-800 font-sans">
+    <div className="py-6 text-gray-800 font-sans">
       <div className="max-w-2xl mx-auto">
         
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C9A227] transition mb-8"
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C9A227] transition mb-8 cursor-pointer font-medium"
         >
           <ArrowLeft size={16} />
-          <span>Back to Projects</span>
+          <span>Back to Dashboard</span>
         </button>
 
         {/* Title */}
@@ -201,7 +201,7 @@ export default function UploadProject() {
             <CheckCircle size={20} className="flex-shrink-0" />
             <div>
               <p className="font-semibold text-sm">Project Published Successfully!</p>
-              <p className="text-xs text-green-600 mt-0.5">Redirecting you to the projects page...</p>
+              <p className="text-xs text-green-600 mt-0.5">Redirecting you to the dashboard...</p>
             </div>
           </div>
         )}
@@ -228,7 +228,7 @@ export default function UploadProject() {
               placeholder="e.g. Modern Penthouse Lounge"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-900 bg-white"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-905 bg-white text-gray-950"
             />
           </div>
 
@@ -244,7 +244,7 @@ export default function UploadProject() {
                 setCustomTag("");
               }}
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-900 bg-white"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white text-gray-950 cursor-pointer"
             >
               <option value="">-- Select a Category --</option>
               {PRESET_TAGS.map((t) => (
@@ -262,7 +262,7 @@ export default function UploadProject() {
                 placeholder="Enter custom category name..."
                 value={customTag}
                 onChange={(e) => setCustomTag(e.target.value)}
-                className="w-full mt-3 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-900 bg-white"
+                className="w-full mt-3 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white text-gray-950"
               />
             )}
           </div>
@@ -278,7 +278,7 @@ export default function UploadProject() {
               placeholder="Provide a detailed description of the project, including design concepts, color palettes, and material choices."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-900 bg-white leading-relaxed resize-y"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white leading-relaxed resize-y text-gray-950"
             />
           </div>
 
@@ -298,7 +298,7 @@ export default function UploadProject() {
                 <button
                   type="button"
                   onClick={() => setCoverImage("")}
-                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm"
+                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm cursor-pointer"
                   title="Remove Image"
                 >
                   <Trash2 size={16} />
@@ -345,7 +345,7 @@ export default function UploadProject() {
                 <button
                   type="button"
                   onClick={() => setVideo("")}
-                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm"
+                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm cursor-pointer"
                   title="Remove Video"
                 >
                   <Trash2 size={16} />
@@ -362,7 +362,7 @@ export default function UploadProject() {
                   <div className="flex flex-col items-center gap-1.5 text-gray-500">
                     <Upload size={24} />
                     <span className="text-xs font-semibold">Click to upload Video</span>
-                    <span className="text-[10px] text-gray-400">MP4, WEBM, OGG, or MOV (No size limit)</span>
+                    <span className="text-[10px] text-gray-400">MP4, WEBM, OGG, or MOV</span>
                   </div>
                 )}
                 <input
@@ -395,7 +395,7 @@ export default function UploadProject() {
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
-                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition shadow-sm"
+                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition shadow-sm cursor-pointer"
                       title="Remove"
                     >
                       <Trash2 size={12} />
@@ -433,7 +433,7 @@ export default function UploadProject() {
             <button
               type="submit"
               disabled={isSubmitting || isUploadingCover || isUploadingGallery || isUploadingVideo}
-              className="w-full bg-[#C9A227] hover:bg-[#B8931F] text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow transition duration-200 text-sm uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-[#C9A227] hover:bg-[#B8931F] text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow transition duration-200 text-sm uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

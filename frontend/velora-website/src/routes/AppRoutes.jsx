@@ -13,9 +13,7 @@ import Guide from "../pages/Guide";
 import Gallery from "../pages/Gallery";
 import Offering from "../pages/Offering";
 import More from "../pages/More";
-import UploadProject from "../pages/UploadProject";
 import Showroom3D from "../pages/Showroom3D";
-import CrmDashboard from "../pages/CrmDashboard";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -41,11 +39,9 @@ const AppRoutes = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/guide" element={<Guide />} />
         <Route path="/gallery" element={<Gallery />} />
-        <Route path="/more" element={<More />} />
         <Route path="/offering" element={<Offering />} />
-        <Route path="/upload" element={<UploadProject />} />
+        <Route path="/more" element={<More />} />
         <Route path="/3d" element={<Showroom3D />} />
-        <Route path="/crm" element={<CrmDashboard />} />
       </Routes>
 
       <Footer />

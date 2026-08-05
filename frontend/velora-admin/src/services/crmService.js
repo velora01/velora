@@ -1,7 +1,6 @@
+import { getAuthHeaders } from "./authService";
+
 const getBaseUrl = () => {
-  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-    return "http://localhost:3000/api";
-  }
   return "https://velora-backend-usq1.onrender.com/api";
 };
 
@@ -11,7 +10,11 @@ export const fetchCrmLeads = async (filters = {}) => {
   if (filters.category) params.append("category", filters.category);
   if (filters.search) params.append("search", filters.search);
 
-  const response = await fetch(`${getBaseUrl()}/crm?${params.toString()}`);
+  const response = await fetch(`${getBaseUrl()}/crm?${params.toString()}`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
   const result = await response.json();
   
   if (!response.ok) {
@@ -21,7 +24,11 @@ export const fetchCrmLeads = async (filters = {}) => {
 };
 
 export const fetchCrmStats = async () => {
-  const response = await fetch(`${getBaseUrl()}/crm/stats`);
+  const response = await fetch(`${getBaseUrl()}/crm/stats`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
   const result = await response.json();
   
   if (!response.ok) {
@@ -35,6 +42,7 @@ export const createCrmLead = async (leadData) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(leadData),
   });
@@ -51,6 +59,7 @@ export const updateCrmLead = async (id, leadData) => {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(leadData),
   });
@@ -67,6 +76,7 @@ export const updateCrmStatus = async (id, status, comment = "") => {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({ status, comment }),
   });
@@ -81,6 +91,9 @@ export const updateCrmStatus = async (id, status, comment = "") => {
 export const deleteCrmLead = async (id) => {
   const response = await fetch(`${getBaseUrl()}/crm/${id}`, {
     method: "DELETE",
+    headers: {
+      ...getAuthHeaders(),
+    }
   });
 
   const result = await response.json();
@@ -91,11 +104,61 @@ export const deleteCrmLead = async (id) => {
 };
 
 export const fetchPendingSubmissions = async () => {
-  const response = await fetch(`${getBaseUrl()}/crm/pending`);
+  const response = await fetch(`${getBaseUrl()}/crm/pending`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
   const result = await response.json();
   
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch pending submissions.");
   }
   return result.data || { consults: [], contacts: [] };
+};
+
+// ==============================================
+// EXTRA CRM APIS (MEETINGS & ANALYTICS)
+// ==============================================
+
+export const fetchCrmAnalytics = async () => {
+  const response = await fetch(`${getBaseUrl()}/analytics`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch CRM analytical details.");
+  }
+  return result.data;
+};
+
+export const fetchMeetings = async () => {
+  const response = await fetch(`${getBaseUrl()}/meetings`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch scheduled site meetings.");
+  }
+  return result.data || [];
+};
+
+export const createMeeting = async (meetingData) => {
+  const response = await fetch(`${getBaseUrl()}/meetings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(meetingData),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to schedule site meeting.");
+  }
+  return result.data;
 };

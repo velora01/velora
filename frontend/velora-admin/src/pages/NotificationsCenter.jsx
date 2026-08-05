@@ -10,7 +10,8 @@ export default function NotificationsCenter() {
   ]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:3000";
+    const socket = io(socketUrl);
     socket.on("project-updated", (data) => {
       setNotifications((prev) => [
         { id: Date.now(), title: "Project Status Updated", message: data.message, timestamp: "Just now", type: "project" },

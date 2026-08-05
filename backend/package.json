@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "fs-extra": "^11.3.6",
@@ -30,7 +31,9 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
+    "pdfkit": "^0.19.1",
     "sharp": "^0.33.4",
+    "socket.io": "^4.8.3",
     "storage": "^0.2.0"
   },
   "devDependencies": {

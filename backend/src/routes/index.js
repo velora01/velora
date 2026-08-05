@@ -18,7 +18,12 @@ import skeletonRoute from "./skeleton.route.js";
 import { getProfile, updateProfile } from "../controllers/authController.js";
 import { protect } from "../middleware/auth.middleware.js";
 
+import erpRoute from "./erp.route.js";
+
 const router = express.Router();
+
+// Mount ERP Suite routes
+router.use("/erp", erpRoute);
 
 // Mount existing routes
 router.use("/", homeRoute);

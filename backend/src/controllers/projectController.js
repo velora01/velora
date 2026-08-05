@@ -1,110 +1,69 @@
 import Project from "../models/Project.js";
+import { logActivity } from "../services/auditService.js";
+import { emitNotification } from "../services/socketService.js";
 
-const makeSlug = (value) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+export const getProjects = async (req, res) => {
+  try {
+    const { search = "", stage = "", page = 1, limit = 10, sortBy = "createdAt" } = req.query;
+    const query = {};
+    if (search) query.$or = [{ heading: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }];
+    if (stage) query.stage = stage;
 
-const normalizeProjectImages = (image, images) => {
-  const normalizedImages = Array.isArray(images)
-    ? images.filter((value) => typeof value === "string" && value.trim() !== "")
-    : [];
+    const projects = await Project.find(query)
+      .sort({ [sortBy]: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    const total = await Project.countDocuments(query);
 
-  if (normalizedImages.length > 0) {
-    return normalizedImages.map((value) => value.trim());
+    res.json({ success: true, data: projects, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
-
-  if (typeof image === "string" && image.trim() !== "") {
-    return [image.trim()];
-  }
-
-  return [];
 };
 
 export const createProject = async (req, res) => {
   try {
-    const { tag, heading, description, image, images, video } = req.body;
-
-    if (!tag || !heading || !description) {
-      return res.status(400).json({
-        success: false,
-        message: "Tag, heading, and description are required.",
-      });
-    }
-
-    const slug = makeSlug(heading);
-    const existing = await Project.findOne({ slug });
-    if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: "A project with this heading already exists.",
-      });
-    }
-
-    const normalizedImages = normalizeProjectImages(image, images);
-    const project = await Project.create({
-      tag,
-      heading,
-      description,
-      image: normalizedImages[0] || image || "",
-      images: normalizedImages,
-      video: video || "",
-      slug,
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Project created successfully.",
-      data: project,
-    });
-  } catch (error) {
-    console.error("Project creation error:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    const project = await Project.create(req.body);
+    await logActivity({ userName: req.user?.name || "Admin", action: "Created", module: "Projects", description: `Created project ${project.heading}` });
+    emitNotification("project-updated", { message: `New project ${project.heading} initialized`, project });
+    res.status(201).json({ success: true, data: project });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-export const getProjects = async (req, res) => {
+export const updateProjectStage = async (req, res) => {
   try {
-    const projects = await Project.find({ isActive: true }).sort({ createdAt: -1 });
-    return res.status(200).json({
-      success: true,
-      count: projects.length,
-      data: projects,
-    });
-  } catch (error) {
-    console.error("Get projects error:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    const { stage, progressPercent } = req.body;
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ success: false, message: "Project not found" });
+
+    project.stage = stage || project.stage;
+    if (progressPercent !== undefined) project.progressPercent = progressPercent;
+    await project.save();
+
+    await logActivity({ userName: req.user?.name || "Admin", action: "Updated", module: "Projects", description: `Project ${project.heading} moved to stage ${project.stage}` });
+    emitNotification("project-updated", { message: `Project ${project.heading} moved to ${project.stage}`, project });
+
+    res.json({ success: true, data: project });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
 export const getProjectBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const project = await Project.findOne({ slug, isActive: true });
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: "Project not found.",
-      });
+    let project = await Project.findOne({ slug });
+    if (!project && slug.match(/^[0-9a-fA-F]{24}$/)) {
+      project = await Project.findById(slug);
     }
-
-    return res.status(200).json({
-      success: true,
-      data: project,
-    });
-  } catch (error) {
-    console.error("Get project by slug error:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    if (!project) {
+      return res.status(404).json({ success: false, message: "Project not found" });
+    }
+    res.json({ success: true, data: project });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
+

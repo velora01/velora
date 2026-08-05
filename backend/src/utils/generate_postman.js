@@ -533,7 +533,7 @@ const collection = {
       ]
     },
     {
-      name: "7. Other Platform Modules (Stub APIs)",
+      name: "7. CRM & Client Portal Modules (Fully Integrated)",
       item: [
         {
           name: "GET /company (Company Info)",
@@ -554,6 +554,26 @@ const collection = {
           request: {
             method: "GET",
             header: [{ key: "Authorization", value: "Bearer {{adminToken}}" }],
+            url: "{{baseUrl}}/timeline"
+          }
+        },
+        {
+          name: "POST /timeline (Create Milestone)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                title: "False Ceiling Installation",
+                status: "Pending",
+                date: "2026-08-10",
+                comments: "Scheduled post electrical wiring approval."
+              })
+            },
             url: "{{baseUrl}}/timeline"
           }
         },
@@ -583,6 +603,23 @@ const collection = {
           }
         },
         {
+          name: "PATCH /tasks/:id (Toggle Task Status)",
+          request: {
+            method: "PATCH",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                done: true
+              })
+            },
+            url: "{{baseUrl}}/tasks/replace-with-task-id"
+          }
+        },
+        {
           name: "GET /payments (Financials)",
           request: {
             method: "GET",
@@ -591,11 +628,83 @@ const collection = {
           }
         },
         {
-          name: "GET /products (Catalog)",
+          name: "POST /payments (Add Transaction Record)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                stage: "Post-Installation Inspection",
+                amount: 300000,
+                status: "Pending",
+                date: "2026-08-20"
+              })
+            },
+            url: "{{baseUrl}}/payments"
+          }
+        },
+        {
+          name: "GET /products (Showroom Inventory)",
           request: {
             method: "GET",
-            header: [{ key: "Authorization", value: "Bearer {{adminToken}}" }],
             url: "{{baseUrl}}/products"
+          }
+        },
+        {
+          name: "POST /products (Create Showroom Item)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                name: "Gold Trim Velvet Dining Chair",
+                category: "Chair",
+                description: "Ergonomic dining chair upholstered in ocean blue velvet with champagne gold legs.",
+                price: 18500,
+                designs: ["Italian Modern", "Bespoke Gold"],
+                materials: ["Stainless Steel Base", "Velvet Fabric"],
+                dimensions: "2ft x 2ft x 3.5ft",
+                images: ["https://cloudinary.com/velora/chair1.jpg"],
+                isAvailable: true
+              })
+            },
+            url: "{{baseUrl}}/products"
+          }
+        },
+        {
+          name: "PUT /products/:id (Update Showroom Item)",
+          request: {
+            method: "PUT",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                price: 19500,
+                isAvailable: false
+              })
+            },
+            url: "{{baseUrl}}/products/replace-with-product-id"
+          }
+        },
+        {
+          name: "DELETE /products/:id (Delete Showroom Item)",
+          request: {
+            method: "DELETE",
+            header: [
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            url: "{{baseUrl}}/products/replace-with-product-id"
           }
         },
         {
@@ -603,6 +712,25 @@ const collection = {
           request: {
             method: "GET",
             header: [{ key: "Authorization", value: "Bearer {{adminToken}}" }],
+            url: "{{baseUrl}}/documents"
+          }
+        },
+        {
+          name: "POST /documents (Register Project Drawing)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                name: "Dining Room False Ceiling Layout.pdf",
+                size: "2.1 MB",
+                url: "https://cloudinary.com/velora/dining-ceiling.pdf"
+              })
+            },
             url: "{{baseUrl}}/documents"
           }
         },
@@ -615,6 +743,26 @@ const collection = {
           }
         },
         {
+          name: "POST /notifications (Create Notification)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                recipientId: "replace-with-customer-id",
+                recipientType: "Customer",
+                type: "update",
+                message: "New structural drawing uploaded for your review."
+              })
+            },
+            url: "{{baseUrl}}/notifications"
+          }
+        },
+        {
           name: "GET /meetings (Calendar)",
           request: {
             method: "GET",
@@ -623,10 +771,49 @@ const collection = {
           }
         },
         {
+          name: "POST /meetings (Schedule Site Visit)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                title: "Site Handover and Verification Visit",
+                date: "2026-08-15",
+                time: "11:00 AM"
+              })
+            },
+            url: "{{baseUrl}}/meetings"
+          }
+        },
+        {
           name: "GET /invoices (Tax Invoices)",
           request: {
             method: "GET",
             header: [{ key: "Authorization", value: "Bearer {{adminToken}}" }],
+            url: "{{baseUrl}}/invoices"
+          }
+        },
+        {
+          name: "POST /invoices (Generate Tax Invoice)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                invoiceNumber: "INV-2026-005",
+                amount: 300000,
+                date: "2026-07-28",
+                status: "Unpaid"
+              })
+            },
             url: "{{baseUrl}}/invoices"
           }
         },
@@ -645,6 +832,24 @@ const collection = {
               })
             },
             url: "{{baseUrl}}/support"
+          }
+        },
+        {
+          name: "PATCH /support/:id/reply (Reply Support Ticket)",
+          request: {
+            method: "PATCH",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Authorization", value: "Bearer {{adminToken}}" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                reply: "The service team has scheduled a technician visit for tomorrow at 10 AM.",
+                status: "Resolved"
+              })
+            },
+            url: "{{baseUrl}}/support/replace-with-ticket-id/reply"
           }
         },
         {

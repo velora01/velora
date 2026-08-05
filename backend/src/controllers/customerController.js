@@ -1,5 +1,11 @@
 import Customer from "../models/Customer.js";
 import Project from "../models/Project.js";
+import TimelineMilestone from "../models/TimelineMilestone.js";
+import Meeting from "../models/Meeting.js";
+import Notification from "../models/Notification.js";
+import PortalTask from "../models/PortalTask.js";
+import PaymentTransaction from "../models/PaymentTransaction.js";
+import Invoice from "../models/Invoice.js";
 
 // Generate Unique Client Code (e.g. VEL0001, VEL0002)
 const generateClientCode = async () => {
@@ -13,6 +19,53 @@ const generateClientCode = async () => {
   }
   return `VEL${String(nextNum).padStart(4, "0")}`;
 };
+
+// Get Customer Count (GET /customers/count)
+export const getCustomerCount = async (req, res)=>{
+  try {
+    const count = await Customer.countDocuments();
+    return res.status(200).json({
+      success: true,
+      message: "Customer count fetched successfully",
+      data: { count }
+    });
+  } catch (error) {
+    console.error("Get Customer Count Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
+
+// Get Customer by Unique Login ID (GET /customers/login/:loginId)
+export const getCustomerByLoginId = async(req, res)=>{
+  try{
+    const { loginId } = req.params;
+    const customer = await Customer.findOne({ uniqueLoginId: loginId })
+      .populate("assignedDesigner", "name email role")
+      .populate("assignedSales", "name email role")
+      .populate("projectId");
+      
+    if(!customer){
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Customer fetched successfully",
+      data: customer
+    });
+  } catch (error) {
+    console.error("Get Customer by Login ID Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
 
 // Create Customer (POST /customers)
 export const createCustomer = async (req, res) => {
@@ -238,23 +291,71 @@ export const getCustomerDashboard = async (req, res) => {
       });
     }
 
-    // Mock timeline/milestone details for dashboard
-    const projectProgress = customer.projectId ? 45 : 0; // 45% progress if project is assigned
-    const upcomingMeetings = [
-      {
-        title: "Initial Design Discussion",
-        date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        time: "11:00 AM",
-      },
-    ];
+    // 1. Fetch Timeline Milestones (and auto-seed if none exist)
+    let milestones = await TimelineMilestone.find({ customerId: customer._id });
+    if (milestones.length === 0) {
+      milestones = await TimelineMilestone.create([
+        { customerId: customer._id, title: "Civil Work", status: "Completed", date: new Date("2026-07-01"), comments: "Completed on schedule" },
+        { customerId: customer._id, title: "Electrical Wiring", status: "Completed", date: new Date("2026-07-10"), comments: "Conduit wiring and socket boxes completed" },
+        { customerId: customer._id, title: "Modular Installation", status: "In Progress", date: new Date("2026-07-25"), comments: "Carcass assembly ongoing in kitchen" },
+        { customerId: customer._id, title: "Finishing & Handover", status: "Pending", date: new Date("2026-08-15"), comments: "Planned final cleaning and handover" }
+      ]);
+    }
 
-    const notifications = [
-      {
-        title: "Designer Assigned",
-        message: `${customer.assignedDesigner ? customer.assignedDesigner.name : "A designer"} has been assigned to your project.`,
-        date: new Date().toLocaleDateString(),
-      },
-    ];
+    // Calculate progress based on milestones
+    const completedCount = milestones.filter((m) => m.status === "Completed").length;
+    const projectProgress = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0;
+
+    // 2. Fetch Meetings (and auto-seed if none exist)
+    let meetings = await Meeting.find({ customerId: customer._id });
+    if (meetings.length === 0) {
+      meetings = await Meeting.create([
+        {
+          customerId: customer._id,
+          title: "Initial Design Discussion",
+          date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+          time: "11:00 AM",
+          status: "Scheduled"
+        }
+      ]);
+    }
+
+    // 3. Fetch Notifications (and auto-seed if none exist)
+    let notifications = await Notification.find({ recipientId: customer._id, recipientType: "Customer" });
+    if (notifications.length === 0) {
+      notifications = await Notification.create([
+        {
+          recipientId: customer._id,
+          recipientType: "Customer",
+          type: "update",
+          message: `${customer.assignedDesigner ? customer.assignedDesigner.name : "A designer"} has been assigned to your project.`,
+          read: false
+        }
+      ]);
+    }
+
+    // 4. Fetch Tasks (and auto-seed if none exist)
+    let tasks = await PortalTask.find({ customerId: customer._id });
+    if (tasks.length === 0) {
+      tasks = await PortalTask.create([
+        { customerId: customer._id, title: "Finalize laminate color", priority: "High", done: false },
+        { customerId: customer._id, title: "Approve kitchen layout drawing", priority: "Medium", done: true }
+      ]);
+    }
+
+    // Format output meetings and notifications for display
+    const formattedMeetings = meetings.map(m => ({
+      title: m.title,
+      date: m.date.toLocaleDateString(),
+      time: m.time,
+      status: m.status
+    }));
+
+    const formattedNotifications = notifications.map(n => ({
+      title: n.type.toUpperCase(),
+      message: n.message,
+      date: n.createdAt ? n.createdAt.toLocaleDateString() : new Date().toLocaleDateString()
+    }));
 
     return res.status(200).json({
       success: true,
@@ -272,8 +373,10 @@ export const getCustomerDashboard = async (req, res) => {
           sales: customer.assignedSales || null,
         },
         progress: projectProgress,
-        meetings: upcomingMeetings,
-        notifications,
+        milestones,
+        tasks,
+        meetings: formattedMeetings,
+        notifications: formattedNotifications,
       },
     });
   } catch (error) {

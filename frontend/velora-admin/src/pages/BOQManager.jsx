@@ -55,26 +55,26 @@ export default function BOQManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Bill of Quantities (BOQ) Studio</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Generate room-wise material estimates and export luxury PDF quotes</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Project Cost Estimates (BOQ)</h1>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Create detailed room-wise cost estimates (BOQ) and export professional PDF quotes</p>
         </div>
 
         <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
           <button
             onClick={() => setActiveTab("builder")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "builder" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            BOQ Builder
+            Create New Estimate
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "history" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            Saved BOQs
+            View Saved Estimates
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function BOQManager() {
       {activeTab === "builder" ? (
         <BOQBuilder onSaveBOQ={handleSaveBOQ} />
       ) : (
-        <DataTable title="Historical BOQ Estimates" columns={columns} data={boqs} search={search} setSearch={setSearch} />
+        <DataTable title="Saved Estimates History" columns={columns} data={boqs} search={search} setSearch={setSearch} />
       )}
     </div>
   );

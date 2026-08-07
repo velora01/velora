@@ -4,10 +4,11 @@ import { generatePdfDoc, generateBOQPdf } from "../services/exportService.js";
 
 export const getBOQs = async (req, res) => {
   try {
-    const { search = "", leadId = "", page = 1, limit = 10 } = req.query;
+    const { search = "", leadId = "", projectId = "", page = 1, limit = 10 } = req.query;
     const query = {};
     if (search) query.$or = [{ boqNumber: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }];
     if (leadId) query.lead = leadId;
+    if (projectId) query.project = projectId;
 
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;

@@ -405,13 +405,35 @@ export default function LeadManagement() {
     }
   };
 
+  const handleAutoFillDummy = () => {
+    const randPhone = "+91 9" + Math.floor(100000000 + Math.random() * 900000000);
+    setFormData({
+      name: "Aditya Verma",
+      phone: randPhone,
+      email: "aditya.verma@example.com",
+      city: "Pune",
+      propertyType: "3BHK Luxury Flat",
+      siteArea: 1450,
+      possessionStatus: "Possession Handed Over",
+      stylePreference: "Modern",
+      scopeOfWork: ["Modular Kitchen", "Wardrobes & Storage", "False Ceiling & Lighting"],
+      nextMeetingDate: new Date(Date.now() + 86400000 * 2).toISOString().substring(0, 16),
+      address: "Flat 804, Building C, Clover Highlands, Kondhwa, Pune",
+      budget: "₹35L - ₹50L",
+      status: "Booking",
+      source: "Website",
+      notes: "Client wants a premium bronze-charcoal theme. Interested in high-end modular kitchen finishes (BWP Plywood + Acrylic shutters) and false ceiling design with smart home automation compatibility.",
+      assignedTo: staffUsers[0]?._id || ""
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header controls bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Luxury CRM & Estimate Studio</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Bespoke Lead Profiling, Design Preferences, and Predefined Materials BOQ Builder</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Client Relationship Management (CRM)</h1>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Manage client details, project scope, design style preferences, and cost estimates (BOQ)</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -439,7 +461,7 @@ export default function LeadManagement() {
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-slate-950 rounded-xl font-bold text-xs shadow-sm hover:opacity-95 cursor-pointer"
           >
             <Plus size={16} />
-            <span>Add Client & Project</span>
+            <span>Create New Client & Project</span>
           </button>
         </div>
       </div>
@@ -474,12 +496,21 @@ export default function LeadManagement() {
           <div className="w-screen max-w-2xl bg-white border-l border-slate-200 shadow-xl flex flex-col h-full">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-[#FFFDF9]">
               <div>
-                <h3 className="font-extrabold text-base text-slate-900">Add Design Client Profile</h3>
+                <h3 className="font-extrabold text-base text-slate-900">Create New Client & Project Profile</h3>
                 <p className="text-[10px] text-[#9E7B1D] font-extrabold uppercase tracking-wider">Configure client scope, possession details, and style preference</p>
               </div>
-              <button onClick={() => setIsCreateDrawerOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer">
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAutoFillDummy}
+                  className="px-2.5 py-1 bg-stone-100 border border-stone-200 hover:border-[#D4AF37] hover:bg-white text-[10px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+                >
+                  ⚡ Auto-Fill Dummy
+                </button>
+                <button onClick={() => setIsCreateDrawerOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleCreate} className="p-6 flex-1 overflow-y-auto space-y-6 text-xs">

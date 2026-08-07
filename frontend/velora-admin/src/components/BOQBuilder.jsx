@@ -1,9 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Calculator } from "lucide-react";
+import erpApi from "../services/erpService";
 
-export default function BOQBuilder({ onSaveBOQ }) {
-  const [clientName, setClientName] = useState("");
+export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectId = "", leadId = "" }) {
+  const [clientName, setClientName] = useState(initialClientName);
   const [preparedBy, setPreparedBy] = useState("Velora Senior Architect");
+  
+  // Association states
+  const [associationType, setAssociationType] = useState(
+    projectId ? "project" : leadId ? "lead" : "manual"
+  );
+  const [projectList, setProjectList] = useState([]);
+  const [leadList, setLeadList] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId);
+  const [selectedLeadId, setSelectedLeadId] = useState(leadId);
+
+  useEffect(() => {
+    if (!projectId && !leadId) {
+      erpApi.getProjects({ limit: 100 }).then((res) => {
+        if (res?.data) setProjectList(res.data);
+      });
+      erpApi.getLeads({ limit: 100 }).then((res) => {
+        if (res?.data) setLeadList(res.data);
+      });
+    }
+  }, [projectId, leadId]);
+
   const [rooms, setRooms] = useState([
     {
       name: "Living Room",
@@ -78,7 +100,9 @@ export default function BOQBuilder({ onSaveBOQ }) {
       rooms,
       subtotal,
       gstTotal,
-      grandTotal
+      grandTotal,
+      project: projectId || selectedProjectId || undefined,
+      lead: leadId || selectedLeadId || undefined
     });
   };
 
@@ -113,14 +137,101 @@ export default function BOQBuilder({ onSaveBOQ }) {
 
       {/* General Meta */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* If no context is passed, let them select client/project link */}
+        {!projectId && !leadId && (
+          <div className="sm:col-span-2 bg-[#FAF9F5] border border-slate-200 rounded-xl p-3.5 space-y-3">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+              Associate Estimate With
+            </label>
+            <div className="flex gap-2">
+              {[
+                { id: "manual", label: "Standalone Manual Client" },
+                { id: "lead", label: "Design Lead Profile" },
+                { id: "project", label: "Active Project" }
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    setAssociationType(opt.id);
+                    if (opt.id === "manual") {
+                      setClientName("");
+                      setSelectedLeadId("");
+                      setSelectedProjectId("");
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                    associationType === opt.id
+                      ? "bg-[#D4AF37] text-slate-950 border-[#D4AF37]"
+                      : "bg-white text-slate-500 border-slate-200 hover:text-slate-700"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {associationType === "lead" && (
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase">Select Client Lead</label>
+                <select
+                  value={selectedLeadId}
+                  onChange={(e) => {
+                    const lId = e.target.value;
+                    setSelectedLeadId(lId);
+                    setSelectedProjectId("");
+                    const match = leadList.find((l) => l._id === lId);
+                    if (match) setClientName(match.name);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#C5A059]"
+                >
+                  <option value="">-- Choose Lead Profile --</option>
+                  {leadList.map((lead) => (
+                    <option key={lead._id} value={lead._id}>
+                      {lead.name} ({lead.propertyType} - {lead.city})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {associationType === "project" && (
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase">Select Active Project</label>
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => {
+                    const pId = e.target.value;
+                    setSelectedProjectId(pId);
+                    setSelectedLeadId("");
+                    const match = projectList.find((p) => p._id === pId);
+                    if (match) setClientName(match.clientName);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#C5A059]"
+                >
+                  <option value="">-- Choose Project --</option>
+                  {projectList.map((proj) => (
+                    <option key={proj._id} value={proj._id}>
+                      {proj.heading} (Client: {proj.clientName})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Client Name</label>
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+            Client Name {associationType !== "manual" && <span className="text-[#9E7B1D] font-bold">(Auto-selected)</span>}
+          </label>
           <input
             type="text"
             placeholder="e.g. Mr. Rajesh Sharma"
             value={clientName}
+            disabled={associationType !== "manual" && !projectId && !leadId}
             onChange={(e) => setClientName(e.target.value)}
-            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#C5A059]"
+            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#C5A059] disabled:opacity-75 disabled:cursor-not-allowed"
           />
         </div>
         <div>

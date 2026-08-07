@@ -41,40 +41,40 @@ export default function AdminLayout({ children }) {
 
   const menuSections = [
     {
-      title: "Core CRM",
+      title: "Customer & Lead Management (CRM)",
       items: [
         { path: "/", name: "Dashboard", icon: <LayoutDashboard size={16} /> },
-        { path: "/leads", name: "Lead Pipeline", icon: <Users size={16} /> },
-        { path: "/website-leads", name: "Website Leads", icon: <Globe size={16} /> },
-        { path: "/clients", name: "Clients Directory", icon: <Briefcase size={16} /> }
+        { path: "/leads", name: "Sales & Design Leads", icon: <Users size={16} /> },
+        { path: "/website-leads", name: "Online Web Forms", icon: <Globe size={16} /> },
+        { path: "/clients", name: "Active Clients List", icon: <Briefcase size={16} /> }
       ]
     },
     {
       title: "Projects & Estimates",
       items: [
-        { path: "/projects", name: "Projects Master", icon: <Briefcase size={16} /> },
-        { path: "/boq", name: "BOQ Builder", icon: <FileSpreadsheet size={16} /> },
-        { path: "/invoices", name: "Invoices & Quotes", icon: <FileText size={16} /> },
-        { path: "/tasks", name: "Tasks Kanban", icon: <CheckCircle2 size={16} /> }
+        { path: "/projects", name: "Project Management", icon: <Briefcase size={16} /> },
+        { path: "/boq", name: "Cost Estimator (BOQ)", icon: <FileSpreadsheet size={16} /> },
+        { path: "/invoices", name: "Billing & Quotations", icon: <FileText size={16} /> },
+        { path: "/tasks", name: "Task tracking Board", icon: <CheckCircle2 size={16} /> }
       ]
     },
     {
       title: "Production & Operations",
       items: [
-        { path: "/factory", name: "Factory Queue", icon: <Factory size={16} /> },
-        { path: "/inventory", name: "Materials Stock", icon: <Package size={16} /> },
-        { path: "/installation", name: "Installation Team", icon: <Truck size={16} /> },
-        { path: "/site-visits", name: "Site Visits GPS", icon: <MapPin size={16} /> }
+        { path: "/factory", name: "Factory Production", icon: <Factory size={16} /> },
+        { path: "/inventory", name: "Material Inventory", icon: <Package size={16} /> },
+        { path: "/installation", name: "Site Installations", icon: <Truck size={16} /> },
+        { path: "/site-visits", name: "Site Inspections", icon: <MapPin size={16} /> }
       ]
     },
     {
-      title: "Finance & Admin",
+      title: "Finance & Admin Settings",
       items: [
         { path: "/payments", name: "Payments Ledger", icon: <CreditCard size={16} /> },
-        { path: "/calendar", name: "Unified Calendar", icon: <Calendar size={16} /> },
-        { path: "/reports", name: "Reports Hub", icon: <BarChart3 size={16} /> },
-        { path: "/users", name: "Users & RBAC", icon: <ShieldCheck size={16} /> },
-        { path: "/logs", name: "Activity Logs", icon: <History size={16} /> }
+        { path: "/calendar", name: "Calendar & Deadlines", icon: <Calendar size={16} /> },
+        { path: "/reports", name: "Reports & Insights", icon: <BarChart3 size={16} /> },
+        { path: "/users", name: "User Access Permissions", icon: <ShieldCheck size={16} /> },
+        { path: "/logs", name: "System Activity Logs", icon: <History size={16} /> }
       ]
     }
   ];

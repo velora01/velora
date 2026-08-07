@@ -1,6 +1,9 @@
 import Contact from "../models/contact.model.js";
 
 export const createContactEntry = async (body) => {
+
+
+  
   return await Contact.create(body);
 };
 

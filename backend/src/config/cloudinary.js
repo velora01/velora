@@ -8,12 +8,14 @@ const requiredEnv = [
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
 ];
+
 const missing = requiredEnv.filter((key) => !process.env[key]);
 if (missing.length) {
   throw new Error(
     `Missing Cloudinary environment variables: ${missing.join(", ")}`
   );
 }
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

@@ -52,7 +52,7 @@ export default function UploadProject() {
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to upload cover image. Please try again.");
+      setError(err.response?.data?.message || err.message || "Failed to upload cover image. Please try again.");
     } finally {
       setIsUploadingCover(false);
     }
@@ -79,7 +79,7 @@ export default function UploadProject() {
       setGalleryImages((prev) => [...prev, ...urls]);
     } catch (err) {
       console.error(err);
-      setError("Failed to upload one or more gallery images.");
+      setError(err.response?.data?.message || err.message || "Failed to upload one or more gallery images.");
     } finally {
       setIsUploadingGallery(false);
     }
@@ -102,7 +102,7 @@ export default function UploadProject() {
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to upload video. Please try again.");
+      setError(err.response?.data?.message || err.message || "Failed to upload video. Please try again.");
     } finally {
       setIsUploadingVideo(false);
     }
@@ -168,7 +168,7 @@ export default function UploadProject() {
       }, 2000);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to create the project.");
+      setError(err.response?.data?.message || err.message || "Failed to create the project.");
     } finally {
       setIsSubmitting(false);
     }

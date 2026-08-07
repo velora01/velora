@@ -189,7 +189,7 @@ export default function LeadManagement() {
       });
       loadLeads();
     } catch (err) {
-      alert("Error creating lead: " + err.message);
+      alert("Error creating lead: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -233,7 +233,7 @@ export default function LeadManagement() {
         loadLeads();
       }
     } catch (err) {
-      alert("Error updating lead: " + err.message);
+      alert("Error updating lead: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -330,6 +330,17 @@ export default function LeadManagement() {
       return alert("Please add at least one room with items to save the BOQ");
     }
 
+    // Validate that no item has an empty itemName
+    for (let r = 0; r < boqRooms.length; r++) {
+      const room = boqRooms[r];
+      for (let i = 0; i < room.items.length; i++) {
+        const item = room.items[i];
+        if (!item.itemName || !item.itemName.trim()) {
+          return alert(`Please enter a valid Item Name / Specification for item ${i + 1} in room "${room.name}".`);
+        }
+      }
+    }
+
     try {
       const boqData = {
         lead: selectedLead._id,
@@ -360,7 +371,7 @@ export default function LeadManagement() {
       loadLeadBOQs(selectedLead._id);
       setActiveDetailTab("boq");
     } catch (err) {
-      alert("Error saving BOQ: " + err.message);
+      alert("Error saving BOQ: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -401,7 +412,7 @@ export default function LeadManagement() {
         setIsMaterialModalOpen(false);
       }
     } catch (err) {
-      alert("Error adding material: " + err.message);
+      alert("Error adding material: " + (err.response?.data?.message || err.message));
     }
   };
 

@@ -20,11 +20,16 @@ export default function BOQManager() {
   }, [search]);
 
   const handleSaveBOQ = async (boqData) => {
-    await erpApi.createBOQ(boqData);
-    alert("BOQ Saved successfully!");
-    loadBOQs();
-    setActiveTab("history");
+    try {
+      await erpApi.createBOQ(boqData);
+      alert("BOQ Saved successfully!");
+      loadBOQs();
+      setActiveTab("history");
+    } catch (err) {
+      alert("Failed to save BOQ: " + (err.response?.data?.message || err.message));
+    }
   };
+
 
   const columns = [
     { header: "BOQ #", key: "boqNumber", sortable: true },
@@ -62,17 +67,15 @@ export default function BOQManager() {
         <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
           <button
             onClick={() => setActiveTab("builder")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === "builder" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "builder" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+              }`}
           >
             Create New Estimate
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === "history" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "history" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+              }`}
           >
             View Saved Estimates
           </button>

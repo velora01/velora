@@ -176,7 +176,7 @@ export default function ProductsCatalog() {
       setShowFormModal(false);
       loadProducts();
     } catch (err) {
-      showNotification(err.message || "Failed to save product details.", false);
+      showNotification(err.response?.data?.message || err.message || "Failed to save product details.", false);
     } finally {
       setSubmitting(false);
     }
@@ -190,7 +190,7 @@ export default function ProductsCatalog() {
       showNotification("Product deleted successfully!");
       loadProducts();
     } catch (err) {
-      showNotification(err.message || "Failed to delete product.", false);
+      showNotification(err.response?.data?.message || err.message || "Failed to delete product.", false);
     }
   };
 

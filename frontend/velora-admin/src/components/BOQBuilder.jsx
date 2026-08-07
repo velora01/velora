@@ -94,6 +94,23 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
 
   const handleSave = () => {
     if (!clientName) return alert("Please specify client name");
+    if (!preparedBy) return alert("Please specify who prepared the BOQ");
+
+    if (rooms.length === 0 || rooms.some(r => r.items.length === 0)) {
+      return alert("Please add at least one room with items to save the BOQ");
+    }
+
+    // Validate that no item has an empty itemName
+    for (let r = 0; r < rooms.length; r++) {
+      const room = rooms[r];
+      for (let i = 0; i < room.items.length; i++) {
+        const item = room.items[i];
+        if (!item.itemName || !item.itemName.trim()) {
+          return alert(`Please enter a valid Item Name / Specification for item ${i + 1} in room "${room.name}".`);
+        }
+      }
+    }
+
     onSaveBOQ({
       clientName,
       preparedBy,

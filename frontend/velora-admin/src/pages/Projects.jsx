@@ -322,7 +322,7 @@ export default function Projects() {
                           setActiveDetailTab("boqs");
                         }
                       } catch (err) {
-                        alert("Failed to save BOQ: " + err.message);
+                        alert("Failed to save BOQ: " + (err.response?.data?.message || err.message));
                       }
                     }}
                   />

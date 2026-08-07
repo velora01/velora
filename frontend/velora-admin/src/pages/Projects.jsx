@@ -205,7 +205,7 @@ export default function Projects() {
             <div className="p-6 flex-1 overflow-y-auto">
               {activeDetailTab === "project" && (
                 <div className="space-y-6 text-xs">
-                  <div className="grid grid-cols-2 gap-4 bg-[#FAF9F5] p-4 rounded-xl border border-slate-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF9F5] p-4 rounded-xl border border-slate-100">
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-bold mb-0.5">Client Name</span>
                       <span className="font-bold text-slate-800 text-xs">{selectedProject.clientName}</span>

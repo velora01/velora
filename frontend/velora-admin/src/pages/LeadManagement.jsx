@@ -522,9 +522,9 @@ export default function LeadManagement() {
                   <span>1. Contact & Admin Details</span>
                 </h4>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Full Client Name *</label>
+                    <label className="block text-slate-700 font-bold mb-1">Client Name *</label>
                     <input
                       type="text"
                       required
@@ -535,7 +535,7 @@ export default function LeadManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Phone Number *</label>
+                    <label className="block text-slate-700 font-bold mb-1">Phone *</label>
                     <input
                       type="text"
                       required
@@ -547,9 +547,9 @@ export default function LeadManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Email Address</label>
+                    <label className="block text-slate-700 font-bold mb-1">Email</label>
                     <input
                       type="email"
                       placeholder="client@gmail.com"
@@ -559,7 +559,7 @@ export default function LeadManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">City Location</label>
+                    <label className="block text-slate-700 font-bold mb-1">City</label>
                     <input
                       type="text"
                       value={formData.city}
@@ -569,9 +569,9 @@ export default function LeadManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Lead Source</label>
+                    <label className="block text-slate-700 font-bold mb-1">Source</label>
                     <select
                       value={formData.source}
                       onChange={(e) => setFormData({ ...formData, source: e.target.value })}
@@ -585,7 +585,7 @@ export default function LeadManagement() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Stage Status</label>
+                    <label className="block text-slate-700 font-bold mb-1">Stage</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -597,7 +597,7 @@ export default function LeadManagement() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Assigned Staff</label>
+                    <label className="block text-slate-700 font-bold mb-1">Staff</label>
                     <select
                       value={formData.assignedTo}
                       onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
@@ -614,7 +614,7 @@ export default function LeadManagement() {
                 <div>
                   <label className="block text-slate-700 font-bold mb-1 flex items-center gap-1.5">
                     <Calendar size={13} className="text-[#9E7B1D]" />
-                    <span>Next Consultation / Meeting Date</span>
+                    <span>Next Meeting Date</span>
                   </label>
                   <input
                     type="datetime-local"
@@ -632,9 +632,9 @@ export default function LeadManagement() {
                   <span>2. Design & Site Scope Details</span>
                 </h4>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Property Type</label>
+                    <label className="block text-slate-700 font-bold mb-1">Property</label>
                     <input
                       type="text"
                       placeholder="e.g. 3BHK Apartment"
@@ -644,7 +644,7 @@ export default function LeadManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Site Area (sq.ft.)</label>
+                    <label className="block text-slate-700 font-bold mb-1">Site Area (sqft)</label>
                     <input
                       type="number"
                       placeholder="e.g. 1200"
@@ -654,7 +654,7 @@ export default function LeadManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Possession Status</label>
+                    <label className="block text-slate-700 font-bold mb-1">Possession</label>
                     <select
                       value={formData.possessionStatus}
                       onChange={(e) => setFormData({ ...formData, possessionStatus: e.target.value })}
@@ -668,9 +668,9 @@ export default function LeadManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Style Preference</label>
+                    <label className="block text-slate-700 font-bold mb-1">Style</label>
                     <select
                       value={formData.stylePreference}
                       onChange={(e) => setFormData({ ...formData, stylePreference: e.target.value })}
@@ -687,7 +687,7 @@ export default function LeadManagement() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Estimated Budget</label>
+                    <label className="block text-slate-700 font-bold mb-1">Budget</label>
                     <input
                       type="text"
                       placeholder="e.g. ₹35L - ₹45L"
@@ -701,7 +701,7 @@ export default function LeadManagement() {
                 <div>
                   <label className="block text-slate-700 font-bold mb-1 flex items-center gap-1">
                     <MapPin size={13} className="text-[#9E7B1D]" />
-                    <span>Site Complete Address</span>
+                    <span>Site Address</span>
                   </label>
                   <input
                     type="text"
@@ -715,9 +715,9 @@ export default function LeadManagement() {
                 <div>
                   <label className="block text-slate-700 font-bold mb-2 flex items-center gap-1">
                     <Layers size={13} className="text-[#9E7B1D]" />
-                    <span>Scope of Work Checklist</span>
+                    <span>Scope of Work</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
                     {scopeOptions.map((opt) => (
                       <label key={opt} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                         <input
@@ -733,7 +733,7 @@ export default function LeadManagement() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Designer Notes & Initial Brief</label>
+                  <label className="block text-slate-700 font-bold mb-1">Design Notes</label>
                   <textarea
                     rows={3}
                     placeholder="Specific design notes, lighting configurations, color palettes, partition designs..."
@@ -832,9 +832,9 @@ export default function LeadManagement() {
               {/* TAB 1: CLIENT DETAILS */}
               {activeDetailTab === "client" && (
                 <form onSubmit={handleUpdateLead} className="space-y-4 max-w-2xl text-xs">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Full Client Name</label>
+                      <label className="block text-slate-500 font-bold mb-1">Client Name</label>
                       <input
                         type="text"
                         required
@@ -844,7 +844,7 @@ export default function LeadManagement() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Phone Number</label>
+                      <label className="block text-slate-500 font-bold mb-1">Phone</label>
                       <input
                         type="text"
                         required
@@ -855,9 +855,9 @@ export default function LeadManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Email Address</label>
+                      <label className="block text-slate-500 font-bold mb-1">Email</label>
                       <input
                         type="email"
                         value={detailFormData.email || ""}
@@ -866,7 +866,7 @@ export default function LeadManagement() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">City Location</label>
+                      <label className="block text-slate-500 font-bold mb-1">City</label>
                       <input
                         type="text"
                         value={detailFormData.city || ""}
@@ -876,9 +876,9 @@ export default function LeadManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Lead Source</label>
+                      <label className="block text-slate-500 font-bold mb-1">Source</label>
                       <select
                         value={detailFormData.source || "Website"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, source: e.target.value })}
@@ -892,7 +892,7 @@ export default function LeadManagement() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Workflow Stage Status</label>
+                      <label className="block text-slate-500 font-bold mb-1">Stage</label>
                       <select
                         value={detailFormData.status || "Booking"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, status: e.target.value })}
@@ -904,7 +904,7 @@ export default function LeadManagement() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Assigned Lead Designer</label>
+                      <label className="block text-slate-500 font-bold mb-1">Staff</label>
                       <select
                         value={detailFormData.assignedTo || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, assignedTo: e.target.value })}
@@ -921,7 +921,7 @@ export default function LeadManagement() {
                   <div>
                     <label className="block text-slate-500 font-bold mb-1 flex items-center gap-1.5">
                       <Calendar size={13} className="text-[#9E7B1D]" />
-                      <span>Next Consultation / Meeting Date</span>
+                      <span>Next Meeting Date</span>
                     </label>
                     <input
                       type="datetime-local"
@@ -936,7 +936,7 @@ export default function LeadManagement() {
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-bold rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
                   >
                     <Save size={14} />
-                    <span>Save Profile Changes</span>
+                    <span>Save Changes</span>
                   </button>
                 </form>
               )}
@@ -944,9 +944,9 @@ export default function LeadManagement() {
               {/* TAB 2: PROJECT DETAILS */}
               {activeDetailTab === "project" && (
                 <form onSubmit={handleUpdateLead} className="space-y-4 max-w-2xl text-xs">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Property Layout Type</label>
+                      <label className="block text-slate-500 font-bold mb-1">Property</label>
                       <input
                         type="text"
                         value={detailFormData.propertyType || ""}
@@ -955,7 +955,7 @@ export default function LeadManagement() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Carpet / Site Area (sq.ft.)</label>
+                      <label className="block text-slate-500 font-bold mb-1">Site Area (sqft)</label>
                       <input
                         type="number"
                         value={detailFormData.siteArea || 0}
@@ -964,7 +964,7 @@ export default function LeadManagement() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Possession Status</label>
+                      <label className="block text-slate-500 font-bold mb-1">Possession</label>
                       <select
                         value={detailFormData.possessionStatus || "N/A"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, possessionStatus: e.target.value })}
@@ -978,9 +978,9 @@ export default function LeadManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Design Style Preference</label>
+                      <label className="block text-slate-500 font-bold mb-1">Style</label>
                       <select
                         value={detailFormData.stylePreference || "Modern"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, stylePreference: e.target.value })}
@@ -997,7 +997,7 @@ export default function LeadManagement() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-500 font-bold mb-1">Estimated Project Budget</label>
+                      <label className="block text-slate-500 font-bold mb-1">Budget</label>
                       <input
                         type="text"
                         value={detailFormData.budget || ""}
@@ -1008,7 +1008,7 @@ export default function LeadManagement() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-500 font-bold mb-1">Project Site Address</label>
+                    <label className="block text-slate-500 font-bold mb-1">Site Address</label>
                     <input
                       type="text"
                       placeholder="Baner, Pune"
@@ -1021,9 +1021,9 @@ export default function LeadManagement() {
                   <div>
                     <label className="block text-slate-700 font-bold mb-2 flex items-center gap-1">
                       <Layers size={13} className="text-[#9E7B1D]" />
-                      <span>Scope of Work Checklist</span>
+                      <span>Scope of Work</span>
                     </label>
-                    <div className="grid grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
                       {scopeOptions.map((opt) => (
                         <label key={opt} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                           <input
@@ -1039,7 +1039,7 @@ export default function LeadManagement() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-500 font-bold mb-1">Design Scope Notes</label>
+                    <label className="block text-slate-500 font-bold mb-1">Design Notes</label>
                     <textarea
                       rows={4}
                       value={detailFormData.notes || ""}
@@ -1053,7 +1053,7 @@ export default function LeadManagement() {
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-bold rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
                   >
                     <Save size={14} />
-                    <span>Save Project Details</span>
+                    <span>Save Changes</span>
                   </button>
                 </form>
               )}
@@ -1130,7 +1130,7 @@ export default function LeadManagement() {
                 <div className="space-y-6 text-xs">
                   
                   {/* General Config */}
-                  <div className="bg-[#FAF9F5] border border-[#E8DCC4] rounded-2xl p-4 grid grid-cols-2 gap-4">
+                  <div className="bg-[#FAF9F5] border border-[#E8DCC4] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-slate-500 font-bold mb-1">Prepared By</label>
                       <input
@@ -1396,7 +1396,7 @@ export default function LeadManagement() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-500 font-bold mb-1">Category</label>
                   <select
@@ -1427,7 +1427,7 @@ export default function LeadManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-500 font-bold mb-1">Unit</label>
                   <input

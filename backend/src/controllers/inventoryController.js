@@ -10,7 +10,26 @@ export const getMaterials = async (req, res) => {
     if (search) query.$or = [{ name: new RegExp(search, "i") }, { brand: new RegExp(search, "i") }, { itemCode: new RegExp(search, "i") }];
     if (category) query.category = category;
 
-    const materials = await Material.find(query).sort({ createdAt: -1 });
+    let materials = await Material.find(query).sort({ createdAt: -1 });
+
+    // Auto-seed standard materials if database is empty
+    if (materials.length === 0 && !search && !category) {
+      const count = await Material.countDocuments();
+      if (count === 0) {
+        const defaults = [
+          { itemCode: "MAT-PLY01", name: "Premium Commercial Plywood 19mm", category: "Plywood", brand: "CenturyPly", unit: "sq.ft", unitPrice: 150, stockQty: 500, vendorName: "Century Vendor" },
+          { itemCode: "MAT-LAM01", name: "Glossy White Laminate 1mm", category: "Laminates", brand: "Greenlam", unit: "sq.ft", unitPrice: 95, stockQty: 300, vendorName: "Greenlam Pune" },
+          { itemCode: "MAT-MAR01", name: "Italian Carrara Marble", category: "Marble", brand: "Imported", unit: "sq.ft", unitPrice: 480, stockQty: 150, vendorName: "Stones India" },
+          { itemCode: "MAT-FIT01", name: "Sensys Soft-Close Hinge", category: "Fittings", brand: "Hettich", unit: "unit", unitPrice: 380, stockQty: 1000, vendorName: "Hettich Direct" },
+          { itemCode: "MAT-FIT02", name: "Legrabox Drawer System", category: "Fittings", brand: "Blum", unit: "unit", unitPrice: 4200, stockQty: 200, vendorName: "Blum Pune" },
+          { itemCode: "MAT-GLS01", name: "Toughened Fluted Glass 8mm", category: "Glass", brand: "Saint-Gobain", unit: "sq.ft", unitPrice: 220, stockQty: 180, vendorName: "Saint-Gobain Dist" },
+          { itemCode: "MAT-PNT01", name: "Royale Luxury Shyne Emulsion", category: "Paint", brand: "Asian Paints", unit: "sq.ft", unitPrice: 48, stockQty: 400, vendorName: "Paints & Co" }
+        ];
+        await Material.insertMany(defaults);
+        materials = await Material.find(query).sort({ createdAt: -1 });
+      }
+    }
+
     res.json({ success: true, data: materials });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

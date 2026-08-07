@@ -1,12 +1,13 @@
 import BOQ from "../models/BOQ.js";
 import { logActivity } from "../services/auditService.js";
-import { generatePdfDoc } from "../services/exportService.js";
+import { generatePdfDoc, generateBOQPdf } from "../services/exportService.js";
 
 export const getBOQs = async (req, res) => {
   try {
-    const { search = "", page = 1, limit = 10 } = req.query;
+    const { search = "", leadId = "", page = 1, limit = 10 } = req.query;
     const query = {};
     if (search) query.$or = [{ boqNumber: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }];
+    if (leadId) query.lead = leadId;
 
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
@@ -34,22 +35,10 @@ export const createBOQ = async (req, res) => {
 
 export const exportBOQPdf = async (req, res) => {
   try {
-    const boq = await BOQ.findById(req.params.id);
+    const boq = await BOQ.findById(req.params.id).populate("lead");
     if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
 
-    const lines = [
-      `BOQ Reference: ${boq.boqNumber || "N/A"}`,
-      `Client Name: ${boq.clientName || "N/A"}`,
-      `Status: ${boq.status || "Draft"}`,
-      `Prepared By: ${boq.preparedBy || "Velora Team"}`,
-      `------------------------------------------`,
-      `Room Count: ${boq.rooms ? boq.rooms.length : 0}`,
-      `Subtotal: ₹${(boq.subtotal || 0).toLocaleString("en-IN")}`,
-      `GST Total (18%): ₹${(boq.gstTotal || 0).toLocaleString("en-IN")}`,
-      `Grand Total: ₹${(boq.grandTotal || 0).toLocaleString("en-IN")}`
-    ];
-
-    generatePdfDoc(res, `Bill of Quantities (${boq.boqNumber || "BOQ"})`, lines);
+    generateBOQPdf(res, boq);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

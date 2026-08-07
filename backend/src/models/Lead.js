@@ -7,11 +7,28 @@ const leadSchema = new mongoose.Schema(
     email: { type: String, trim: true, lowercase: true },
     city: { type: String, default: "Pune" },
     propertyType: { type: String, default: "3BHK Apartment" },
+    address: { type: String, default: "" },
+    siteArea: { type: Number, default: 0 },
+    possessionStatus: {
+      type: String,
+      enum: ["Possession Handed Over", "Under Construction", "Ready to Move", "N/A"],
+      default: "N/A",
+    },
+    stylePreference: {
+      type: String,
+      enum: ["Modern", "Minimalist", "Traditional", "Mid-Century", "Scandinavian", "Bohemian", "Transitional", "Other"],
+      default: "Modern",
+    },
+    scopeOfWork: {
+      type: [String],
+      default: [],
+    },
+    nextMeetingDate: { type: Date, default: null },
     budget: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["Cold", "Warm", "Hot", "Qualified", "Won", "Lost"],
-      default: "Warm",
+      enum: ["Booking", "Design Phase", "Product Work Started", "Production Completed", "Under Installation", "Delivered", "Lost"],
+      default: "Booking",
     },
     source: {
       type: String,

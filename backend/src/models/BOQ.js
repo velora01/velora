@@ -21,6 +21,7 @@ const boqSchema = new mongoose.Schema(
   {
     boqNumber: { type: String, required: true, unique: true },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+    lead: { type: mongoose.Schema.Types.ObjectId, ref: "Lead" },
     clientName: { type: String, default: "Client" },
     rooms: [
       {

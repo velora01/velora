@@ -48,7 +48,7 @@ export const createLead = async (req, res) => {
     const lead = await Lead.create({
       ...req.body,
       isDuplicate,
-      timeline: [{ stage: req.body.status || "Warm", note: "Lead Created", updatedBy: req.user?.name || "Admin" }]
+      timeline: [{ stage: req.body.status || "Booking", note: "Lead Created", updatedBy: req.user?.name || "Admin" }]
     });
 
     await logActivity({

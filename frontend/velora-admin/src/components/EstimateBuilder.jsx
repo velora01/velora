@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Calculator } from "lucide-react";
+import { Plus, Trash2, Calculator, CheckCircle2 } from "lucide-react";
 import erpApi from "../services/erpService";
 
-export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectId = "", leadId = "" }) {
+const SPACE_TEMPLATES = [
+  "Living Room",
+  "Master Bedroom",
+  "Modular Kitchen",
+  "Dining Area",
+  "Balcony",
+  "Kids Bedroom",
+  "Bathroom"
+];
+
+export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", projectId = "", leadId = "" }) {
   const [clientName, setClientName] = useState(initialClientName);
   const [preparedBy, setPreparedBy] = useState("Velora Senior Architect");
   
@@ -12,10 +22,12 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
   );
   const [projectList, setProjectList] = useState([]);
   const [leadList, setLeadList] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(projectId);
   const [selectedLeadId, setSelectedLeadId] = useState(leadId);
 
   useEffect(() => {
+    // Load lists for standalone mode
     if (!projectId && !leadId) {
       erpApi.getProjects({ limit: 100 }).then((res) => {
         if (res?.data) setProjectList(res.data);
@@ -24,6 +36,10 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
         if (res?.data) setLeadList(res.data);
       });
     }
+    // Load catalog items for selection
+    erpApi.getMaterials().then((res) => {
+      if (res?.data) setMaterials(res.data);
+    });
   }, [projectId, leadId]);
 
   const [rooms, setRooms] = useState([
@@ -41,25 +57,38 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
     }
   ]);
 
-  const addRoom = () => {
-    setRooms([...rooms, { name: `New Room ${rooms.length + 1}`, items: [] }]);
+  const addRoom = (name = "") => {
+    const roomName = name || `New Room ${rooms.length + 1}`;
+    setRooms([...rooms, { name: roomName, items: [] }]);
   };
 
   const removeRoom = (rIdx) => {
     setRooms(rooms.filter((_, idx) => idx !== rIdx));
   };
 
-  const addItemToRoom = (rIdx) => {
+  const addItemToRoom = (rIdx, predefinedMat = null) => {
     const updated = [...rooms];
-    updated[rIdx].items.push({
-      itemName: "Custom Joinery",
-      material: "Premium HDMR",
-      quantity: 1,
-      unit: "unit",
-      price: 25000,
-      discountPercent: 0,
-      gstPercent: 18
-    });
+    if (predefinedMat) {
+      updated[rIdx].items.push({
+        itemName: predefinedMat.name,
+        material: `${predefinedMat.category} / ${predefinedMat.brand || "Standard"}`,
+        quantity: 1,
+        unit: predefinedMat.unit || "unit",
+        price: predefinedMat.unitPrice || 0,
+        discountPercent: 0,
+        gstPercent: 18
+      });
+    } else {
+      updated[rIdx].items.push({
+        itemName: "Custom Joinery",
+        material: "Premium HDMR",
+        quantity: 1,
+        unit: "unit",
+        price: 25000,
+        discountPercent: 0,
+        gstPercent: 18
+      });
+    }
     setRooms(updated);
   };
 
@@ -94,10 +123,10 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
 
   const handleSave = () => {
     if (!clientName) return alert("Please specify client name");
-    if (!preparedBy) return alert("Please specify who prepared the BOQ");
+    if (!preparedBy) return alert("Please specify who prepared the estimate");
 
     if (rooms.length === 0 || rooms.some(r => r.items.length === 0)) {
-      return alert("Please add at least one room with items to save the BOQ");
+      return alert("Please add at least one room with items to save the estimate");
     }
 
     // Validate that no item has an empty itemName
@@ -125,36 +154,53 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+      
+      {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Calculator size={20} className="text-[#9E7B1D]" />
-            Dynamic Room-Wise BOQ Builder
+            Room-Wise Estimate Creator
           </h2>
-          <p className="text-xs text-slate-500 mt-1">Configure luxury room specifications with live GST computation</p>
+          <p className="text-xs text-slate-500 mt-1">Configure room specifications with catalog items or custom entries</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            onClick={addRoom}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-[#C5A059] transition"
+            onClick={() => addRoom()}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-[#C5A059] transition cursor-pointer"
           >
             <Plus size={14} className="text-[#9E7B1D]" />
-            <span>Add Room</span>
+            <span>Add Custom Room</span>
           </button>
 
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] rounded-xl hover:opacity-95 shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
           >
-            <span>Save & Generate BOQ</span>
+            <CheckCircle2 size={14} />
+            <span>Save & Generate Estimate</span>
           </button>
         </div>
       </div>
 
-      {/* General Meta */}
+      {/* Quick Space Template Tags */}
+      <div className="flex flex-wrap gap-2 items-center bg-[#FAF9F5] border border-[#E8DCC4]/60 p-3.5 rounded-xl">
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mr-1">Quick Add Space:</span>
+        {SPACE_TEMPLATES.map((tpl) => (
+          <button
+            key={tpl}
+            type="button"
+            onClick={() => addRoom(tpl)}
+            className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-slate-200 hover:border-[#D4AF37] text-[11px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+          >
+            + {tpl}
+          </button>
+        ))}
+      </div>
+
+      {/* General Meta Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* If no context is passed, let them select client/project link */}
         {!projectId && !leadId && (
           <div className="sm:col-span-2 bg-[#FAF9F5] border border-slate-200 rounded-xl p-3.5 space-y-3">
             <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -266,7 +312,9 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
       <div className="space-y-6">
         {rooms.map((room, rIdx) => (
           <div key={rIdx} className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            
+            {/* Room Header Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2.5">
               <input
                 type="text"
                 value={room.name}
@@ -275,107 +323,143 @@ export default function BOQBuilder({ onSaveBOQ, initialClientName = "", projectI
                   updated[rIdx].name = e.target.value;
                   setRooms(updated);
                 }}
-                className="bg-transparent font-bold text-sm text-[#9E7B1D] focus:outline-none border-b border-slate-300"
+                className="bg-transparent font-bold text-sm text-[#9E7B1D] focus:outline-none border-b border-slate-300 w-full sm:w-64"
               />
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                {/* Catalog Quick-Add Selector */}
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const matName = e.target.value;
+                    if (!matName) return;
+                    const mat = materials.find(m => m.name === matName);
+                    if (mat) addItemToRoom(rIdx, mat);
+                  }}
+                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-[#C5A059] max-w-[170px] shadow-2xs font-semibold cursor-pointer"
+                >
+                  <option value="">+ Add from Catalog</option>
+                  {materials.map((m) => (
+                    <option key={m._id} value={m.name}>
+                      {m.name} (₹{m.unitPrice}/{m.unit})
+                    </option>
+                  ))}
+                </select>
+
                 <button
                   onClick={() => addItemToRoom(rIdx)}
-                  className="text-xs text-slate-700 hover:text-[#9E7B1D] font-bold"
+                  className="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition"
                 >
-                  + Add Line Item
+                  + Custom Item
                 </button>
-                <button onClick={() => removeRoom(rIdx)} className="text-slate-400 hover:text-rose-600">
-                  <Trash2 size={14} />
+
+                <button 
+                  onClick={() => removeRoom(rIdx)} 
+                  className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                  title="Delete Room"
+                >
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
 
             {/* Room items table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                  <tr>
-                    <th className="py-2 px-1">Item</th>
-                    <th className="py-2 px-1">Material</th>
-                    <th className="py-2 px-1 w-16">Qty</th>
-                    <th className="py-2 px-1 w-16">Unit</th>
-                    <th className="py-2 px-1 w-24">Price (₹)</th>
-                    <th className="py-2 px-1 w-20">GST %</th>
-                    <th className="py-2 px-1 w-24">Total</th>
-                    <th className="py-2 px-1 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200/60">
-                  {room.items.map((item, iIdx) => {
-                    const lineVal = (item.quantity || 0) * (item.price || 0);
-                    const lineGst = lineVal * ((item.gstPercent || 18) / 100);
-                    const lineTotal = lineVal + lineGst;
+            {room.items.length === 0 ? (
+              <div className="py-6 text-center text-slate-400 italic text-xs">
+                No items added in this room yet. Add from catalog or insert a custom item row.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700 min-w-[700px]">
+                  <thead className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="py-2 px-1">Item Specification</th>
+                      <th className="py-2 px-1">Material / Brand</th>
+                      <th className="py-2 px-1 w-16">Qty</th>
+                      <th className="py-2 px-1 w-16">Unit</th>
+                      <th className="py-2 px-1 w-24">Price (₹)</th>
+                      <th className="py-2 px-1 w-20">GST %</th>
+                      <th className="py-2 px-1 w-24">Total</th>
+                      <th className="py-2 px-1 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/60">
+                    {room.items.map((item, iIdx) => {
+                      const lineVal = (item.quantity || 0) * (item.price || 0);
+                      const lineGst = lineVal * ((item.gstPercent || 18) / 100);
+                      const lineTotal = lineVal + lineGst;
 
-                    return (
-                      <tr key={iIdx}>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="text"
-                            value={item.itemName}
-                            onChange={(e) => updateItem(rIdx, iIdx, "itemName", e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="text"
-                            value={item.material}
-                            onChange={(e) => updateItem(rIdx, iIdx, "material", e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateItem(rIdx, iIdx, "quantity", Number(e.target.value))}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="text"
-                            value={item.unit}
-                            onChange={(e) => updateItem(rIdx, iIdx, "unit", e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="number"
-                            value={item.price}
-                            onChange={(e) => updateItem(rIdx, iIdx, "price", Number(e.target.value))}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="number"
-                            value={item.gstPercent}
-                            onChange={(e) => updateItem(rIdx, iIdx, "gstPercent", Number(e.target.value))}
-                            className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-1 font-bold text-[#9E7B1D]">
-                          ₹{Math.round(lineTotal).toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-1.5 px-1">
-                          <button onClick={() => removeItem(rIdx, iIdx)} className="text-slate-400 hover:text-rose-600">
-                            <Trash2 size={12} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                      return (
+                        <tr key={iIdx}>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="text"
+                              value={item.itemName}
+                              onChange={(e) => updateItem(rIdx, iIdx, "itemName", e.target.value)}
+                              placeholder="e.g. Wardrobe shutters"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="text"
+                              value={item.material}
+                              onChange={(e) => updateItem(rIdx, iIdx, "material", e.target.value)}
+                              placeholder="e.g. Plywood + Laminate"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(rIdx, iIdx, "quantity", Number(e.target.value))}
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="text"
+                              value={item.unit}
+                              onChange={(e) => updateItem(rIdx, iIdx, "unit", e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) => updateItem(rIdx, iIdx, "price", Number(e.target.value))}
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <input
+                              type="number"
+                              value={item.gstPercent}
+                              onChange={(e) => updateItem(rIdx, iIdx, "gstPercent", Number(e.target.value))}
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                            />
+                          </td>
+                          <td className="py-1.5 px-1 font-bold text-[#9E7B1D]">
+                            ₹{Math.round(lineTotal).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-1.5 px-1">
+                            <button 
+                              onClick={() => removeItem(rIdx, iIdx)} 
+                              className="text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                              title="Delete Item"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         ))}
       </div>

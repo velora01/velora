@@ -367,11 +367,11 @@ export default function LeadManagement() {
       };
 
       await erpApi.createBOQ(boqData);
-      alert("BOQ Saved & generated successfully!");
+      alert("Estimate Saved & generated successfully!");
       loadLeadBOQs(selectedLead._id);
       setActiveDetailTab("boq");
     } catch (err) {
-      alert("Error saving BOQ: " + (err.response?.data?.message || err.message));
+      alert("Error saving Estimate: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -444,7 +444,7 @@ export default function LeadManagement() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Client Relationship Management (CRM)</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Manage client details, project scope, design style preferences, and cost estimates (BOQ)</p>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Manage client details, project scope, design style preferences, and cost estimates</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -824,7 +824,7 @@ export default function LeadManagement() {
                   activeDetailTab === "boq" ? "border-[#D4AF37] text-[#9E7B1D]" : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
-                BOQ Estimates ({leadBOQs.length})
+                Estimates ({leadBOQs.length})
               </button>
               <button
                 onClick={() => setActiveDetailTab("create_boq")}
@@ -833,7 +833,7 @@ export default function LeadManagement() {
                 }`}
               >
                 <Calculator size={13} />
-                <span>Create BOQ</span>
+                <span>Create Estimate</span>
               </button>
             </div>
 
@@ -1069,7 +1069,7 @@ export default function LeadManagement() {
                 </form>
               )}
 
-              {/* TAB 3: BOQ HISTORY */}
+              {/* TAB 3: ESTIMATE HISTORY */}
               {activeDetailTab === "boq" && (
                 <div className="space-y-4 text-xs">
                   <h3 className="font-bold text-sm text-slate-800">Historical Estimates</h3>
@@ -1077,12 +1077,12 @@ export default function LeadManagement() {
                   {leadBOQs.length === 0 ? (
                     <div className="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 font-medium">
                       <Calculator size={36} className="text-slate-300 mb-2" />
-                      <p>No BOQ generated for this client yet.</p>
+                      <p>No Estimate generated for this client yet.</p>
                       <button
                         onClick={() => setActiveDetailTab("create_boq")}
                         className="mt-3 text-xs font-bold text-[#9E7B1D] hover:underline"
                       >
-                        Create first BOQ now &rarr;
+                        Create first Estimate now &rarr;
                       </button>
                     </div>
                   ) : (
@@ -1090,7 +1090,7 @@ export default function LeadManagement() {
                       <table className="w-full text-left text-xs border-collapse">
                         <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-3">BOQ Number</th>
+                            <th className="px-4 py-3">Estimate Number</th>
                             <th className="px-4 py-3">Date</th>
                             <th className="px-4 py-3">Prepared By</th>
                             <th className="px-4 py-3 text-right">Subtotal</th>
@@ -1136,7 +1136,7 @@ export default function LeadManagement() {
                 </div>
               )}
 
-              {/* TAB 4: CREATE BOQ BUILDER */}
+              {/* TAB 4: CREATE ESTIMATE */}
               {activeDetailTab === "create_boq" && (
                 <div className="space-y-6 text-xs">
                   
@@ -1162,13 +1162,30 @@ export default function LeadManagement() {
                     </div>
                   </div>
 
+                  {/* Quick Space Template Tags */}
+                  <div className="flex flex-wrap gap-2 items-center bg-[#FAF9F5] border border-[#E8DCC4]/60 p-3.5 rounded-xl">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mr-1">Quick Add Space:</span>
+                    {["Living Room", "Master Bedroom", "Modular Kitchen", "Dining Area", "Balcony", "Kids Bedroom", "Bathroom"].map((tpl) => (
+                      <button
+                        key={tpl}
+                        type="button"
+                        onClick={() => {
+                          setBoqRooms([...boqRooms, { name: tpl, items: [] }]);
+                        }}
+                        className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-slate-200 hover:border-[#D4AF37] text-[11px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+                      >
+                        + {tpl}
+                      </button>
+                    ))}
+                  </div>
+
                   {/* Rooms/Spaces Setup */}
                   <div className="space-y-6">
                     {boqRooms.map((room, rIdx) => (
                       <div key={rIdx} className="border border-slate-200 rounded-2xl p-4 bg-white shadow-xs space-y-4">
                         
                         {/* Room Header */}
-                        <div className="flex items-center justify-between border-b border-slate-150 pb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-150 pb-2.5">
                           <input
                             type="text"
                             value={room.name}
@@ -1177,21 +1194,59 @@ export default function LeadManagement() {
                               updated[rIdx].name = e.target.value;
                               setBoqRooms(updated);
                             }}
-                            className="bg-transparent font-black text-sm text-[#9E7B1D] focus:outline-none border-b border-[#E8DCC4] w-64"
+                            className="bg-transparent font-black text-sm text-[#9E7B1D] focus:outline-none border-b border-[#E8DCC4] w-full sm:w-64"
                           />
 
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => addItemToRoom(rIdx)}
-                              className="text-xs text-[#9E7B1D] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                          <div className="flex items-center gap-3 self-end sm:self-auto">
+                            {/* Catalog Quick-Add Selector */}
+                            <select
+                              value=""
+                              onChange={(e) => {
+                                const matName = e.target.value;
+                                if (!matName) return;
+                                const mat = materials.find(m => m.name === matName);
+                                if (mat) {
+                                  const updated = [...boqRooms];
+                                  updated[rIdx].items.push({
+                                    itemName: mat.name,
+                                    material: `${mat.category} / ${mat.brand || "Standard"}`,
+                                    quantity: 1,
+                                    unit: mat.unit || "unit",
+                                    price: mat.unitPrice || 0,
+                                    gstPercent: 18
+                                  });
+                                  setBoqRooms(updated);
+                                }
+                              }}
+                              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-[#C5A059] max-w-[170px] shadow-2xs font-semibold cursor-pointer"
                             >
-                              <PlusCircle size={13} />
-                              <span>Add Item Line</span>
+                              <option value="">+ Add from Catalog</option>
+                              {materials.map((m) => (
+                                <option key={m._id} value={m.name}>
+                                  {m.name} (₹{m.unitPrice}/{m.unit})
+                                </option>
+                              ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={() => addItemToRoom(rIdx)}
+                              className="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer transition"
+                            >
+                              + Custom Item
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMaterialModal(rIdx, room.items.length)}
+                              className="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-[#9E7B1D] cursor-pointer transition"
+                            >
+                              + Create Product
                             </button>
 
                             <button
                               onClick={() => removeRoom(rIdx)}
-                              className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
                               title="Delete Space"
                             >
                               <Trash2 size={16} />
@@ -1201,15 +1256,16 @@ export default function LeadManagement() {
 
                         {/* Room Items Grid */}
                         {room.items.length === 0 ? (
-                          <div className="py-6 text-center text-slate-400 italic">No item added to this space.</div>
+                          <div className="py-6 text-center text-slate-400 italic text-xs">
+                            No items added in this room yet. Add from catalog or insert a custom item row.
+                          </div>
                         ) : (
                           <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs border-collapse">
+                            <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                               <thead>
                                 <tr className="text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
-                                  <th className="py-2 w-48">Predefined Product</th>
-                                  <th className="py-2 w-44">Name / Specifications</th>
-                                  <th className="py-2 w-36">Material description</th>
+                                  <th className="py-2">Item Specification</th>
+                                  <th className="py-2">Material description</th>
                                   <th className="py-2 w-16 text-right">Qty</th>
                                   <th className="py-2 w-16 text-center">Unit</th>
                                   <th className="py-2 w-20 text-right">Price (₹)</th>
@@ -1228,30 +1284,6 @@ export default function LeadManagement() {
                                   return (
                                     <tr key={iIdx} className="hover:bg-slate-50/50">
                                       
-                                      {/* Dropdown for predefined material */}
-                                      <td className="py-2 pr-2">
-                                        <div className="flex flex-col gap-1">
-                                          <select
-                                            onChange={(e) => handlePredefinedSelect(rIdx, iIdx, e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg p-1 text-[11px] focus:outline-none focus:border-[#C5A059]"
-                                          >
-                                            <option value="">-- Load Predefined --</option>
-                                            {materials.map((m) => (
-                                              <option key={m._id} value={m.name}>
-                                                {m.name} (₹{m.unitPrice}/{m.unit})
-                                              </option>
-                                            ))}
-                                          </select>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleOpenMaterialModal(rIdx, iIdx)}
-                                            className="text-[9px] text-[#9E7B1D] hover:underline font-bold self-start mt-0.5"
-                                          >
-                                            + Create New Product
-                                          </button>
-                                        </div>
-                                      </td>
-
                                       {/* Item name input */}
                                       <td className="py-2 pr-2">
                                         <input
@@ -1342,7 +1374,7 @@ export default function LeadManagement() {
                   {/* Actions & Summary Bar */}
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#FAF9F5] border border-[#E8DCC4] rounded-2xl p-5">
                     <button
-                      onClick={addRoom}
+                      onClick={() => addRoom()}
                       className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-[#D4AF37] transition cursor-pointer"
                     >
                       + Add New Room / Space
@@ -1367,7 +1399,7 @@ export default function LeadManagement() {
                       onClick={handleSaveBOQ}
                       className="px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-black rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
                     >
-                      Save & Generate BOQ
+                      Save & Generate Estimate
                     </button>
                   </div>
                 </div>

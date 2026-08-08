@@ -1,38 +1,37 @@
 import React, { useState, useEffect } from "react";
-import BOQBuilder from "../components/BOQBuilder";
+import EstimateBuilder from "../components/EstimateBuilder";
 import DataTable from "../components/DataTable";
 import erpApi from "../services/erpService";
 import { Download } from "lucide-react";
 
-export default function BOQManager() {
+export default function EstimateManager() {
   const [activeTab, setActiveTab] = useState("builder");
-  const [boqs, setBoqs] = useState([]);
+  const [estimates, setEstimates] = useState([]);
   const [search, setSearch] = useState("");
 
-  const loadBOQs = () => {
+  const loadEstimates = () => {
     erpApi.getBOQs({ search }).then((res) => {
-      if (res?.data) setBoqs(res.data);
+      if (res?.data) setEstimates(res.data);
     });
   };
 
   useEffect(() => {
-    loadBOQs();
+    loadEstimates();
   }, [search]);
 
-  const handleSaveBOQ = async (boqData) => {
+  const handleSaveEstimate = async (estimateData) => {
     try {
-      await erpApi.createBOQ(boqData);
-      alert("BOQ Saved successfully!");
-      loadBOQs();
+      await erpApi.createBOQ(estimateData);
+      alert("Estimate Saved successfully!");
+      loadEstimates();
       setActiveTab("history");
     } catch (err) {
-      alert("Failed to save BOQ: " + (err.response?.data?.message || err.message));
+      alert("Failed to save estimate: " + (err.response?.data?.message || err.message));
     }
   };
 
-
   const columns = [
-    { header: "BOQ #", key: "boqNumber", sortable: true },
+    { header: "Estimate #", key: "boqNumber", sortable: true },
     { header: "Client", key: "clientName" },
     { header: "Prepared By", key: "preparedBy" },
     {
@@ -60,8 +59,8 @@ export default function BOQManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Project Cost Estimates (BOQ)</h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Create detailed room-wise cost estimates (BOQ) and export professional PDF quotes</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Project Estimates</h1>
+          <p className="text-xs text-slate-500 mt-1 font-medium">Create detailed room-wise cost estimates and export professional PDF quotes</p>
         </div>
 
         <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
@@ -83,9 +82,9 @@ export default function BOQManager() {
       </div>
 
       {activeTab === "builder" ? (
-        <BOQBuilder onSaveBOQ={handleSaveBOQ} />
+        <EstimateBuilder onSaveBOQ={handleSaveEstimate} />
       ) : (
-        <DataTable title="Saved Estimates History" columns={columns} data={boqs} search={search} setSearch={setSearch} />
+        <DataTable title="Saved Estimates History" columns={columns} data={estimates} search={search} setSearch={setSearch} />
       )}
     </div>
   );

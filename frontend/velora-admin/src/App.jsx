@@ -9,7 +9,7 @@ import WebsiteLeads from "./pages/WebsiteLeads";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
 import TaskManagement from "./pages/TaskManagement";
-import BOQManager from "./pages/BOQManager";
+import EstimateManager from "./pages/EstimateManager";
 import QuotationInvoiceManager from "./pages/QuotationInvoiceManager";
 import ProductionFactory from "./pages/ProductionFactory";
 import InventoryMaterials from "./pages/InventoryMaterials";
@@ -41,7 +41,8 @@ function App() {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/tasks" element={<TaskManagement />} />
-                <Route path="/boq" element={<BOQManager />} />
+                <Route path="/estimates" element={<EstimateManager />} />
+                <Route path="/boq" element={<EstimateManager />} />
                 <Route path="/invoices" element={<QuotationInvoiceManager />} />
                 <Route path="/factory" element={<ProductionFactory />} />
                 <Route path="/inventory" element={<InventoryMaterials />} />

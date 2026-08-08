@@ -74,7 +74,7 @@ export const generateBOQPdf = (res, boq) => {
   doc.moveDown(1);
 
   // Title
-  doc.fillColor(charcoal).fontSize(14).font("Helvetica-Bold").text(`ESTIMATE & BILL OF QUANTITIES`, { align: "left" });
+  doc.fillColor(charcoal).fontSize(14).font("Helvetica-Bold").text(`PROJECT ESTIMATE & QUOTATION`, { align: "left" });
   doc.moveDown(0.6);
 
   // Metadata Card (Client & Quote Details)
@@ -95,7 +95,7 @@ export const generateBOQPdf = (res, boq) => {
   // Quote details on the right column
   doc.font("Helvetica-Bold").text("ESTIMATE DETAILS", 320, metaY);
   doc.font("Helvetica").fontSize(9);
-  doc.text(`BOQ Ref: ${boq.boqNumber}`, 320, metaY + 12);
+  doc.text(`Estimate Ref: ${boq.boqNumber}`, 320, metaY + 12);
   doc.text(`Date: ${new Date(boq.createdAt || Date.now()).toLocaleDateString("en-IN")}`, 320, metaY + 24);
   doc.text(`Prepared By: ${boq.preparedBy || "Design Team"}`, 320, metaY + 36);
   doc.text(`Status: ${boq.status || "Draft"}`, 320, metaY + 48);

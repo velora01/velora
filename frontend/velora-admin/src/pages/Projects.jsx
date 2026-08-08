@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import erpApi from "../services/erpService";
 import { ArrowRight, FolderOpen, X, Download, FileSpreadsheet, Plus, ClipboardList } from "lucide-react";
-import BOQBuilder from "../components/BOQBuilder";
+import EstimateBuilder from "../components/EstimateBuilder";
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
@@ -184,8 +184,8 @@ export default function Projects() {
             <div className="flex bg-[#FAF9F5] border-b border-slate-150 px-6">
               {[
                 { id: "project", label: "Project Details" },
-                { id: "boqs", label: "Cost Estimates (BOQ)" },
-                { id: "create_boq", label: "Create & Link BOQ" }
+                { id: "boqs", label: "Estimates" },
+                { id: "create_boq", label: "Create Estimate" }
               ].map((t) => (
                 <button
                   key={t.id}
@@ -258,13 +258,13 @@ export default function Projects() {
                       onClick={() => setActiveDetailTab("create_boq")}
                       className="px-3 py-1 bg-[#FAF6ED] border border-[#E8DCC4] text-xs font-bold text-[#9E7B1D] rounded-xl hover:bg-white hover:border-[#D4AF37] transition cursor-pointer"
                     >
-                      + Create New Estimate (BOQ)
+                      + Create New Estimate
                     </button>
                   </div>
 
                   {projectBOQs.length === 0 ? (
                     <div className="py-12 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 italic text-xs">
-                      No Cost Estimates (BOQ) created yet for this project.
+                      No cost estimates created yet for this project.
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -310,19 +310,19 @@ export default function Projects() {
 
               {activeDetailTab === "create_boq" && (
                 <div>
-                  <BOQBuilder
+                  <EstimateBuilder
                     initialClientName={selectedProject.clientName}
                     projectId={selectedProject._id}
                     onSaveBOQ={async (boqData) => {
                       try {
                         const res = await erpApi.createBOQ(boqData);
                         if (res?.success) {
-                          alert("Estimate (BOQ) saved successfully!");
+                          alert("Estimate saved successfully!");
                           loadProjectBOQs(selectedProject._id);
                           setActiveDetailTab("boqs");
                         }
                       } catch (err) {
-                        alert("Failed to save BOQ: " + (err.response?.data?.message || err.message));
+                        alert("Failed to save Estimate: " + (err.response?.data?.message || err.message));
                       }
                     }}
                   />

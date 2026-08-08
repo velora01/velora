@@ -41,7 +41,7 @@ export default function Dashboard() {
   const projectStageData = [
     { stage: "Consultation", count: 8 },
     { stage: "Design", count: 12 },
-    { stage: "BOQ", count: 6 },
+    { stage: "Estimate", count: 6 },
     { stage: "Production", count: 9 },
     { stage: "Installation", count: 5 }
   ];
@@ -189,7 +189,7 @@ export default function Dashboard() {
           <div className="space-y-3 text-xs">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
               <p className="font-bold text-slate-800">Dr. Ananya Kulkarni (4BHK Villa)</p>
-              <p className="text-slate-500">Discussion on BOQ Estimate & Marble selection</p>
+              <p className="text-slate-500">Discussion on Cost Estimate & Marble selection</p>
               <span className="text-[10px] text-[#9E7B1D] font-bold">11:30 AM • Sales Team</span>
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">

@@ -53,7 +53,7 @@ export default function AdminLayout({ children }) {
       title: "Projects & Estimates",
       items: [
         { path: "/projects", name: "Project Management", icon: <Briefcase size={16} /> },
-        { path: "/boq", name: "Cost Estimator (BOQ)", icon: <FileSpreadsheet size={16} /> },
+        { path: "/estimates", name: "Project Estimates", icon: <FileSpreadsheet size={16} /> },
         { path: "/invoices", name: "Billing & Quotations", icon: <FileText size={16} /> },
         { path: "/tasks", name: "Task tracking Board", icon: <CheckCircle2 size={16} /> }
       ]

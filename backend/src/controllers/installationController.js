@@ -21,6 +21,8 @@ export const createInstallation = async (req, res) => {
   }
 };
 
+
+
 export const updateInstallationStatus = async (req, res) => {
   try {
     const inst = await Installation.findByIdAndUpdate(req.params.id, req.body, { new: true });

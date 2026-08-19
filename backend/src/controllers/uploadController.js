@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import sharp from "sharp";
 import { allowedNodeEnvironmentFlags } from "process";
+import { error } from "console";
 
 const optimizeImage = async (fileBuffer) => {
   try {
@@ -63,7 +64,7 @@ const localdevice= () =>{
 
 }
 const saveLocally = async (req, res) => {
-  
+
   try {
     const uploadsDir = path.join(process.cwd(), "public/uploads");
     await fs.ensureDir(uploadsDir);
@@ -174,10 +175,18 @@ export const uploadVideo = async (req, res) => {
         originalName: req.file.originalname,
         raw: uploaded,
       });
+
     } catch (cloudinaryError) {
       console.error("Cloudinary upload failed, falling back to local file storage. Error:", cloudinaryError);
+      console.log(error);
+      console.log(error.apply);
+      console.log(error.length());
+      console.log(err);
+      console.count(error)
+     
       return await saveLocally(req, res);
     }
+
   } catch (error) {
     console.error("Upload error:", error);
     return res.status(500).json({

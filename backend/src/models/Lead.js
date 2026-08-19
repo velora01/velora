@@ -5,6 +5,7 @@ const leadSchema = new mongoose.Schema(
     // Contact Information (Step 1)
     salutation: { type: String, default: "Mr" },
     name: { type: String, required: true, trim: true },
+    enquiryNo: { type: String, default: "" },
     phone: { type: String, required: true, trim: true },
     email: { type: String, trim: true, lowercase: true, default: "" },
     enquiryDate: { type: Date, default: Date.now },

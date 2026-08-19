@@ -62,9 +62,12 @@ export const createLead = async (req, res) => {
   try {
     const existing = await Lead.findOne({ phone: req.body.phone });
     const isDuplicate = !!existing;
+    const count = await Lead.countDocuments();
+    const enquiryNo = req.body.enquiryNo || `ENQ-2026-${String(count + 19).padStart(3, "0")}`;
 
     const lead = await Lead.create({
       ...req.body,
+      enquiryNo,
       isDuplicate,
       timeline: [{ stage: req.body.status || "Inquiry", note: "Enquiry Registered", updatedBy: req.user?.name || "Admin" }]
     });

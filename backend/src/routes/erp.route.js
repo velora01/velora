@@ -2,7 +2,7 @@ import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import { checkRole } from "../middleware/rbac.middleware.js";
 
-import { getLeads, createLead, updateLead, deleteLead, exportLeadsExcel } from "../controllers/leadController.js";
+import { getLeads, createLead, updateLead, deleteLead, exportLeadsExcel, bulkUploadLeads } from "../controllers/leadController.js";
 import { getWebsiteLeads, createWebsiteLead, convertWebsiteLead } from "../controllers/websiteLeadController.js";
 import { getClients, createClient, updateClient, addClientCommunication } from "../controllers/clientController.js";
 import { getProjects, createProject, updateProjectStage } from "../controllers/projectController.js";
@@ -30,6 +30,7 @@ router.get("/dashboard/analytics", getDashboardAnalytics);
 // Leads & Website Leads
 router.get("/leads", getLeads);
 router.post("/leads", checkRole(["Admin", "Sales", "Super Admin"]), createLead);
+router.post("/leads/bulk-upload", checkRole(["Admin", "Sales", "Super Admin"]), bulkUploadLeads);
 router.put("/leads/:id", checkRole(["Admin", "Sales", "Super Admin"]), updateLead);
 router.delete("/leads/:id", checkRole(["Admin", "Super Admin"]), deleteLead);
 router.get("/leads/export/excel", exportLeadsExcel);

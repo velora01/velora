@@ -6,7 +6,8 @@ import {
   updateLead,
   deleteLead,
   assignLead,
-  convertLead
+  convertLead,
+  bulkUploadLeads
 } from "../controllers/leadController.js";
 import { protect, restrictTo } from "../middleware/auth.middleware.js";
 
@@ -21,6 +22,7 @@ leadRoute.get("/:id", restrictTo("Admin", "Sales", "Designer"), getLeadById);
 
 // Admin and Sales can modify leads
 leadRoute.post("/", restrictTo("Admin", "Sales"), createLead);
+leadRoute.post("/bulk-upload", restrictTo("Admin", "Sales"), bulkUploadLeads);
 leadRoute.put("/:id", restrictTo("Admin", "Sales"), updateLead);
 leadRoute.delete("/:id", restrictTo("Admin"), deleteLead);
 

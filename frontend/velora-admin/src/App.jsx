@@ -4,7 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import LeadManagement from "./pages/LeadManagement";
+import EnquiryManagement from "./pages/EnquiryManagement";
 import WebsiteLeads from "./pages/WebsiteLeads";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
@@ -36,7 +36,9 @@ function App() {
             <AdminLayout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/leads" element={<LeadManagement />} />
+                <Route path="/enquiry" element={<EnquiryManagement />} />
+                <Route path="/enquiry/add" element={<EnquiryManagement />} />
+                <Route path="/leads" element={<EnquiryManagement />} />
                 <Route path="/website-leads" element={<WebsiteLeads />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/projects" element={<Projects />} />

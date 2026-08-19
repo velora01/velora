@@ -26,6 +26,8 @@ const optimizeImage = async (fileBuffer) => {
       });
     }
 
+    
+
     // Compress based on format while maintaining high visual quality
     if (metadata.format === "jpeg" || metadata.format === "jpg") {
       pipeline = pipeline.jpeg({ quality: 85, progressive: true });

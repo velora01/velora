@@ -41,6 +41,7 @@ export const erpApi = {
   // Leads & Website Leads
   getLeads: async (params) => (await api.get("/erp/leads", { params })).data,
   createLead: async (data) => (await api.post("/erp/leads", data)).data,
+  bulkUploadLeads: async (leads) => (await api.post("/erp/leads/bulk-upload", { leads })).data,
   updateLead: async (id, data) => (await api.put(`/erp/leads/${id}`, data)).data,
   deleteLead: async (id) => (await api.delete(`/erp/leads/${id}`)).data,
 

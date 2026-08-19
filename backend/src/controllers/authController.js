@@ -30,6 +30,8 @@ const generateRefreshToken = (entity, type) => {
   );
 };
 
+
+
 // Staff Register (Optional but useful)
 export const register = async (req, res) => {
   try {
@@ -89,7 +91,7 @@ export const registerAdmin = async (req, res) => {
       });
     }
 
-    
+
     const user = await User.create({
       name,
       email,

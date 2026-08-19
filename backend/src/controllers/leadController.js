@@ -6,18 +6,36 @@ import { generateExcelReport, generatePdfDoc } from "../services/exportService.j
 // GET /api/leads
 export const getLeads = async (req, res) => {
   try {
-    const { search = "", status = "", source = "", page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc" } = req.query;
+    const {
+      search = "",
+      status = "",
+      source = "",
+      projectType = "",
+      handledBy = "",
+      prospectStatus = "",
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "desc"
+    } = req.query;
 
     const query = {};
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } }
+        { email: { $regex: search, $options: "i" } },
+        { siteLocation: { $regex: search, $options: "i" } },
+        { companyName: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+        { handledBy: { $regex: search, $options: "i" } }
       ];
     }
     if (status) query.status = status;
     if (source) query.source = source;
+    if (projectType) query.projectType = projectType;
+    if (handledBy) query.handledBy = handledBy;
+    if (prospectStatus) query.prospectStatus = prospectStatus;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sort = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
@@ -48,20 +66,79 @@ export const createLead = async (req, res) => {
     const lead = await Lead.create({
       ...req.body,
       isDuplicate,
-      timeline: [{ stage: req.body.status || "Booking", note: "Lead Created", updatedBy: req.user?.name || "Admin" }]
+      timeline: [{ stage: req.body.status || "Inquiry", note: "Enquiry Registered", updatedBy: req.user?.name || "Admin" }]
     });
 
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Created",
       module: "Leads",
-      description: `Created lead ${lead.name} (${lead.phone})`,
+      description: `Created enquiry for ${lead.name} (${lead.phone})`,
       targetId: lead._id
     });
 
     res.status(201).json({ success: true, data: lead });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/leads/bulk-upload
+export const bulkUploadLeads = async (req, res) => {
+  try {
+    const { leads = [] } = req.body;
+    if (!Array.isArray(leads) || leads.length === 0) {
+      return res.status(400).json({ success: false, message: "No enquiry data provided in upload payload" });
+    }
+
+    const inserted = [];
+    const duplicates = [];
+    const errors = [];
+
+    for (let index = 0; index < leads.length; index++) {
+      const item = leads[index];
+      if (!item.name || !item.phone) {
+        errors.push({ row: index + 1, message: "Name and Phone are required fields" });
+        continue;
+      }
+
+      try {
+        const existing = await Lead.findOne({ phone: item.phone });
+        const lead = await Lead.create({
+          ...item,
+          isDuplicate: !!existing,
+          timeline: [{ stage: item.status || "Inquiry", note: "Bulk CSV Import", updatedBy: req.user?.name || "Admin" }]
+        });
+        inserted.push(lead);
+        if (existing) {
+          duplicates.push(lead);
+        }
+      } catch (rowErr) {
+        errors.push({ row: index + 1, name: item.name, error: rowErr.message });
+      }
+    }
+
+    await logActivity({
+      userName: req.user?.name || "Admin",
+      action: "Bulk Upload",
+      module: "Leads",
+      description: `Bulk uploaded ${inserted.length} enquiries (${duplicates.length} duplicate flags)`
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully processed ${inserted.length} enquiries`,
+      data: {
+        totalProcessed: leads.length,
+        insertedCount: inserted.length,
+        duplicateCount: duplicates.length,
+        errorCount: errors.length,
+        errors,
+        inserted
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -86,7 +163,7 @@ export const updateLead = async (req, res) => {
       userName: req.user?.name || "Admin",
       action: "Updated",
       module: "Leads",
-      description: `Updated lead ${lead.name}`,
+      description: `Updated enquiry ${lead.name}`,
       targetId: lead._id
     });
 
@@ -121,15 +198,22 @@ export const exportLeadsExcel = async (req, res) => {
   try {
     const leads = await Lead.find().sort({ createdAt: -1 });
     const columns = [
-      { header: "Name", key: "name", width: 20 },
-      { header: "Phone", key: "phone", width: 15 },
+      { header: "Enquiry Date", key: "enquiryDate", width: 15 },
+      { header: "Salutation", key: "salutation", width: 10 },
+      { header: "Name", key: "name", width: 22 },
+      { header: "Phone", key: "phone", width: 16 },
       { header: "Email", key: "email", width: 25 },
-      { header: "Status", key: "status", width: 15 },
+      { header: "Project Type", key: "projectType", width: 18 },
+      { header: "Project Subtype", key: "projectSubtype", width: 18 },
+      { header: "Site Location", key: "siteLocation", width: 22 },
+      { header: "Site Status", key: "siteStatus", width: 20 },
+      { header: "Handled By", key: "handledBy", width: 18 },
+      { header: "Prospect Status", key: "prospectStatus", width: 16 },
+      { header: "Budget", key: "budget", width: 16 },
       { header: "Source", key: "source", width: 15 },
-      { header: "Property Type", key: "propertyType", width: 20 },
-      { header: "Budget", key: "budget", width: 15 }
+      { header: "Remarks", key: "remarks", width: 30 }
     ];
-    await generateExcelReport(res, "Velora_Leads_Report", columns, leads);
+    await generateExcelReport(res, "Velora_Enquiries_Report", columns, leads);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -203,4 +287,5 @@ export const convertLead = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
 

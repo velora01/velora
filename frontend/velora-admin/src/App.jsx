@@ -9,7 +9,8 @@ import WebsiteLeads from "./pages/WebsiteLeads";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
 import TaskManagement from "./pages/TaskManagement";
-import EstimateManager from "./pages/EstimateManager";
+import BOQManagement from "./pages/BOQManagement";
+import LibraryComponents from "./pages/LibraryComponents";
 import QuotationInvoiceManager from "./pages/QuotationInvoiceManager";
 import ProductionFactory from "./pages/ProductionFactory";
 import InventoryMaterials from "./pages/InventoryMaterials";
@@ -43,11 +44,16 @@ function App() {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/tasks" element={<TaskManagement />} />
-                <Route path="/estimates" element={<EstimateManager />} />
-                <Route path="/boq" element={<EstimateManager />} />
+                <Route path="/estimates" element={<BOQManagement />} />
+                <Route path="/boq" element={<BOQManagement />} />
+                <Route path="/boq/:id" element={<BOQManagement />} />
+                <Route path="/library" element={<LibraryComponents />} />
+                <Route path="/library/component" element={<LibraryComponents />} />
+                <Route path="/library/components" element={<LibraryComponents />} />
+                <Route path="/library/:sub" element={<LibraryComponents />} />
                 <Route path="/invoices" element={<QuotationInvoiceManager />} />
                 <Route path="/factory" element={<ProductionFactory />} />
-                <Route path="/inventory" element={<InventoryMaterials />} />
+                <Route path="/inventory" element={<LibraryComponents />} />
                 <Route path="/installation" element={<InstallationManager />} />
                 <Route path="/site-visits" element={<SiteVisits />} />
                 <Route path="/calendar" element={<CalendarView />} />

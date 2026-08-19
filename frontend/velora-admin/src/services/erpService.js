@@ -64,10 +64,19 @@ export const erpApi = {
   updateTask: async (id, data) => (await api.put(`/erp/tasks/${id}`, data)).data,
   deleteTask: async (id) => (await api.delete(`/erp/tasks/${id}`)).data,
 
-  // BOQ
+  // BOQ & Spaces
   getBOQs: async (params) => (await api.get("/erp/boq", { params })).data,
+  getBOQById: async (id) => (await api.get(`/erp/boq/${id}`)).data,
   createBOQ: async (data) => (await api.post("/erp/boq", data)).data,
+  updateBOQ: async (id, data) => (await api.put(`/erp/boq/${id}`, data)).data,
+  deleteBOQ: async (id) => (await api.delete(`/erp/boq/${id}`)).data,
   exportBOQPdfUrl: (id) => `${API_BASE_URL}/erp/boq/${id}/pdf`,
+
+  // Library Components
+  getComponents: async (params) => (await api.get("/erp/components", { params })).data,
+  createComponent: async (data) => (await api.post("/erp/components", data)).data,
+  updateComponent: async (id, data) => (await api.put(`/erp/components/${id}`, data)).data,
+  deleteComponent: async (id) => (await api.delete(`/erp/components/${id}`)).data,
 
   // Invoices & Payments
   getInvoices: async (params) => (await api.get("/erp/invoices", { params })).data,

@@ -3,20 +3,19 @@ import cloudinary from "../config/cloudinary.js";
 import fs from "fs-extra";
 import path from "path";
 import sharp from "sharp";
+import { allowedNodeEnvironmentFlags } from "process";
 
 const optimizeImage = async (fileBuffer) => {
   try {
     const image = sharp(fileBuffer);
     const metadata = await image.metadata();
 
-    // Only process standard formats that sharp supports
     if (!["jpeg", "png", "webp", "tiff", "gif"].includes(metadata.format)) {
       return fileBuffer;
     }
 
-    let pipeline = image.rotate(); // Auto-rotate based on EXIF data
+    let pipeline = image.rotate(); 
 
-    // Resize if dimensions exceed 2560px (Retina/2K resolution max size)
     if (metadata.width > 2560 || metadata.height > 2560) {
       pipeline = pipeline.resize({
         width: 2560,
@@ -25,10 +24,7 @@ const optimizeImage = async (fileBuffer) => {
         withoutEnlargement: true,
       });
     }
-
     
-
-    // Compress based on format while maintaining high visual quality
     if (metadata.format === "jpeg" || metadata.format === "jpg") {
       pipeline = pipeline.jpeg({ quality: 85, progressive: true });
     } else if (metadata.format === "png") {
@@ -37,6 +33,7 @@ const optimizeImage = async (fileBuffer) => {
       pipeline = pipeline.webp({ quality: 85 });
     }
 
+
     const optimizedBuffer = await pipeline.toBuffer();
     console.log(`Optimized image from ${fileBuffer.length} bytes to ${optimizedBuffer.length} bytes.`);
     return optimizedBuffer;
@@ -44,6 +41,8 @@ const optimizeImage = async (fileBuffer) => {
     console.error("Image optimization failed, using original buffer:", err);
     return fileBuffer;
   }
+
+
 };
 
 const uploadStream = (fileBuffer, folder = "uploads", resourceType = "auto") => {
@@ -60,7 +59,11 @@ const uploadStream = (fileBuffer, folder = "uploads", resourceType = "auto") => 
   });
 };
 
+const localdevice= () =>{
+
+}
 const saveLocally = async (req, res) => {
+  
   try {
     const uploadsDir = path.join(process.cwd(), "public/uploads");
     await fs.ensureDir(uploadsDir);

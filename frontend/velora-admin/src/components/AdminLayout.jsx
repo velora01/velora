@@ -61,6 +61,12 @@ export default function AdminLayout({ children }) {
     if (location.pathname.startsWith("/enquiry") || location.pathname.startsWith("/leads")) {
       return location.search.includes("mode=add") ? "Add Enquiry" : "Enquiry";
     }
+    if (location.pathname.startsWith("/boq") || location.pathname === "/estimates") {
+      return "BOQ";
+    }
+    if (location.pathname.startsWith("/library/component") || location.pathname === "/library" || location.pathname === "/inventory") {
+      return "Component";
+    }
     const current = navItems.find(
       (item) => item.path === location.pathname || item.aliases?.includes(location.pathname)
     );
@@ -105,35 +111,86 @@ export default function AdminLayout({ children }) {
           {/* Navigation Links */}
           <nav className="p-3 space-y-1">
             {navItems.map((item) => {
+              const isLibrary = item.name === "Library";
+              const isLibraryActive = location.pathname.startsWith("/library") || location.pathname === "/inventory";
+
               const isActive =
+                (isLibrary && isLibraryActive) ||
                 location.pathname === item.path ||
                 (item.path === "/enquiry" && location.pathname === "/leads") ||
+                (item.path === "/boq" && location.pathname.startsWith("/boq")) ||
                 item.aliases?.includes(location.pathname);
 
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                    isActive
-                      ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs font-extrabold"
-                      : "text-stone-700 hover:bg-amber-50/70 hover:text-[#9E7B1D]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={isActive ? "text-stone-950" : "text-[#9E7B1D]"}>
-                      {item.icon}
-                    </span>
-                    <span>{item.name}</span>
-                  </div>
-                  {item.hasSubmenu && (
-                    <ChevronRight
-                      size={14}
-                      className={isActive ? "text-stone-950/80" : "text-stone-400"}
-                    />
+                <div key={item.path}>
+                  <Link
+                    to={item.path === "/inventory" ? "/library/component" : item.path}
+                    onClick={() => {
+                      if (!item.hasSubmenu) setIsSidebarOpen(false);
+                    }}
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                      isActive && !isLibrary
+                        ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs font-extrabold"
+                        : isActive && isLibrary
+                        ? "bg-amber-50/80 text-[#9E7B1D] font-extrabold border border-amber-200/60"
+                        : "text-stone-700 hover:bg-amber-50/70 hover:text-[#9E7B1D]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={isActive ? "text-[#9E7B1D]" : "text-[#9E7B1D]"}>
+                        {item.icon}
+                      </span>
+                      <span>{item.name}</span>
+                    </div>
+                    {item.hasSubmenu && (
+                      <ChevronRight
+                        size={14}
+                        className={`transition-transform ${
+                          isLibraryActive ? "rotate-90 text-[#9E7B1D]" : "text-stone-400"
+                        }`}
+                      />
+                    )}
+                  </Link>
+
+                  {/* Expandable Submenu for Library (Screenshot 3) */}
+                  {isLibrary && isLibraryActive && (
+                    <div className="pl-9 pr-2 py-1 space-y-0.5 animate-in slide-in-from-top-1">
+                      {[
+                        { name: "Space", path: "/library/space" },
+                        { name: "Brand", path: "/library/brand" },
+                        { name: "Type", path: "/library/type" },
+                        { name: "Variant", path: "/library/variant" },
+                        { name: "Components", path: "/library/component" },
+                        { name: "Accessories", path: "/library/accessories" },
+                        { name: "Appliances", path: "/library/appliances" },
+                        { name: "Other Services", path: "/library/other-services" },
+                        { name: "Import / Export", path: "/library/import-export" }
+                      ].map((sub) => {
+                        const isSubActive =
+                          location.pathname === sub.path ||
+                          (sub.path === "/library/component" &&
+                            (location.pathname === "/library" ||
+                              location.pathname === "/library/component" ||
+                              location.pathname === "/library/components"));
+
+                        return (
+                          <Link
+                            key={sub.name}
+                            to={sub.path}
+                            onClick={() => setIsSidebarOpen(false)}
+                            className={`block px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                              isSubActive
+                                ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 font-extrabold shadow-2xs"
+                                : "text-stone-600 hover:text-stone-950 hover:bg-amber-50/50"
+                            }`}
+                          >
+                            {sub.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
-                </Link>
+                </div>
               );
             })}
           </nav>

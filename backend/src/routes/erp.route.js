@@ -7,7 +7,8 @@ import { getWebsiteLeads, createWebsiteLead, convertWebsiteLead } from "../contr
 import { getClients, createClient, updateClient, addClientCommunication } from "../controllers/clientController.js";
 import { getProjects, createProject, updateProjectStage } from "../controllers/projectController.js";
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
-import { getBOQs, createBOQ, exportBOQPdf } from "../controllers/boqController.js";
+import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
+import { getComponents, createComponent, updateComponent, deleteComponent } from "../controllers/componentController.js";
 import { getInvoices, createInvoice, exportInvoicePdf, getQuotations, createQuotation } from "../controllers/quotationInvoiceController.js";
 import { getPayments, createPayment, exportReceiptPdf } from "../controllers/paymentController.js";
 import { getMaterials, createMaterial, getVendors, createVendor } from "../controllers/inventoryController.js";
@@ -58,8 +59,17 @@ router.delete("/tasks/:id", deleteTask);
 
 // BOQ & Quotations
 router.get("/boq", getBOQs);
+router.get("/boq/:id", getBOQById);
 router.post("/boq", checkRole(["Admin", "Designer", "Super Admin"]), createBOQ);
+router.put("/boq/:id", checkRole(["Admin", "Designer", "Super Admin"]), updateBOQ);
+router.delete("/boq/:id", checkRole(["Admin", "Super Admin"]), deleteBOQ);
 router.get("/boq/:id/pdf", exportBOQPdf);
+
+// Library Components
+router.get("/components", getComponents);
+router.post("/components", checkRole(["Admin", "Designer", "Super Admin"]), createComponent);
+router.put("/components/:id", checkRole(["Admin", "Designer", "Super Admin"]), updateComponent);
+router.delete("/components/:id", checkRole(["Admin", "Super Admin"]), deleteComponent);
 
 router.get("/quotations", getQuotations);
 router.post("/quotations", createQuotation);

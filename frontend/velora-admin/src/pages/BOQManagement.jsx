@@ -27,9 +27,7 @@ import {
   Building,
   Check,
   X,
-  AlertCircle,
-  FileText,
-  ClipboardList
+  AlertCircle
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
@@ -57,11 +55,10 @@ export default function BOQManagement() {
   const [autoSave, setAutoSave] = useState(true);
   const [successToast, setSuccessToast] = useState("");
 
-  // Measurement Unit & Spaces Drawer State (Screenshots 1, 2, 3)
+  // Measurement Unit State (Screenshot 1)
   const [measurementUnit, setMeasurementUnit] = useState("Feet.inch"); // Feet.inch | Millimeter
   const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
-  const [isSpaceDrawerOpen, setIsSpaceDrawerOpen] = useState(false);
-  const [isCopyBOQModalOpen, setIsCopyBOQModalOpen] = useState(false);
+  const [pendingSelectedEnquiry, setPendingSelectedEnquiry] = useState(null);
 
   // New Space modal state
   const [isAddSpaceOpen, setIsAddSpaceOpen] = useState(false);
@@ -72,31 +69,8 @@ export default function BOQManagement() {
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [enquiryList, setEnquiryList] = useState([]);
 
-  // Predefined Spaces list for Drawer (Screenshot 3)
-  const drawerSpacesList = [
-    "PUJA ROOM",
-    "KITCHEN",
-    "Parents Bedroom",
-    "Foyer Area",
-    "Bathroom",
-    "Wash Basin Area",
-    "Master Bedroom Bath",
-    "All Area",
-    "Dry Balcony",
-    "Balcony",
-    "Entrance",
-    "CABIN",
-    "HOSPITAL",
-    "All Bedrooms",
-    "Living Room",
-    "Dining Area",
-    "Master Bedroom",
-    "Kids Bedroom",
-    "Guest Bedroom"
-  ];
-
-  // Fallback initial spaces template
-  const defaultSampleSpaces = [
+  // Full default standard spaces template
+  const defaultStandardSpaces = [
     {
       name: "Entrance",
       roomTotal: 75813,
@@ -186,7 +160,7 @@ export default function BOQManagement() {
           clientPhone: "89482 74553",
           numberOfSpaces: 10,
           grandTotal: 3964567,
-          spaces: defaultSampleSpaces
+          spaces: defaultStandardSpaces
         },
         {
           _id: "boq17",
@@ -401,7 +375,10 @@ export default function BOQManagement() {
     try {
       const res = await erpApi.getBOQById(idOrEnquiry);
       if (res?.success && res.data) {
-        setActiveBOQ(res.data);
+        setActiveBOQ({
+          ...res.data,
+          spaces: res.data.spaces && res.data.spaces.length > 0 ? res.data.spaces : defaultStandardSpaces
+        });
         setActiveSpaceIdx(0);
         setViewMode("builder");
         return;
@@ -413,7 +390,7 @@ export default function BOQManagement() {
     if (found) {
       setActiveBOQ({
         ...found,
-        spaces: found.spaces || []
+        spaces: found.spaces && found.spaces.length > 0 ? found.spaces : defaultStandardSpaces
       });
       setActiveSpaceIdx(0);
       setViewMode("builder");
@@ -424,7 +401,7 @@ export default function BOQManagement() {
   const handleOpenBuilder = (boqItem) => {
     setActiveBOQ({
       ...boqItem,
-      spaces: boqItem.spaces || []
+      spaces: boqItem.spaces && boqItem.spaces.length > 0 ? boqItem.spaces : defaultStandardSpaces
     });
     setActiveSpaceIdx(0);
     setViewMode("builder");
@@ -437,13 +414,21 @@ export default function BOQManagement() {
     setIsSelectClientModalOpen(true);
   };
 
-  // Select an Enquiry from Modal Card -> Create & Open Empty BOQ Builder
-  const handleSelectEnquiryToCreateBOQ = async (enquiry) => {
+  // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Open Measurement Unit Modal
+  const handleSelectEnquiryToCreateBOQ = (enquiry) => {
+    setPendingSelectedEnquiry(enquiry);
+    setIsSelectClientModalOpen(false);
+    setIsMeasurementModalOpen(true);
+  };
+
+  // When user selects Measurement Unit (Feet.inch / Millimeter) -> DIRECTLY Open full BOQ UI!
+  const handleConfirmMeasurementUnit = async () => {
+    const enquiry = pendingSelectedEnquiry || { name: "Client", enquiryNo: `ENQ-2026-019` };
     const randomSuffix = Math.floor(100 + Math.random() * 900);
     const boqNumber = `BOQ-2026-${randomSuffix}`;
     const enquiryNo = enquiry.enquiryNo || `ENQ-2026-${randomSuffix}`;
 
-    // New BOQ initially has NO spaces added yet (matching user screenshot 2 & 1)
+    // Create BOQ populated with all standard spaces & components ready to use
     const newBOQ = {
       _id: `boq_${Date.now()}`,
       boqNumber,
@@ -452,10 +437,10 @@ export default function BOQManagement() {
       clientName: enquiry.name || "Client",
       clientEmail: enquiry.email || "",
       clientPhone: enquiry.phone || "",
-      numberOfSpaces: 0,
+      numberOfSpaces: defaultStandardSpaces.length,
       activePackage: "Standard",
-      grandTotal: 0,
-      spaces: []
+      grandTotal: 3964567,
+      spaces: JSON.parse(JSON.stringify(defaultStandardSpaces))
     };
 
     // Save to Backend API & update local list
@@ -472,111 +457,16 @@ export default function BOQManagement() {
     setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
     setActiveBOQ(newBOQ);
     setActiveSpaceIdx(0);
-    setIsSelectClientModalOpen(false);
-    setViewMode("builder");
-
-    // Automatically open Measurement Unit modal if no spaces yet (Screenshot 1)
-    setIsMeasurementModalOpen(true);
-  };
-
-  // Confirm Measurement Unit -> Open Space Drawer (Screenshot 1 -> 3)
-  const handleConfirmMeasurementUnit = () => {
     setIsMeasurementModalOpen(false);
-    setIsSpaceDrawerOpen(true);
-  };
-
-  // Add Space from Drawer (Screenshot 3)
-  const handleAddSpaceFromDrawer = (spaceName) => {
-    if (!activeBOQ) return;
-    const updated = JSON.parse(JSON.stringify(activeBOQ));
-    
-    // Check if space already exists, if so append copy
-    const countSame = updated.spaces.filter((s) => s.name.startsWith(spaceName)).length;
-    const finalName = countSame > 0 ? `${spaceName} (${countSame + 1})` : spaceName;
-
-    // If Entrance, seed sample entrance components for demonstration
-    let initialItems = [];
-    let initialRoomTotal = 0;
-    if (spaceName === "Entrance" && updated.spaces.length === 0) {
-      initialItems = [
-        {
-          name: "Shoe Rack",
-          typeVariant: "Box Standard",
-          lengthFt: 1,
-          lengthIn: 6,
-          heightFt: 9,
-          heightIn: 3,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "Providing of size (4ft x 3ft) shoe rack",
-          sqft: 13.875,
-          rate: 1500,
-          amount: 20813
-        },
-        {
-          name: "Entrance Safety Door",
-          typeVariant: "Frame Standard",
-          lengthFt: 1,
-          lengthIn: 0,
-          heightFt: 1,
-          heightIn: 0,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "entrance area - Category Grill",
-          sqft: 1,
-          rate: 40000,
-          amount: 40000
-        },
-        {
-          name: "Smart Lock",
-          typeVariant: "Box Standard",
-          lengthFt: 1,
-          lengthIn: 0,
-          heightFt: 1,
-          heightIn: 0,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "Smart digital biometric lock",
-          sqft: 1,
-          rate: 15000,
-          amount: 15000
-        }
-      ];
-      initialRoomTotal = 75813;
-    }
-
-    updated.spaces.push({
-      name: finalName,
-      roomTotal: initialRoomTotal,
-      items: initialItems
-    });
-
-    const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
-    setActiveSpaceIdx(updated.spaces.length - 1);
-    setSuccessToast(`Added ${finalName} to BOQ!`);
-    setTimeout(() => setSuccessToast(""), 2000);
-  };
-
-  // Copy spaces from an existing BOQ (Screenshot 2 button)
-  const handleCopyFromExistingBOQ = (sourceBOQ) => {
-    if (!activeBOQ || !sourceBOQ?.spaces || sourceBOQ.spaces.length === 0) return;
-    const updated = JSON.parse(JSON.stringify(activeBOQ));
-    updated.spaces = JSON.parse(JSON.stringify(sourceBOQ.spaces));
-    const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
-    setActiveSpaceIdx(0);
-    setIsCopyBOQModalOpen(false);
-    setSuccessToast(`Copied ${sourceBOQ.spaces.length} spaces from ${sourceBOQ.clientName}!`);
-    setTimeout(() => setSuccessToast(""), 3000);
+    setPendingSelectedEnquiry(null);
+    setViewMode("builder");
+    setSuccessToast(`BOQ created for ${enquiry.name}!`);
+    setTimeout(() => setSuccessToast(""), 3500);
   };
 
   // Active space reference
   const currentSpace = useMemo(() => {
-    if (!activeBOQ?.spaces || activeBOQ.spaces.length === 0) return null;
+    if (!activeBOQ?.spaces || activeBOQ.spaces.length === 0) return defaultStandardSpaces[0];
     return activeBOQ.spaces[activeSpaceIdx] || activeBOQ.spaces[0];
   }, [activeBOQ, activeSpaceIdx]);
 
@@ -697,7 +587,10 @@ export default function BOQManagement() {
 
   // Delete current space
   const handleDeleteCurrentSpace = () => {
-    if (!activeBOQ) return;
+    if (!activeBOQ || activeBOQ.spaces.length <= 1) {
+      alert("At least one space is required in the BOQ.");
+      return;
+    }
     if (!window.confirm(`Are you sure you want to delete ${currentSpace.name}?`)) return;
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     updated.spaces.splice(activeSpaceIdx, 1);
@@ -1048,15 +941,87 @@ export default function BOQManagement() {
             </div>
           </div>
         )}
+
+        {/* ========================================================================= */}
+        {/* MODAL: MEASUREMENT UNIT (Screenshot 1 Reference) */}
+        {/* ========================================================================= */}
+        {isMeasurementModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-md overflow-hidden p-6 space-y-5 animate-in zoom-in-95">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-stone-900 mx-auto">Measurement Unit</h3>
+                <button
+                  onClick={() => setIsMeasurementModalOpen(false)}
+                  className="text-stone-400 hover:text-stone-700 p-1 -mr-2"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Radio Selection: Feet.inch vs Millimeter (Screenshot 1) */}
+              <div className="space-y-3 pt-1">
+                <span className="block text-xs font-semibold text-stone-700">Select Unit</span>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
+                    <input
+                      type="radio"
+                      name="measurementUnit"
+                      value="Feet.inch"
+                      checked={measurementUnit === "Feet.inch"}
+                      onChange={(e) => setMeasurementUnit(e.target.value)}
+                      className="text-blue-600 focus:ring-blue-500 w-4 h-4"
+                    />
+                    <span>Feet.inch</span>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
+                    <input
+                      type="radio"
+                      name="measurementUnit"
+                      value="Millimeter"
+                      checked={measurementUnit === "Millimeter"}
+                      onChange={(e) => setMeasurementUnit(e.target.value)}
+                      className="text-blue-600 focus:ring-blue-500 w-4 h-4"
+                    />
+                    <span>Millimeter</span>
+                  </label>
+                </div>
+
+                {/* Note (Screenshot 1) */}
+                <p className="text-[11px] text-stone-500 leading-relaxed pt-2">
+                  Note: This unit will be applied to all the measurements and calculations in this BOQ.
+                </p>
+              </div>
+
+              {/* Buttons (Screenshot 1) */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMeasurementModalOpen(false)}
+                  className="px-5 py-2 text-xs font-semibold text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmMeasurementUnit}
+                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  Save & Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   // =========================================================================
-  // VIEW 2: BOQ SPACE & COMPONENT BUILDER (Screenshots 1, 2, 3)
+  // VIEW 2: BOQ SPACE & COMPONENT BUILDER (DIRECT WORKSPACE UI)
   // =========================================================================
-  const hasSpaces = activeBOQ?.spaces && activeBOQ.spaces.length > 0;
-
   return (
     <div className="relative min-h-[calc(100vh-80px)] space-y-3 animate-in fade-in duration-150">
       {successToast && (
@@ -1078,24 +1043,22 @@ export default function BOQManagement() {
             <span>BOQ</span>
           </button>
 
-          {/* Categories: Component, Accessories, Appliances, Other Services (only if spaces exist) */}
-          {hasSpaces && (
-            <div className="flex items-center gap-1 p-0.5 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2]">
-              {["Component", "Accessories", "Appliances", "Other Services"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    activeCategory === cat
-                      ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                      : "text-stone-600 hover:text-stone-950"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Categories: Component, Accessories, Appliances, Other Services */}
+          <div className="flex items-center gap-1 p-0.5 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2]">
+            {["Component", "Accessories", "Appliances", "Other Services"].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeCategory === cat
+                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
+                    : "text-stone-600 hover:text-stone-950"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Center: Client Name & BOQ Total */}
@@ -1105,50 +1068,44 @@ export default function BOQManagement() {
             <span className="text-xs font-extrabold text-stone-900">{activeBOQ?.clientName || "Client"}</span>
           </div>
 
-          {hasSpaces && (
-            <div>
-              <span className="text-[10px] text-stone-400 block font-semibold">BOQ Total</span>
-              <div className="flex items-center gap-1 text-sm font-black text-[#9E7B1D]">
-                <span>₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}</span>
-                <ChevronDown size={14} className="text-stone-400 cursor-pointer" />
-              </div>
+          <div>
+            <span className="text-[10px] text-stone-400 block font-semibold">BOQ Total</span>
+            <div className="flex items-center gap-1 text-sm font-black text-[#9E7B1D]">
+              <span>₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}</span>
+              <ChevronDown size={14} className="text-stone-400 cursor-pointer" />
             </div>
-          )}
+          </div>
         </div>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2 flex-wrap">
-          {hasSpaces && (
-            <>
-              <button
-                onClick={handleSaveBOQ}
-                className="px-4 py-1.5 text-xs font-bold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
-              >
-                Apply
-              </button>
+          <button
+            onClick={handleSaveBOQ}
+            className="px-4 py-1.5 text-xs font-bold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+          >
+            Apply
+          </button>
 
-              <button
-                onClick={() => setIsSpaceDrawerOpen(true)}
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
-              >
-                <Plus size={13} />
-                <span>Add Space</span>
-              </button>
+          <button
+            onClick={() => setIsAddSpaceOpen(true)}
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
+          >
+            <Plus size={13} />
+            <span>Add Space</span>
+          </button>
 
-              <button
-                onClick={() => {
-                  if (window.confirm("Clear all items in current space?")) {
-                    const updated = JSON.parse(JSON.stringify(activeBOQ));
-                    updated.spaces[activeSpaceIdx].items = [];
-                    setActiveBOQ(recalculateBOQ(updated));
-                  }
-                }}
-                className="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
-              >
-                Clear
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => {
+              if (window.confirm("Clear all items in current space?")) {
+                const updated = JSON.parse(JSON.stringify(activeBOQ));
+                updated.spaces[activeSpaceIdx].items = [];
+                setActiveBOQ(recalculateBOQ(updated));
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
+          >
+            Clear
+          </button>
 
           <button
             onClick={handleSaveBOQ}
@@ -1178,557 +1135,361 @@ export default function BOQManagement() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* SCREEN: NO SPACE ADDED YET (Screenshot 2 Reference) */}
-      {/* ========================================================================= */}
-      {!hasSpaces ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="bg-white border border-stone-200 rounded-3xl shadow-xs p-10 max-w-lg w-full flex flex-col items-center text-center space-y-6 animate-in fade-in">
-            {/* Clipboard Graphic (Screenshot 2) */}
-            <div className="relative w-28 h-32 flex items-center justify-center">
-              {/* Back clipboard */}
-              <div className="absolute top-0 left-2 w-20 h-26 bg-slate-100 border-2 border-slate-300 rounded-lg transform -rotate-12 shadow-2xs">
-                <div className="w-10 h-3 bg-blue-500 rounded-t mx-auto -mt-1.5" />
-              </div>
-              {/* Front clipboard */}
-              <div className="absolute top-3 left-6 w-20 h-26 bg-white border-2 border-slate-300 rounded-lg shadow-sm">
-                <div className="w-10 h-3 bg-blue-500 rounded-t mx-auto -mt-1.5" />
-                <div className="p-2 space-y-1.5 mt-2">
-                  <div className="h-1 bg-slate-200 rounded-full w-full" />
-                  <div className="h-1 bg-slate-200 rounded-full w-3/4" />
-                  <div className="h-1 bg-slate-200 rounded-full w-4/5" />
-                </div>
-              </div>
-            </div>
-
-            {/* Title: No Space Added Yet */}
-            <h2 className="text-base font-bold text-stone-800">No Space Added Yet</h2>
-
-            {/* Action Buttons (Screenshot 2) */}
-            <div className="w-full space-y-3">
+      {/* Spaces Horizontal Tabs Bar */}
+      <div className="bg-white border border-[#EAE3D2] rounded-xl p-2 shadow-xs overflow-x-auto">
+        <div className="flex items-center gap-1.5 min-w-max">
+          {activeBOQ?.spaces?.map((space, sIdx) => {
+            const isActive = sIdx === activeSpaceIdx;
+            return (
               <button
-                onClick={() => setIsMeasurementModalOpen(true)}
-                className="w-full py-2.5 px-4 text-xs font-bold text-blue-600 bg-white border border-blue-500 hover:bg-blue-50 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                key={sIdx}
+                onClick={() => setActiveSpaceIdx(sIdx)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
+                    : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
+                }`}
               >
-                <span>Add Measurement Unit & Space to Start</span>
-                <ChevronRight size={15} />
-              </button>
-
-              <button
-                onClick={() => setIsCopyBOQModalOpen(true)}
-                className="w-full py-2.5 px-4 text-xs font-bold text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
-              >
-                <span>Copy From Existing BOQ</span>
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* ========================================================================= */
-        /* SCREEN: ACTIVE SPACES & COMPONENT BUILDER (Screenshot 1 & 2 Palette) */
-        /* ========================================================================= */
-        <>
-          {/* Spaces Horizontal Tabs Bar */}
-          <div className="bg-white border border-[#EAE3D2] rounded-xl p-2 shadow-xs overflow-x-auto">
-            <div className="flex items-center gap-1.5 min-w-max">
-              {activeBOQ?.spaces?.map((space, sIdx) => {
-                const isActive = sIdx === activeSpaceIdx;
-                return (
-                  <button
-                    key={sIdx}
-                    onClick={() => setActiveSpaceIdx(sIdx)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${
-                      isActive
-                        ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                        : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
-                    }`}
-                  >
-                    <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
-                    <span>{space.name}</span>
-                    {space.roomTotal > 0 && (
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-stone-950/15 text-stone-950" : "bg-amber-50 text-[#9E7B1D]"}`}>
-                        ₹{Math.round(space.roomTotal).toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Main Two-Column Work Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            {/* Left Column: Components Palette */}
-            <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
-              {/* Search Component */}
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Search Component"
-                  value={componentSearch}
-                  onChange={(e) => setComponentSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
-                />
-              </div>
-
-              {/* Relevant Components Section */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider">
-                  Relevant Components
-                </h4>
-                <div className="space-y-1">
-                  {relevantComponents.map((comp, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-800"
-                    >
-                      <span className="truncate pr-2">{comp.name}</span>
-                      <button
-                        onClick={() => handleAddComponentToSpace(comp)}
-                        className="w-6 h-6 rounded-lg bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
-                        title={`Add ${comp.name} to current space`}
-                      >
-                        <Plus size={13} />
-                      </button>
-                    </div>
-                  ))}
-                  {relevantComponents.length === 0 && (
-                    <p className="text-[11px] text-stone-400 italic py-1">No space-specific items</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Other Components Section */}
-              <div className="space-y-2 pt-2 border-t border-[#EAE3D2]">
-                <h4 className="text-xs font-bold text-stone-600 uppercase tracking-wider">
-                  Other Components
-                </h4>
-                <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
-                  {otherComponents.map((comp, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-700"
-                    >
-                      <span className="truncate pr-2">{comp.name}</span>
-                      <button
-                        onClick={() => handleAddComponentToSpace(comp)}
-                        className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
-                        title={`Add ${comp.name} to current space`}
-                      >
-                        <Plus size={13} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Space Components Table */}
-            <div className="lg:col-span-9 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
-              {/* Room Title Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EAE3D2]">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-base font-black text-stone-900">{currentSpace?.name || "Space"}</h3>
-                  <span className="text-sm font-black text-[#9E7B1D]">
-                    ₹{(currentSpace?.roomTotal || 0).toLocaleString("en-IN")}
+                <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
+                <span>{space.name}</span>
+                {space.roomTotal > 0 && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-stone-950/15 text-stone-950" : "bg-amber-50 text-[#9E7B1D]"}`}>
+                    ₹{Math.round(space.roomTotal).toLocaleString("en-IN")}
                   </span>
-                </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-                {/* Room Actions */}
-                <div className="flex items-center gap-2">
+      {/* Main Two-Column Work Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* Left Column: Components Palette */}
+        <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
+          {/* Search Component */}
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input
+              type="text"
+              placeholder="Search Component"
+              value={componentSearch}
+              onChange={(e) => setComponentSearch(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+
+          {/* Relevant Components Section */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider">
+              Relevant Components
+            </h4>
+            <div className="space-y-1">
+              {relevantComponents.map((comp, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-800"
+                >
+                  <span className="truncate pr-2">{comp.name}</span>
                   <button
-                    onClick={handleDuplicateSpace}
-                    title="Duplicate Space"
-                    className="p-1.5 text-stone-500 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                    onClick={() => handleAddComponentToSpace(comp)}
+                    className="w-6 h-6 rounded-lg bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
+                    title={`Add ${comp.name} to current space`}
                   >
-                    <Copy size={15} />
+                    <Plus size={13} />
                   </button>
+                </div>
+              ))}
+              {relevantComponents.length === 0 && (
+                <p className="text-[11px] text-stone-400 italic py-1">No space-specific items</p>
+              )}
+            </div>
+          </div>
+
+          {/* Other Components Section */}
+          <div className="space-y-2 pt-2 border-t border-[#EAE3D2]">
+            <h4 className="text-xs font-bold text-stone-600 uppercase tracking-wider">
+              Other Components
+            </h4>
+            <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
+              {otherComponents.map((comp, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-700"
+                >
+                  <span className="truncate pr-2">{comp.name}</span>
                   <button
-                    onClick={handleDeleteCurrentSpace}
-                    title="Delete Space"
-                    className="p-1.5 text-stone-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                    onClick={() => handleAddComponentToSpace(comp)}
+                    className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
+                    title={`Add ${comp.name} to current space`}
                   >
-                    <Trash2 size={15} />
+                    <Plus size={13} />
                   </button>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              {/* Subheader: Components Label & Package Variant Selector */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold text-stone-800">Components</span>
-                  <button title="Copy Component Selection" className="text-stone-400 hover:text-[#9E7B1D]">
-                    <Copy size={13} />
-                  </button>
-                </div>
+        {/* Right Column: Space Components Table */}
+        <div className="lg:col-span-9 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
+          {/* Room Title Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EAE3D2]">
+            <div className="flex items-center gap-3">
+              <h3 className="text-base font-black text-stone-900">{currentSpace?.name || "Space"}</h3>
+              <span className="text-sm font-black text-[#9E7B1D]">
+                ₹{(currentSpace?.roomTotal || 0).toLocaleString("en-IN")}
+              </span>
+            </div>
 
-                {/* Package Selector */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-stone-500 font-semibold">Package:</span>
-                  <select
-                    value={selectedPackage}
-                    onChange={(e) => setSelectedPackage(e.target.value)}
-                    className="h-8 px-2.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37]"
-                  >
-                    <option value="Standard">Standard Package</option>
-                    <option value="Premium">Premium Package</option>
-                    <option value="Elite">Elite Luxury Package</option>
-                  </select>
-                </div>
-              </div>
+            {/* Room Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDuplicateSpace}
+                title="Duplicate Space"
+                className="p-1.5 text-stone-500 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+              >
+                <Copy size={15} />
+              </button>
+              <button
+                onClick={handleDeleteCurrentSpace}
+                title="Delete Space"
+                className="p-1.5 text-stone-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          </div>
 
-              {/* Components Dimension & Calculation Table */}
-              <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl">
-                <table className="w-full text-left border-collapse min-w-[950px]">
-                  <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
-                    <tr>
-                      <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
-                      <th className="py-2.5 px-3 min-w-[140px]">Name</th>
-                      <th className="py-2.5 px-3 min-w-[110px]">Type & Variant</th>
-                      <th className="py-2.5 px-2 text-center min-w-[100px]">Length (ft & in)</th>
-                      <th className="py-2.5 px-2 text-center min-w-[100px]">Height (ft & in)</th>
-                      <th className="py-2.5 px-2 text-center min-w-[100px]">Depth (ft & in)</th>
-                      <th className="py-2.5 px-2 text-center w-14">Qty</th>
-                      <th className="py-2.5 px-3 min-w-[130px]">Description</th>
-                      <th className="py-2.5 px-2 text-right w-16">Sq.ft</th>
-                      <th className="py-2.5 px-3 text-right min-w-[90px]">Rate (sq.ft)</th>
-                      <th className="py-2.5 px-3 text-right min-w-[90px]">Amount</th>
-                      <th className="py-2.5 px-2 text-center w-16">Action</th>
+          {/* Subheader: Components Label & Package Variant Selector */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-extrabold text-stone-800">Components</span>
+              <button title="Copy Component Selection" className="text-stone-400 hover:text-[#9E7B1D]">
+                <Copy size={13} />
+              </button>
+            </div>
+
+            {/* Package Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-stone-500 font-semibold">Package:</span>
+              <select
+                value={selectedPackage}
+                onChange={(e) => setSelectedPackage(e.target.value)}
+                className="h-8 px-2.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+              >
+                <option value="Standard">Standard Package</option>
+                <option value="Premium">Premium Package</option>
+                <option value="Elite">Elite Luxury Package</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Components Dimension & Calculation Table */}
+          <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl">
+            <table className="w-full text-left border-collapse min-w-[950px]">
+              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
+                <tr>
+                  <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
+                  <th className="py-2.5 px-3 min-w-[140px]">Name</th>
+                  <th className="py-2.5 px-3 min-w-[110px]">Type & Variant</th>
+                  <th className="py-2.5 px-2 text-center min-w-[100px]">Length (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center min-w-[100px]">Height (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center min-w-[100px]">Depth (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center w-14">Qty</th>
+                  <th className="py-2.5 px-3 min-w-[130px]">Description</th>
+                  <th className="py-2.5 px-2 text-right w-16">Sq.ft</th>
+                  <th className="py-2.5 px-3 text-right min-w-[90px]">Rate (sq.ft)</th>
+                  <th className="py-2.5 px-3 text-right min-w-[90px]">Amount</th>
+                  <th className="py-2.5 px-2 text-center w-16">Action</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
+                {!currentSpace?.items || currentSpace.items.length === 0 ? (
+                  <tr>
+                    <td colSpan={12} className="py-12 text-center text-stone-400">
+                      No components added in {currentSpace?.name || "this space"}. Click (+) on the left palette to add items.
+                    </td>
+                  </tr>
+                ) : (
+                  currentSpace.items.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-amber-50/20 transition">
+                      {/* Drag Handle */}
+                      <td className="py-2 px-2 text-center text-stone-300">
+                        <GripVertical size={13} className="mx-auto cursor-grab" />
+                      </td>
+
+                      {/* Name */}
+                      <td className="py-2 px-3 font-semibold text-stone-900">{item.name}</td>
+
+                      {/* Type & Variant */}
+                      <td className="py-2 px-3">
+                        <input
+                          type="text"
+                          value={item.typeVariant || "Box Standard"}
+                          onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
+                          className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs text-stone-700"
+                        />
+                      </td>
+
+                      {/* Length (ft & inch) */}
+                      <td className="py-2 px-2">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.lengthFt}
+                            onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Feet"
+                          />
+                          <input
+                            type="number"
+                            value={item.lengthIn}
+                            onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Inches"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Height (ft & inch) */}
+                      <td className="py-2 px-2">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.heightFt}
+                            onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Feet"
+                          />
+                          <input
+                            type="number"
+                            value={item.heightIn}
+                            onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Inches"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Depth (ft & inch) */}
+                      <td className="py-2 px-2">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.depthFt}
+                            onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Feet"
+                          />
+                          <input
+                            type="number"
+                            value={item.depthIn}
+                            onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
+                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            title="Inches"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Qty */}
+                      <td className="py-2 px-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.qty || 1}
+                          onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
+                          className="w-12 h-7 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                        />
+                      </td>
+
+                      {/* Description */}
+                      <td className="py-2 px-3">
+                        <input
+                          type="text"
+                          value={item.description || ""}
+                          onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
+                          placeholder="Specification notes"
+                          className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs"
+                        />
+                      </td>
+
+                      {/* Sq.ft (calculated) */}
+                      <td className="py-2 px-2 text-right font-mono font-semibold text-stone-700">
+                        {item.sqft || 1}
+                      </td>
+
+                      {/* Rate */}
+                      <td className="py-2 px-3 text-right">
+                        <input
+                          type="number"
+                          value={item.rate || 0}
+                          onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
+                          className="w-20 h-7 text-right px-1.5 bg-white border border-[#EAE3D2] rounded text-xs font-semibold text-stone-800"
+                        />
+                      </td>
+
+                      {/* Amount */}
+                      <td className="py-2 px-3 text-right font-black text-[#9E7B1D]">
+                        ₹{(item.amount || 0).toLocaleString("en-IN")}
+                      </td>
+
+                      {/* Actions: Photo, Minus Delete */}
+                      <td className="py-2 px-2 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            title="Add item photos"
+                            className="text-stone-400 hover:text-[#9E7B1D] cursor-pointer"
+                          >
+                            <ImageIcon size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveItem(idx)}
+                            title="Remove item"
+                            className="text-rose-400 hover:text-rose-600 cursor-pointer"
+                          >
+                            <MinusCircle size={14} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
-                    {!currentSpace?.items || currentSpace.items.length === 0 ? (
-                      <tr>
-                        <td colSpan={12} className="py-12 text-center text-stone-400">
-                          No components added in {currentSpace?.name || "this space"}. Click (+) on the left palette to add items.
-                        </td>
-                      </tr>
-                    ) : (
-                      currentSpace.items.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-amber-50/20 transition">
-                          {/* Drag Handle */}
-                          <td className="py-2 px-2 text-center text-stone-300">
-                            <GripVertical size={13} className="mx-auto cursor-grab" />
-                          </td>
-
-                          {/* Name */}
-                          <td className="py-2 px-3 font-semibold text-stone-900">{item.name}</td>
-
-                          {/* Type & Variant */}
-                          <td className="py-2 px-3">
-                            <input
-                              type="text"
-                              value={item.typeVariant || "Box Standard"}
-                              onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
-                              className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs text-stone-700"
-                            />
-                          </td>
-
-                          {/* Length (ft & inch) */}
-                          <td className="py-2 px-2">
-                            <div className="flex items-center gap-1 justify-center">
-                              <input
-                                type="number"
-                                value={item.lengthFt}
-                                onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Feet"
-                              />
-                              <input
-                                type="number"
-                                value={item.lengthIn}
-                                onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Inches"
-                              />
-                            </div>
-                          </td>
-
-                          {/* Height (ft & inch) */}
-                          <td className="py-2 px-2">
-                            <div className="flex items-center gap-1 justify-center">
-                              <input
-                                type="number"
-                                value={item.heightFt}
-                                onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Feet"
-                              />
-                              <input
-                                type="number"
-                                value={item.heightIn}
-                                onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Inches"
-                              />
-                            </div>
-                          </td>
-
-                          {/* Depth (ft & inch) */}
-                          <td className="py-2 px-2">
-                            <div className="flex items-center gap-1 justify-center">
-                              <input
-                                type="number"
-                                value={item.depthFt}
-                                onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Feet"
-                              />
-                              <input
-                                type="number"
-                                value={item.depthIn}
-                                onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
-                                className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                                title="Inches"
-                              />
-                            </div>
-                          </td>
-
-                          {/* Qty */}
-                          <td className="py-2 px-2">
-                            <input
-                              type="number"
-                              min={1}
-                              value={item.qty || 1}
-                              onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
-                              className="w-12 h-7 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            />
-                          </td>
-
-                          {/* Description */}
-                          <td className="py-2 px-3">
-                            <input
-                              type="text"
-                              value={item.description || ""}
-                              onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
-                              placeholder="Specification notes"
-                              className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs"
-                            />
-                          </td>
-
-                          {/* Sq.ft (calculated) */}
-                          <td className="py-2 px-2 text-right font-mono font-semibold text-stone-700">
-                            {item.sqft || 1}
-                          </td>
-
-                          {/* Rate */}
-                          <td className="py-2 px-3 text-right">
-                            <input
-                              type="number"
-                              value={item.rate || 0}
-                              onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
-                              className="w-20 h-7 text-right px-1.5 bg-white border border-[#EAE3D2] rounded text-xs font-semibold text-stone-800"
-                            />
-                          </td>
-
-                          {/* Amount */}
-                          <td className="py-2 px-3 text-right font-black text-[#9E7B1D]">
-                            ₹{(item.amount || 0).toLocaleString("en-IN")}
-                          </td>
-
-                          {/* Actions: Photo, Minus Delete */}
-                          <td className="py-2 px-2 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                title="Add item photos"
-                                className="text-stone-400 hover:text-[#9E7B1D] cursor-pointer"
-                              >
-                                <ImageIcon size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleRemoveItem(idx)}
-                                title="Remove item"
-                                className="text-rose-400 hover:text-rose-600 cursor-pointer"
-                              >
-                                <MinusCircle size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: MEASUREMENT UNIT MODAL (Screenshot 1 Reference) */}
-      {/* ========================================================================= */}
-      {isMeasurementModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-md overflow-hidden p-6 space-y-5 animate-in zoom-in-95">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-stone-900 mx-auto">Measurement Unit</h3>
-              <button
-                onClick={() => setIsMeasurementModalOpen(false)}
-                className="text-stone-400 hover:text-stone-700 p-1 -mr-2"
-              >
-                <X size={18} />
-              </button>
+      {/* Add New Space Modal */}
+      {isAddSpaceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#EAE3D2] w-full max-w-sm overflow-hidden p-5 space-y-4">
+            <h3 className="text-sm font-bold text-stone-900">Add New Space / Room</h3>
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1.5">Space Name</label>
+              <input
+                type="text"
+                placeholder="e.g. Balcony, Home Theater, Dressing Area"
+                value={newSpaceName}
+                onChange={(e) => setNewSpaceName(e.target.value)}
+                autoFocus
+                className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
+              />
             </div>
-
-            {/* Radio Selection: Feet.inch vs Millimeter (Screenshot 1) */}
-            <div className="space-y-3 pt-1">
-              <span className="block text-xs font-semibold text-stone-700">Select Unit</span>
-
-              <div className="space-y-2">
-                <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
-                  <input
-                    type="radio"
-                    name="measurementUnit"
-                    value="Feet.inch"
-                    checked={measurementUnit === "Feet.inch"}
-                    onChange={(e) => setMeasurementUnit(e.target.value)}
-                    className="text-blue-600 focus:ring-blue-500 w-4 h-4"
-                  />
-                  <span>Feet.inch</span>
-                </label>
-
-                <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
-                  <input
-                    type="radio"
-                    name="measurementUnit"
-                    value="Millimeter"
-                    checked={measurementUnit === "Millimeter"}
-                    onChange={(e) => setMeasurementUnit(e.target.value)}
-                    className="text-blue-600 focus:ring-blue-500 w-4 h-4"
-                  />
-                  <span>Millimeter</span>
-                </label>
-              </div>
-
-              {/* Note (Screenshot 1) */}
-              <p className="text-[11px] text-stone-500 leading-relaxed pt-2">
-                Note: This unit will be applied to all the measurements and calculations in this BOQ.
-              </p>
-            </div>
-
-            {/* Buttons (Screenshot 1) */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
-                type="button"
-                onClick={() => setIsMeasurementModalOpen(false)}
-                className="px-5 py-2 text-xs font-semibold text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-xl transition cursor-pointer"
+                onClick={() => setIsAddSpaceOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={handleConfirmMeasurementUnit}
-                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+                onClick={handleAddNewSpace}
+                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs"
               >
-                Save & Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* DRAWER: SELECT SPACE SIDEBAR (Screenshot 3 Reference) */}
-      {/* ========================================================================= */}
-      {isSpaceDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-start bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white w-72 h-full shadow-2xl border-r border-stone-200 flex flex-col overflow-hidden animate-in slide-in-from-left duration-200">
-            {/* Drawer Header */}
-            <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-stone-900">Select Space</h3>
-              <button
-                onClick={() => setIsSpaceDrawerOpen(false)}
-                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Spaces List with (+) buttons (Screenshot 3) */}
-            <div className="p-4 overflow-y-auto flex-1 space-y-1 text-xs">
-              {drawerSpacesList.map((spaceName, sIdx) => {
-                const isAlreadyAdded = activeBOQ?.spaces?.some((s) => s.name === spaceName);
-                return (
-                  <div
-                    key={sIdx}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/50 border border-transparent hover:border-blue-200 transition group"
-                  >
-                    <span className="font-semibold text-stone-800">{spaceName}</span>
-                    <button
-                      onClick={() => handleAddSpaceFromDrawer(spaceName)}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition shrink-0 cursor-pointer ${
-                        isAlreadyAdded
-                          ? "bg-blue-600 text-white"
-                          : "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
-                      }`}
-                      title={`Add ${spaceName}`}
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50">
-              <button
-                onClick={() => setIsSpaceDrawerOpen(false)}
-                className="w-full py-2 text-xs font-bold text-stone-700 bg-white border border-stone-300 hover:bg-stone-100 rounded-xl transition"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 2: COPY FROM EXISTING BOQ (Screenshot 2 Option) */}
-      {/* ========================================================================= */}
-      {isCopyBOQModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-md overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-              <h3 className="text-sm font-bold text-stone-900">Copy Spaces from Existing BOQ</h3>
-              <button onClick={() => setIsCopyBOQModalOpen(false)} className="text-stone-400 hover:text-stone-700">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs">
-              {boqList
-                .filter((b) => b.spaces && b.spaces.length > 0 && b._id !== activeBOQ?._id)
-                .map((boq) => (
-                  <div
-                    key={boq._id}
-                    onClick={() => handleCopyFromExistingBOQ(boq)}
-                    className="p-3 bg-white border border-stone-200 hover:border-blue-500 hover:bg-blue-50/20 rounded-xl cursor-pointer transition flex items-center justify-between"
-                  >
-                    <div>
-                      <h4 className="font-bold text-stone-900">{boq.clientName}</h4>
-                      <p className="text-[11px] text-stone-500 font-mono">
-                        {boq.enquiryNo} • {boq.spaces.length} Spaces
-                      </p>
-                    </div>
-                    <span className="font-bold text-blue-600 text-xs">
-                      ₹{(boq.grandTotal || 0).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                ))}
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setIsCopyBOQModalOpen(false)}
-                className="px-5 py-2 text-xs font-semibold text-stone-600 bg-white border border-stone-200 rounded-xl"
-              >
-                Cancel
+                Add Space
               </button>
             </div>
           </div>

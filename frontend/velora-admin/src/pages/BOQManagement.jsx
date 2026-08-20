@@ -548,7 +548,7 @@ export default function BOQManagement() {
   };
 
   // Add Component from Left Palette into Active Space
-  const handleAddComponentToSpace = (comp, customConfig = null) => {
+  const handleAddComponentToSpace = (comp, customConfig = null, targetVariant = null) => {
     if (!activeBOQ) return;
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     const targetSpace = updated.spaces[activeSpaceIdx];
@@ -557,8 +557,21 @@ export default function BOQManagement() {
     if (customConfig) {
       targetSpace.items.push(customConfig);
     } else {
-      const pkg = selectedPackage?.toLowerCase() || "standard";
-      const vConfig = comp[pkg] || comp.standard || comp.premium || comp.elite || {};
+      const availableVariants = comp.selectedVariants?.length
+        ? comp.selectedVariants
+        : ["Elite", "Premium", "Standard"];
+
+      let chosenVariant = targetVariant;
+      if (!chosenVariant) {
+        if (availableVariants.includes(selectedPackage)) {
+          chosenVariant = selectedPackage;
+        } else {
+          chosenVariant = availableVariants[0] || "Standard";
+        }
+      }
+
+      const key = chosenVariant.toLowerCase();
+      const vConfig = comp[key] || comp.standard || comp.premium || comp.elite || {};
       const unit = vConfig.unit || {};
 
       const lengthFt = unit.lengthFt !== undefined && (unit.lengthFt > 0 || unit.lengthIn > 0) ? unit.lengthFt : 1;
@@ -568,7 +581,7 @@ export default function BOQManagement() {
       const depthFt = unit.depthFt || 0;
       const depthIn = unit.depthIn || 0;
 
-      let rate = vConfig.rate || unit.rate || (selectedPackage === "Elite" ? 2200 : selectedPackage === "Premium" ? 1800 : 1500);
+      let rate = vConfig.rate || unit.rate || (chosenVariant === "Elite" ? 2200 : chosenVariant === "Premium" ? 1800 : 1500);
       const typeVariant = vConfig.type || comp.variant || "Box Standard";
       const description = vConfig.description || comp.description || "";
       const photos = (vConfig.images || comp.images || []).map((img) => ({
@@ -578,6 +591,7 @@ export default function BOQManagement() {
 
       const newItem = {
         name: comp.name,
+        packageVariant: chosenVariant,
         typeVariant,
         lengthFt,
         lengthIn,
@@ -598,8 +612,53 @@ export default function BOQManagement() {
 
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
-    setSuccessToast(`Added ${customConfig?.name || comp.name} to ${targetSpace.name}`);
+    setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}`);
     setTimeout(() => setSuccessToast(""), 2000);
+  };
+
+  // Change Item Package Variant dynamically (e.g. Standard -> Elite)
+  const handleChangeItemPackageVariant = (itemIdx, newVariant) => {
+    if (!activeBOQ) return;
+    const updated = JSON.parse(JSON.stringify(activeBOQ));
+    const targetSpace = updated.spaces[activeSpaceIdx];
+    if (!targetSpace || !targetSpace.items[itemIdx]) return;
+
+    const item = targetSpace.items[itemIdx];
+    item.packageVariant = newVariant;
+
+    if (newVariant !== "Custom") {
+      const matchedComp = libraryComponents.find(
+        (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+      );
+      if (matchedComp) {
+        const key = newVariant.toLowerCase();
+        const vConfig = matchedComp[key];
+        if (vConfig) {
+          const unit = vConfig.unit || {};
+          if (unit.lengthFt > 0 || unit.lengthIn > 0) item.lengthFt = unit.lengthFt;
+          if (unit.lengthIn !== undefined) item.lengthIn = unit.lengthIn;
+          if (unit.heightFt > 0 || unit.heightIn > 0) item.heightFt = unit.heightFt;
+          if (unit.heightIn !== undefined) item.heightIn = unit.heightIn;
+          if (unit.depthFt !== undefined) item.depthFt = unit.depthFt;
+          if (unit.depthIn !== undefined) item.depthIn = unit.depthIn;
+
+          item.typeVariant = vConfig.type || item.typeVariant || "Box";
+          item.rate = vConfig.rate || unit.rate || item.rate;
+          if (vConfig.description) item.description = vConfig.description;
+          if (vConfig.images?.length) {
+            item.photos = vConfig.images.map((img) => ({
+              url: typeof img === "string" ? img : img.url,
+              caption: img.name || item.name
+            }));
+          }
+        }
+      }
+    }
+
+    const recalculated = recalculateBOQ(updated);
+    setActiveBOQ(recalculated);
+    setSuccessToast(`Switched ${item.name} to ${newVariant}`);
+    setTimeout(() => setSuccessToast(""), 1500);
   };
 
   // Open Custom Mix Modal for a palette component
@@ -1418,31 +1477,61 @@ export default function BOQManagement() {
             <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider">
               Relevant Components
             </h4>
-            <div className="space-y-1">
-              {relevantComponents.map((comp, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-800"
-                >
-                  <span className="truncate pr-2">{comp.name}</span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleOpenCustomMix(comp)}
-                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
-                      title={`Customize & Mix Parts for ${comp.name}`}
-                    >
-                      <SlidersHorizontal size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleAddComponentToSpace(comp)}
-                      className="w-6 h-6 rounded-lg bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
-                      title={`Add ${comp.name} directly (${selectedPackage})`}
-                    >
-                      <Plus size={13} />
-                    </button>
+            <div className="space-y-2">
+              {relevantComponents.map((comp, idx) => {
+                const availableVariants = comp.selectedVariants?.length
+                  ? comp.selectedVariants
+                  : ["Elite", "Premium", "Standard"];
+
+                return (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
+                      <button
+                        onClick={() => handleOpenCustomMix(comp)}
+                        className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                        title={`Custom Mix for ${comp.name}`}
+                      >
+                        <SlidersHorizontal size={12} />
+                      </button>
+                    </div>
+
+                    {/* Variant Specific Action Buttons based on component configuration */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      {availableVariants.includes("Elite") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Elite")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-200 transition cursor-pointer"
+                          title={`Add Elite variant (₹${comp.elite?.rate || 2200})`}
+                        >
+                          + Elite
+                        </button>
+                      )}
+                      {availableVariants.includes("Premium") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Premium")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-sky-50 text-sky-800 hover:bg-sky-500 hover:text-white border border-sky-200 transition cursor-pointer"
+                          title={`Add Premium variant (₹${comp.premium?.rate || 1800})`}
+                        >
+                          + Premium
+                        </button>
+                      )}
+                      {availableVariants.includes("Standard") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Standard")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer"
+                          title={`Add Standard variant (₹${comp.standard?.rate || 1500})`}
+                        >
+                          + Standard
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {relevantComponents.length === 0 && (
                 <p className="text-[11px] text-stone-400 italic py-1">No space-specific items</p>
               )}
@@ -1454,31 +1543,61 @@ export default function BOQManagement() {
             <h4 className="text-xs font-bold text-stone-600 uppercase tracking-wider">
               Other Components
             </h4>
-            <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
-              {otherComponents.map((comp, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-700"
-                >
-                  <span className="truncate pr-2">{comp.name}</span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleOpenCustomMix(comp)}
-                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
-                      title={`Customize & Mix Parts for ${comp.name}`}
-                    >
-                      <SlidersHorizontal size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleAddComponentToSpace(comp)}
-                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
-                      title={`Add ${comp.name} directly (${selectedPackage})`}
-                    >
-                      <Plus size={13} />
-                    </button>
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {otherComponents.map((comp, idx) => {
+                const availableVariants = comp.selectedVariants?.length
+                  ? comp.selectedVariants
+                  : ["Elite", "Premium", "Standard"];
+
+                return (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
+                      <button
+                        onClick={() => handleOpenCustomMix(comp)}
+                        className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                        title={`Custom Mix for ${comp.name}`}
+                      >
+                        <SlidersHorizontal size={12} />
+                      </button>
+                    </div>
+
+                    {/* Variant Action Buttons */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      {availableVariants.includes("Elite") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Elite")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-200 transition cursor-pointer"
+                          title={`Add Elite variant (₹${comp.elite?.rate || 2200})`}
+                        >
+                          + Elite
+                        </button>
+                      )}
+                      {availableVariants.includes("Premium") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Premium")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-sky-50 text-sky-800 hover:bg-sky-500 hover:text-white border border-sky-200 transition cursor-pointer"
+                          title={`Add Premium variant (₹${comp.premium?.rate || 1800})`}
+                        >
+                          + Premium
+                        </button>
+                      )}
+                      {availableVariants.includes("Standard") && (
+                        <button
+                          onClick={() => handleAddComponentToSpace(comp, null, "Standard")}
+                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer"
+                          title={`Add Standard variant (₹${comp.standard?.rate || 1500})`}
+                        >
+                          + Standard
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1522,9 +1641,9 @@ export default function BOQManagement() {
               </button>
             </div>
 
-            {/* Package Selector */}
+            {/* Default Package Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-stone-500 font-semibold">Package:</span>
+              <span className="text-[11px] text-stone-500 font-semibold">Default Package:</span>
               <select
                 value={selectedPackage}
                 onChange={(e) => setSelectedPackage(e.target.value)}
@@ -1539,20 +1658,21 @@ export default function BOQManagement() {
 
           {/* Components Dimension & Calculation Table */}
           <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl">
-            <table className="w-full text-left border-collapse min-w-[950px]">
+            <table className="w-full text-left border-collapse min-w-[1020px]">
               <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
                 <tr>
                   <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
-                  <th className="py-2.5 px-3 min-w-[140px]">Name</th>
-                  <th className="py-2.5 px-3 min-w-[110px]">Type & Variant</th>
-                  <th className="py-2.5 px-2 text-center min-w-[100px]">Length (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center min-w-[100px]">Height (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center min-w-[100px]">Depth (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center w-14">Qty</th>
-                  <th className="py-2.5 px-3 min-w-[130px]">Description</th>
-                  <th className="py-2.5 px-2 text-right w-16">Sq.ft</th>
-                  <th className="py-2.5 px-3 text-right min-w-[90px]">Rate (sq.ft)</th>
-                  <th className="py-2.5 px-3 text-right min-w-[90px]">Amount</th>
+                  <th className="py-2.5 px-3 min-w-[130px]">Name</th>
+                  <th className="py-2.5 px-2 min-w-[100px]">Package / Variant</th>
+                  <th className="py-2.5 px-2 min-w-[90px]">Type</th>
+                  <th className="py-2.5 px-2 text-center min-w-[95px]">Length (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center min-w-[95px]">Height (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center min-w-[95px]">Depth (ft & in)</th>
+                  <th className="py-2.5 px-2 text-center w-12">Qty</th>
+                  <th className="py-2.5 px-3 min-w-[120px]">Description</th>
+                  <th className="py-2.5 px-2 text-right w-14">Sq.ft</th>
+                  <th className="py-2.5 px-2 text-right min-w-[85px]">Rate (sq.ft)</th>
+                  <th className="py-2.5 px-2 text-right min-w-[85px]">Amount</th>
                   <th className="py-2.5 px-2 text-center w-16">Action</th>
                 </tr>
               </thead>
@@ -1560,52 +1680,84 @@ export default function BOQManagement() {
               <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
                 {!currentSpace?.items || currentSpace.items.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="py-12 text-center text-stone-400">
-                      No components added in {currentSpace?.name || "this space"}. Click (+) on the left palette to add items.
+                    <td colSpan={13} className="py-12 text-center text-stone-400">
+                      No components added in {currentSpace?.name || "this space"}. Pick any variant from the left palette to add.
                     </td>
                   </tr>
                 ) : (
-                  currentSpace.items.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-amber-50/20 transition">
-                      {/* Drag Handle */}
-                      <td className="py-2 px-2 text-center text-stone-300">
-                        <GripVertical size={13} className="mx-auto cursor-grab" />
-                      </td>
+                  currentSpace.items.map((item, idx) => {
+                    const matchedComp = libraryComponents.find(
+                      (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+                    );
+                    const itemVariants = matchedComp?.selectedVariants?.length
+                      ? matchedComp.selectedVariants
+                      : ["Elite", "Premium", "Standard"];
 
-                      {/* Name with Image Thumbnail Preview */}
-                      <td className="py-2 px-3 font-semibold text-stone-900">
-                        <div className="flex items-center gap-2">
-                          {item.photos && item.photos.length > 0 && (
-                            <div
-                              onClick={() => handleOpenImagePicker(idx)}
-                              className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 shrink-0 cursor-pointer hover:opacity-85 shadow-2xs"
-                              title={`${item.photos.length} image(s) attached. Click to select/change.`}
-                            >
-                              <img
-                                src={item.photos[0]?.url}
-                                alt="thumb"
-                                className="w-full h-full object-cover"
-                              />
-                              {item.photos.length > 1 && (
-                                <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
-                                  {item.photos.length}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          <span className="truncate">{item.name}</span>
-                        </div>
-                      </td>
+                    return (
+                      <tr key={idx} className="hover:bg-amber-50/20 transition">
+                        {/* Drag Handle */}
+                        <td className="py-2 px-2 text-center text-stone-300">
+                          <GripVertical size={13} className="mx-auto cursor-grab" />
+                        </td>
 
-                      {/* Type & Variant */}
-                      <td className="py-2 px-3">
-                        <input
-                          type="text"
-                          value={item.typeVariant || "Box Standard"}
-                          onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
-                          className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs text-stone-700"
-                        />
-                      </td>
+                        {/* Name with Image Thumbnail Preview */}
+                        <td className="py-2 px-3 font-semibold text-stone-900">
+                          <div className="flex items-center gap-2">
+                            {item.photos && item.photos.length > 0 && (
+                              <div
+                                onClick={() => handleOpenImagePicker(idx)}
+                                className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 shrink-0 cursor-pointer hover:opacity-85 shadow-2xs"
+                                title={`${item.photos.length} image(s) attached. Click to select/change.`}
+                              >
+                                <img
+                                  src={item.photos[0]?.url}
+                                  alt="thumb"
+                                  className="w-full h-full object-cover"
+                                />
+                                {item.photos.length > 1 && (
+                                  <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                    {item.photos.length}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <span className="truncate">{item.name}</span>
+                          </div>
+                        </td>
+
+                        {/* Package / Variant Selector per line item */}
+                        <td className="py-2 px-2">
+                          <select
+                            value={item.packageVariant || "Standard"}
+                            onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
+                            className={`w-full h-7 px-1.5 border rounded text-[11px] font-extrabold transition cursor-pointer ${
+                              item.packageVariant === "Elite"
+                                ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
+                                : item.packageVariant === "Premium"
+                                ? "bg-sky-50 text-sky-800 border-sky-300"
+                                : item.packageVariant === "Custom"
+                                ? "bg-purple-50 text-purple-800 border-purple-300"
+                                : "bg-stone-50 text-stone-800 border-stone-300"
+                            }`}
+                          >
+                            {itemVariants.map((v) => (
+                              <option key={v} value={v}>
+                                {v}
+                              </option>
+                            ))}
+                            <option value="Custom">Custom</option>
+                          </select>
+                        </td>
+
+                        {/* Type */}
+                        <td className="py-2 px-2">
+                          <input
+                            type="text"
+                            value={item.typeVariant || "Box Standard"}
+                            onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
+                            className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs text-stone-700"
+                          />
+                        </td>
 
                       {/* Length (ft & inch) */}
                       <td className="py-2 px-2">
@@ -1742,8 +1894,9 @@ export default function BOQManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })
+              )}
               </tbody>
             </table>
           </div>

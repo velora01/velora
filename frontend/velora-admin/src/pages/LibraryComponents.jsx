@@ -275,7 +275,9 @@ export default function LibraryComponents() {
       // Check if variant has uploaded images
       const variantImages = formData[key]?.images || [];
       if (variantImages.length > 0) {
-        alert(`Cannot unselect "${variantName}" because it contains uploaded images. Please remove all images from ${variantName} first.`);
+        alert(
+          `Cannot unselect "${variantName}" because it contains ${variantImages.length} uploaded image(s). Please remove all images from ${variantName} first.`
+        );
         return;
       }
 
@@ -284,16 +286,26 @@ export default function LibraryComponents() {
         return;
       }
 
+      const next = formData.selectedVariants.filter((v) => v !== variantName);
       setFormData((prev) => ({
         ...prev,
-        selectedVariants: prev.selectedVariants.filter((v) => v !== variantName)
+        selectedVariants: availableVariantKeys.filter((v) => next.includes(v))
       }));
     } else {
+      const next = [...formData.selectedVariants, variantName];
       setFormData((prev) => ({
         ...prev,
-        selectedVariants: [...prev.selectedVariants, variantName]
+        selectedVariants: availableVariantKeys.filter((v) => next.includes(v))
       }));
     }
+  };
+
+  // Select all 3 variants
+  const handleSelectAllVariants = () => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedVariants: ["Elite", "Premium", "Standard"]
+    }));
   };
 
   // Update In-Unit field for a variant
@@ -591,28 +603,76 @@ export default function LibraryComponents() {
                       </td>
 
                       {/* Elite Type & Rate */}
-                      <td className="py-3 px-3 border-l border-[#EAE3D2] bg-amber-50/20 text-stone-700">
-                        {comp.elite?.type || "Box"}
-                      </td>
-                      <td className="py-3 px-3 bg-amber-50/20 text-right font-bold text-[#9E7B1D]">
-                        ₹{(comp.elite?.rate || comp.elite?.unit?.rate || 2200).toLocaleString("en-IN")}
-                      </td>
+                      {(() => {
+                        const compVariants = comp.selectedVariants?.length
+                          ? comp.selectedVariants
+                          : ["Elite", "Premium", "Standard"];
+                        if (compVariants.includes("Elite")) {
+                          return (
+                            <>
+                              <td className="py-3 px-3 border-l border-[#EAE3D2] bg-amber-50/20 text-stone-700">
+                                {comp.elite?.type || "Box"}
+                              </td>
+                              <td className="py-3 px-3 bg-amber-50/20 text-right font-bold text-[#9E7B1D]">
+                                ₹{(comp.elite?.rate || comp.elite?.unit?.rate || 2200).toLocaleString("en-IN")}
+                              </td>
+                            </>
+                          );
+                        }
+                        return (
+                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                            -
+                          </td>
+                        );
+                      })()}
 
                       {/* Premium Type & Rate */}
-                      <td className="py-3 px-3 border-l border-[#EAE3D2] text-stone-700">
-                        {comp.premium?.type || "Box"}
-                      </td>
-                      <td className="py-3 px-3 text-right font-bold text-stone-900">
-                        ₹{(comp.premium?.rate || comp.premium?.unit?.rate || 1800).toLocaleString("en-IN")}
-                      </td>
+                      {(() => {
+                        const compVariants = comp.selectedVariants?.length
+                          ? comp.selectedVariants
+                          : ["Elite", "Premium", "Standard"];
+                        if (compVariants.includes("Premium")) {
+                          return (
+                            <>
+                              <td className="py-3 px-3 border-l border-[#EAE3D2] text-stone-700">
+                                {comp.premium?.type || "Box"}
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-stone-900">
+                                ₹{(comp.premium?.rate || comp.premium?.unit?.rate || 1800).toLocaleString("en-IN")}
+                              </td>
+                            </>
+                          );
+                        }
+                        return (
+                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                            -
+                          </td>
+                        );
+                      })()}
 
                       {/* Standard Type & Rate */}
-                      <td className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/30 text-stone-700">
-                        {comp.standard?.type || "Box"}
-                      </td>
-                      <td className="py-3 px-3 bg-stone-50/30 text-right font-bold text-stone-900">
-                        ₹{(comp.standard?.rate || comp.standard?.unit?.rate || 1500).toLocaleString("en-IN")}
-                      </td>
+                      {(() => {
+                        const compVariants = comp.selectedVariants?.length
+                          ? comp.selectedVariants
+                          : ["Elite", "Premium", "Standard"];
+                        if (compVariants.includes("Standard")) {
+                          return (
+                            <>
+                              <td className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/30 text-stone-700">
+                                {comp.standard?.type || "Box"}
+                              </td>
+                              <td className="py-3 px-3 bg-stone-50/30 text-right font-bold text-stone-900">
+                                ₹{(comp.standard?.rate || comp.standard?.unit?.rate || 1500).toLocaleString("en-IN")}
+                              </td>
+                            </>
+                          );
+                        }
+                        return (
+                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                            -
+                          </td>
+                        );
+                      })()}
 
                       {/* Actions */}
                       <td className="py-3 px-4 border-l border-[#EAE3D2] text-center">
@@ -681,7 +741,7 @@ export default function LibraryComponents() {
             </div>
 
             {/* Form Body */}
-            <form onSubmit={handleSaveComponent} className="p-6 overflow-y-auto flex-1 space-y-5 text-xs">
+            <form onSubmit={handleSaveComponent} className="p-6 overflow-y-auto flex-1 space-y-4 text-xs">
               {errorMsg && (
                 <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2 animate-in slide-in-from-top-1">
                   <AlertCircle size={15} />
@@ -706,9 +766,18 @@ export default function LibraryComponents() {
 
               {/* 2. Variant Multi-select Dropdown & Relevant Space Dropdown Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Variant Multi-Select Dropdown (Screenshot 1) */}
+                {/* Variant Multi-Select Dropdown */}
                 <div className="relative" ref={variantDropdownRef}>
-                  <label className="block font-semibold text-stone-700 mb-1.5">Variant</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-semibold text-stone-700">Variant</label>
+                    <button
+                      type="button"
+                      onClick={handleSelectAllVariants}
+                      className="text-[10px] font-bold text-[#9E7B1D] hover:underline cursor-pointer"
+                    >
+                      Select All (3)
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setIsVariantDropdownOpen(!isVariantDropdownOpen)}
@@ -722,13 +791,23 @@ export default function LibraryComponents() {
                     <ChevronDown size={15} className={`text-stone-400 transition-transform ${isVariantDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
 
-                  {/* Multi-Select Popover Dropdown (Screenshot 1) */}
+                  {/* Multi-Select Popover Dropdown */}
                   {isVariantDropdownOpen && (
                     <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#EAE3D2] rounded-xl shadow-xl z-30 p-2 space-y-1 animate-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 text-[10px] text-stone-400 font-semibold">
+                        <span>Select Active Variants</span>
+                        <button
+                          type="button"
+                          onClick={handleSelectAllVariants}
+                          className="text-[#9E7B1D] hover:underline cursor-pointer"
+                        >
+                          All 3
+                        </button>
+                      </div>
                       {availableVariantKeys.map((v) => {
                         const isChecked = formData.selectedVariants.includes(v);
                         return (
-                          <label
+                          <div
                             key={v}
                             onClick={() => handleToggleVariantSelection(v)}
                             className="flex items-center gap-2.5 px-3 py-2 hover:bg-amber-50/70 rounded-lg cursor-pointer text-xs font-medium text-stone-800 select-none transition"
@@ -740,7 +819,7 @@ export default function LibraryComponents() {
                               className="w-4 h-4 rounded text-[#D4AF37] focus:ring-[#D4AF37] border-stone-300 pointer-events-none"
                             />
                             <span>{v}</span>
-                          </label>
+                          </div>
                         );
                       })}
                     </div>
@@ -764,8 +843,35 @@ export default function LibraryComponents() {
                 </div>
               </div>
 
+              {/* Quick Interactive Status Pill Badges */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-semibold text-stone-500">Active Tabs ({formData.selectedVariants.length}):</span>
+                {availableVariantKeys.map((v) => {
+                  const isActive = formData.selectedVariants.includes(v);
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => handleToggleVariantSelection(v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 border ${
+                        isActive
+                          ? v === "Elite"
+                            ? "bg-amber-100/70 border-amber-300 text-[#9E7B1D]"
+                            : v === "Premium"
+                            ? "bg-sky-100/70 border-sky-300 text-sky-800"
+                            : "bg-emerald-100/70 border-emerald-300 text-emerald-800"
+                          : "bg-stone-100 border-stone-200 text-stone-400 hover:bg-stone-200"
+                      }`}
+                    >
+                      <span>{isActive ? "✓" : "+"}</span>
+                      <span>{v}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* 3. Blue Info Banner Note (Screenshots 1 & 2) */}
-              <div className="flex items-start gap-2.5 p-3.5 bg-sky-50/80 border border-sky-200 text-sky-900 rounded-xl text-[11px] leading-relaxed">
+              <div className="flex items-start gap-2.5 p-3 bg-sky-50/80 border border-sky-200 text-sky-900 rounded-xl text-[11px] leading-relaxed">
                 <Info size={16} className="text-sky-600 shrink-0 mt-0.5" />
                 <span>
                   <b>Note:</b> Variants with images cannot be unselected. Please remove all images from a variant before unselecting it.

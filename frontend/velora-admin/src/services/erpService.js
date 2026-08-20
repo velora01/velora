@@ -77,6 +77,30 @@ export const erpApi = {
   createComponent: async (data) => (await api.post("/erp/components", data)).data,
   updateComponent: async (id, data) => (await api.put(`/erp/components/${id}`, data)).data,
   deleteComponent: async (id) => (await api.delete(`/erp/components/${id}`)).data,
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await api.post("/upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      return res.data;
+    } catch {
+      // Offline / client fallback helper to create a base64 or object URL
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            success: true,
+            imageUrl: e.target.result,
+            originalName: file.name,
+            isLocal: true
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  },
 
   // Invoices & Payments
   getInvoices: async (params) => (await api.get("/erp/invoices", { params })).data,

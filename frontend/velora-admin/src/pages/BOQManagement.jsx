@@ -27,7 +27,11 @@ import {
   Building,
   Check,
   X,
-  AlertCircle
+  AlertCircle,
+  SlidersHorizontal,
+  Eye,
+  Upload,
+  Loader2
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
@@ -59,6 +63,35 @@ export default function BOQManagement() {
   const [measurementUnit, setMeasurementUnit] = useState("Feet.inch"); // Feet.inch | Millimeter
   const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
   const [pendingSelectedEnquiry, setPendingSelectedEnquiry] = useState(null);
+
+  // Custom Mix Modal State
+  const [isCustomMixModalOpen, setIsCustomMixModalOpen] = useState(false);
+  const [customMixComponent, setCustomMixComponent] = useState(null);
+  const [customMixState, setCustomMixState] = useState({
+    dimSource: "Elite",
+    typeSource: "Elite",
+    rateSource: "Elite",
+    descSource: "Elite",
+    lengthFt: 1,
+    lengthIn: 0,
+    heightFt: 1,
+    heightIn: 0,
+    depthFt: 0,
+    depthIn: 0,
+    type: "Box",
+    rate: 2200,
+    qty: 1,
+    description: "",
+    selectedPhotos: []
+  });
+
+  // Image Picker Modal State
+  const [isImagePickerModalOpen, setIsImagePickerModalOpen] = useState(false);
+  const [activeItemImageIdx, setActiveItemImageIdx] = useState(null);
+  const [availableLibraryImages, setAvailableLibraryImages] = useState([]);
+  const [selectedItemPhotos, setSelectedItemPhotos] = useState([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [previewImageModal, setPreviewImageModal] = useState(null);
 
   // New Space modal state
   const [isAddSpaceOpen, setIsAddSpaceOpen] = useState(false);
@@ -515,36 +548,214 @@ export default function BOQManagement() {
   };
 
   // Add Component from Left Palette into Active Space
-  const handleAddComponentToSpace = (comp) => {
+  const handleAddComponentToSpace = (comp, customConfig = null) => {
     if (!activeBOQ) return;
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     const targetSpace = updated.spaces[activeSpaceIdx];
     if (!targetSpace) return;
 
-    let rate = comp.standard?.rate || 1500;
-    if (selectedPackage === "Premium") rate = comp.premium?.rate || 1800;
-    if (selectedPackage === "Elite") rate = comp.elite?.rate || 2200;
+    if (customConfig) {
+      targetSpace.items.push(customConfig);
+    } else {
+      const pkg = selectedPackage?.toLowerCase() || "standard";
+      const vConfig = comp[pkg] || comp.standard || comp.premium || comp.elite || {};
+      const unit = vConfig.unit || {};
 
-    const newItem = {
-      name: comp.name,
-      typeVariant: comp.variant || "Box Standard",
-      lengthFt: 1,
-      lengthIn: 0,
-      heightFt: 1,
-      heightIn: 0,
-      depthFt: 0,
-      depthIn: 0,
-      qty: 1,
-      description: comp.description || "",
-      sqft: 1,
-      rate,
-      amount: rate
-    };
+      const lengthFt = unit.lengthFt !== undefined && (unit.lengthFt > 0 || unit.lengthIn > 0) ? unit.lengthFt : 1;
+      const lengthIn = unit.lengthIn || 0;
+      const heightFt = unit.heightFt !== undefined && (unit.heightFt > 0 || unit.heightIn > 0) ? unit.heightFt : 1;
+      const heightIn = unit.heightIn || 0;
+      const depthFt = unit.depthFt || 0;
+      const depthIn = unit.depthIn || 0;
 
-    targetSpace.items.push(newItem);
+      let rate = vConfig.rate || unit.rate || (selectedPackage === "Elite" ? 2200 : selectedPackage === "Premium" ? 1800 : 1500);
+      const typeVariant = vConfig.type || comp.variant || "Box Standard";
+      const description = vConfig.description || comp.description || "";
+      const photos = (vConfig.images || comp.images || []).map((img) => ({
+        url: typeof img === "string" ? img : img.url,
+        caption: img.name || comp.name
+      }));
+
+      const newItem = {
+        name: comp.name,
+        typeVariant,
+        lengthFt,
+        lengthIn,
+        heightFt,
+        heightIn,
+        depthFt,
+        depthIn,
+        qty: 1,
+        description,
+        sqft: parseFloat(((lengthFt + lengthIn / 12) * (heightFt + heightIn / 12) || 1).toFixed(3)),
+        rate,
+        amount: rate,
+        photos
+      };
+
+      targetSpace.items.push(newItem);
+    }
+
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
-    setSuccessToast(`Added ${comp.name} to ${targetSpace.name}`);
+    setSuccessToast(`Added ${customConfig?.name || comp.name} to ${targetSpace.name}`);
+    setTimeout(() => setSuccessToast(""), 2000);
+  };
+
+  // Open Custom Mix Modal for a palette component
+  const handleOpenCustomMix = (comp) => {
+    setCustomMixComponent(comp);
+
+    const eliteUnit = comp.elite?.unit || {};
+    const eliteType = comp.elite?.type || "Box";
+    const eliteRate = comp.elite?.rate || 2200;
+    const eliteDesc = comp.elite?.description || comp.description || "";
+
+    // Gather all candidate images
+    const candidatePhotos = [
+      ...(comp.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
+      ...(comp.premium?.images || []).map((i) => ({ ...i, variant: "Premium" })),
+      ...(comp.standard?.images || []).map((i) => ({ ...i, variant: "Standard" })),
+      ...(comp.images || []).map((i) => ({ ...i, variant: "General" }))
+    ];
+
+    setCustomMixState({
+      dimSource: "Elite",
+      typeSource: "Elite",
+      rateSource: "Elite",
+      descSource: "Elite",
+      lengthFt: eliteUnit.lengthFt || 2,
+      lengthIn: eliteUnit.lengthIn || 0,
+      heightFt: eliteUnit.heightFt || 2,
+      heightIn: eliteUnit.heightIn || 8,
+      depthFt: eliteUnit.depthFt || 2,
+      depthIn: eliteUnit.depthIn || 0,
+      type: eliteType,
+      rate: eliteRate,
+      qty: 1,
+      description: eliteDesc,
+      selectedPhotos: candidatePhotos.slice(0, 1).map((p) => ({ url: p.url, caption: p.name || comp.name }))
+    });
+
+    setIsCustomMixModalOpen(true);
+  };
+
+  // Apply Custom Mix to Space
+  const handleApplyCustomMix = () => {
+    if (!customMixComponent || !activeBOQ) return;
+    const sqft = parseFloat(
+      (
+        (customMixState.lengthFt + customMixState.lengthIn / 12) *
+          (customMixState.heightFt + customMixState.heightIn / 12) || 1
+      ).toFixed(3)
+    );
+    const amount = Math.round(sqft * customMixState.rate * (customMixState.qty || 1));
+
+    const mixedItem = {
+      name: customMixComponent.name,
+      typeVariant: customMixState.type,
+      lengthFt: customMixState.lengthFt,
+      lengthIn: customMixState.lengthIn,
+      heightFt: customMixState.heightFt,
+      heightIn: customMixState.heightIn,
+      depthFt: customMixState.depthFt,
+      depthIn: customMixState.depthIn,
+      qty: customMixState.qty || 1,
+      description: customMixState.description,
+      sqft,
+      rate: customMixState.rate,
+      amount,
+      photos: customMixState.selectedPhotos
+    };
+
+    handleAddComponentToSpace(customMixComponent, mixedItem);
+    setIsCustomMixModalOpen(false);
+  };
+
+  // Open Image Picker Modal for an existing line item in active space
+  const handleOpenImagePicker = (itemIdx) => {
+    const item = activeBOQ?.spaces?.[activeSpaceIdx]?.items?.[itemIdx];
+    if (!item) return;
+
+    setActiveItemImageIdx(itemIdx);
+    setSelectedItemPhotos(item.photos ? [...item.photos] : []);
+
+    // Look for matching component in library to suggest all its variant images
+    const matchedComp = libraryComponents.find(
+      (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+    );
+
+    const collected = [];
+    if (matchedComp) {
+      (matchedComp.elite?.images || []).forEach((img) =>
+        collected.push({ url: typeof img === "string" ? img : img.url, name: img.name, variant: "Elite" })
+      );
+      (matchedComp.premium?.images || []).forEach((img) =>
+        collected.push({ url: typeof img === "string" ? img : img.url, name: img.name, variant: "Premium" })
+      );
+      (matchedComp.standard?.images || []).forEach((img) =>
+        collected.push({ url: typeof img === "string" ? img : img.url, name: img.name, variant: "Standard" })
+      );
+      (matchedComp.images || []).forEach((img) =>
+        collected.push({ url: typeof img === "string" ? img : img.url, name: img.name, variant: "General" })
+      );
+    }
+
+    // Also include any photos currently on the item that might not be in library
+    (item.photos || []).forEach((p) => {
+      if (!collected.some((c) => c.url === p.url)) {
+        collected.push({ url: p.url, name: p.caption || "Attached photo", variant: "Line Item" });
+      }
+    });
+
+    setAvailableLibraryImages(collected);
+    setIsImagePickerModalOpen(true);
+  };
+
+  // Toggle selection of photo in Image Picker modal
+  const handleToggleSelectPhoto = (photoObj) => {
+    setSelectedItemPhotos((prev) => {
+      const exists = prev.some((p) => p.url === photoObj.url);
+      if (exists) {
+        return prev.filter((p) => p.url !== photoObj.url);
+      } else {
+        return [...prev, { url: photoObj.url, caption: photoObj.name || photoObj.variant || "Attached photo" }];
+      }
+    });
+  };
+
+  // Upload a new photo on-the-spot in Image Picker modal
+  const handleUploadNewPhotoForItem = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const res = await erpApi.uploadImage(file);
+      const newPhoto = {
+        url: res.imageUrl || res.url,
+        caption: res.originalName || file.name
+      };
+      setAvailableLibraryImages((prev) => [
+        { url: newPhoto.url, name: newPhoto.caption, variant: "Uploaded" },
+        ...prev
+      ]);
+      setSelectedItemPhotos((prev) => [...prev, newPhoto]);
+    } catch (err) {
+      alert("Failed to upload photo: " + (err.message || "Unknown error"));
+    } finally {
+      setIsUploadingPhoto(false);
+      e.target.value = null;
+    }
+  };
+
+  // Save selected photos into line item
+  const handleSaveSelectedPhotos = () => {
+    if (activeItemImageIdx === null || !activeBOQ) return;
+    handleUpdateItemField(activeItemImageIdx, "photos", selectedItemPhotos);
+    setIsImagePickerModalOpen(false);
+    setActiveItemImageIdx(null);
+    setSuccessToast("Updated item photos!");
     setTimeout(() => setSuccessToast(""), 2000);
   };
 
@@ -599,7 +810,7 @@ export default function BOQManagement() {
     setActiveSpaceIdx(Math.max(0, activeSpaceIdx - 1));
   };
 
-  // Save BOQ to API
+  // Save BOQ to API & return to list view
   const handleSaveBOQ = async () => {
     if (!activeBOQ) return;
     try {
@@ -608,12 +819,35 @@ export default function BOQManagement() {
       } else {
         await erpApi.createBOQ(activeBOQ);
       }
+      // Update local state list so it displays immediately
+      setBoqList((prev) => {
+        const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = activeBOQ;
+          return copy;
+        }
+        return [activeBOQ, ...prev];
+      });
       setSuccessToast("BOQ saved successfully!");
       fetchBOQList();
-      setTimeout(() => setSuccessToast(""), 3000);
+      setViewMode("list");
+      setActiveBOQ(null);
+      setTimeout(() => setSuccessToast(""), 3500);
     } catch {
-      setSuccessToast("BOQ state saved locally!");
-      setTimeout(() => setSuccessToast(""), 3000);
+      setBoqList((prev) => {
+        const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = activeBOQ;
+          return copy;
+        }
+        return [activeBOQ, ...prev];
+      });
+      setSuccessToast("BOQ saved successfully!");
+      setViewMode("list");
+      setActiveBOQ(null);
+      setTimeout(() => setSuccessToast(""), 3500);
     }
   };
 
@@ -1191,13 +1425,22 @@ export default function BOQManagement() {
                   className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-800"
                 >
                   <span className="truncate pr-2">{comp.name}</span>
-                  <button
-                    onClick={() => handleAddComponentToSpace(comp)}
-                    className="w-6 h-6 rounded-lg bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
-                    title={`Add ${comp.name} to current space`}
-                  >
-                    <Plus size={13} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleOpenCustomMix(comp)}
+                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
+                      title={`Customize & Mix Parts for ${comp.name}`}
+                    >
+                      <SlidersHorizontal size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleAddComponentToSpace(comp)}
+                      className="w-6 h-6 rounded-lg bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
+                      title={`Add ${comp.name} directly (${selectedPackage})`}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
                 </div>
               ))}
               {relevantComponents.length === 0 && (
@@ -1218,13 +1461,22 @@ export default function BOQManagement() {
                   className="flex items-center justify-between p-2 rounded-xl border border-transparent hover:border-amber-200 hover:bg-amber-50/50 transition group text-xs font-medium text-stone-700"
                 >
                   <span className="truncate pr-2">{comp.name}</span>
-                  <button
-                    onClick={() => handleAddComponentToSpace(comp)}
-                    className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs font-bold"
-                    title={`Add ${comp.name} to current space`}
-                  >
-                    <Plus size={13} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleOpenCustomMix(comp)}
+                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
+                      title={`Customize & Mix Parts for ${comp.name}`}
+                    >
+                      <SlidersHorizontal size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleAddComponentToSpace(comp)}
+                      className="w-6 h-6 rounded-lg bg-stone-100 text-stone-600 hover:bg-[#D4AF37] hover:text-stone-950 flex items-center justify-center transition cursor-pointer shadow-2xs font-bold"
+                      title={`Add ${comp.name} directly (${selectedPackage})`}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1320,8 +1572,30 @@ export default function BOQManagement() {
                         <GripVertical size={13} className="mx-auto cursor-grab" />
                       </td>
 
-                      {/* Name */}
-                      <td className="py-2 px-3 font-semibold text-stone-900">{item.name}</td>
+                      {/* Name with Image Thumbnail Preview */}
+                      <td className="py-2 px-3 font-semibold text-stone-900">
+                        <div className="flex items-center gap-2">
+                          {item.photos && item.photos.length > 0 && (
+                            <div
+                              onClick={() => handleOpenImagePicker(idx)}
+                              className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 shrink-0 cursor-pointer hover:opacity-85 shadow-2xs"
+                              title={`${item.photos.length} image(s) attached. Click to select/change.`}
+                            >
+                              <img
+                                src={item.photos[0]?.url}
+                                alt="thumb"
+                                className="w-full h-full object-cover"
+                              />
+                              {item.photos.length > 1 && (
+                                <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                  {item.photos.length}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <span className="truncate">{item.name}</span>
+                        </div>
+                      </td>
 
                       {/* Type & Variant */}
                       <td className="py-2 px-3">
@@ -1435,19 +1709,33 @@ export default function BOQManagement() {
                         ₹{(item.amount || 0).toLocaleString("en-IN")}
                       </td>
 
-                      {/* Actions: Photo, Minus Delete */}
+                      {/* Actions: Photo Selector, Minus Delete */}
                       <td className="py-2 px-2 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
-                            title="Add item photos"
-                            className="text-stone-400 hover:text-[#9E7B1D] cursor-pointer"
+                            onClick={() => handleOpenImagePicker(idx)}
+                            title={
+                              item.photos?.length
+                                ? `${item.photos.length} image(s) attached. Click to select/change.`
+                                : "Select/Upload Component Images"
+                            }
+                            className={`p-1 rounded-lg transition cursor-pointer relative ${
+                              item.photos?.length
+                                ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
+                                : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
+                            }`}
                           >
                             <ImageIcon size={14} />
+                            {item.photos?.length > 0 && (
+                              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] text-stone-950 font-extrabold text-[8px] rounded-full flex items-center justify-center">
+                                {item.photos.length}
+                              </span>
+                            )}
                           </button>
                           <button
                             onClick={() => handleRemoveItem(idx)}
                             title="Remove item"
-                            className="text-rose-400 hover:text-rose-600 cursor-pointer"
+                            className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                           >
                             <MinusCircle size={14} />
                           </button>
@@ -1495,6 +1783,509 @@ export default function BOQManagement() {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* CUSTOM MIX & MATCH COMPONENT MODAL */}
+      {/* ========================================================================= */}
+      {isCustomMixModalOpen && customMixComponent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900">Custom Mix: {customMixComponent.name}</h3>
+                <p className="text-[11px] text-[#9E7B1D] font-medium">
+                  Combine parts from Elite, Premium, Standard or enter custom specifications
+                </p>
+              </div>
+              <button
+                onClick={() => setIsCustomMixModalOpen(false)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4 text-xs">
+              {/* 1. Quick Presets Bar */}
+              <div className="space-y-1.5">
+                <span className="block font-semibold text-stone-700 text-[11px]">Preset Template</span>
+                <div className="flex items-center gap-2">
+                  {["Elite", "Premium", "Standard"].map((preset) => {
+                    const key = preset.toLowerCase();
+                    const vCfg = customMixComponent[key] || {};
+                    const unit = vCfg.unit || {};
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setCustomMixState((prev) => ({
+                            ...prev,
+                            dimSource: preset,
+                            typeSource: preset,
+                            rateSource: preset,
+                            descSource: preset,
+                            lengthFt: unit.lengthFt || 2,
+                            lengthIn: unit.lengthIn || 0,
+                            heightFt: unit.heightFt || 2,
+                            heightIn: unit.heightIn || 8,
+                            depthFt: unit.depthFt || 2,
+                            depthIn: unit.depthIn || 0,
+                            type: vCfg.type || "Box",
+                            rate: vCfg.rate || 1800,
+                            description: vCfg.description || customMixComponent.description || ""
+                          }));
+                        }}
+                        className="flex-1 py-1.5 px-3 rounded-xl border border-[#EAE3D2] bg-[#FAF9F5] hover:bg-amber-50 text-stone-800 font-bold text-xs transition cursor-pointer text-center"
+                      >
+                        Load {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Dimensions Selection */}
+              <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-stone-900 text-xs">1. Dimensions (In Unit)</span>
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    {["Elite", "Premium", "Standard"].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => {
+                          const unit = customMixComponent[v.toLowerCase()]?.unit || {};
+                          setCustomMixState((prev) => ({
+                            ...prev,
+                            dimSource: v,
+                            lengthFt: unit.lengthFt || 0,
+                            lengthIn: unit.lengthIn || 0,
+                            heightFt: unit.heightFt || 0,
+                            heightIn: unit.heightIn || 0,
+                            depthFt: unit.depthFt || 0,
+                            depthIn: unit.depthIn || 0
+                          }));
+                        }}
+                        className={`px-2 py-0.5 rounded-md font-semibold ${
+                          customMixState.dimSource === v
+                            ? "bg-[#D4AF37] text-stone-950"
+                            : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input Fields */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                      Length (ft & in)
+                    </label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <input
+                        type="number"
+                        placeholder="ft"
+                        value={customMixState.lengthFt}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            lengthFt: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="in"
+                        value={customMixState.lengthIn}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            lengthIn: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                      Height (ft & in)
+                    </label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <input
+                        type="number"
+                        placeholder="ft"
+                        value={customMixState.heightFt}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            heightFt: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="in"
+                        value={customMixState.heightIn}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            heightIn: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                      Depth (ft & in)
+                    </label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <input
+                        type="number"
+                        placeholder="ft"
+                        value={customMixState.depthFt}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            depthFt: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="in"
+                        value={customMixState.depthIn}
+                        onChange={(e) =>
+                          setCustomMixState({
+                            ...customMixState,
+                            dimSource: "Custom",
+                            depthIn: Number(e.target.value)
+                          })
+                        }
+                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Type & Rate Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Type Selection */}
+                <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-stone-900 text-xs">2. Type / Finish</span>
+                    <span className="text-[10px] text-[#9E7B1D] font-semibold">
+                      {customMixState.typeSource}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={customMixState.type}
+                    onChange={(e) =>
+                      setCustomMixState({ ...customMixState, type: e.target.value, typeSource: "Custom" })
+                    }
+                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                  />
+                </div>
+
+                {/* Rate Selection */}
+                <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-stone-900 text-xs">3. Rate (₹ per sq.ft)</span>
+                    <span className="text-[10px] text-[#9E7B1D] font-semibold">
+                      {customMixState.rateSource}
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    value={customMixState.rate}
+                    onChange={(e) =>
+                      setCustomMixState({
+                        ...customMixState,
+                        rate: Number(e.target.value),
+                        rateSource: "Custom"
+                      })
+                    }
+                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-900"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Description & Quantity */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1">
+                  <label className="block text-[10px] text-stone-500 font-semibold">Description</label>
+                  <input
+                    type="text"
+                    value={customMixState.description}
+                    onChange={(e) =>
+                      setCustomMixState({ ...customMixState, description: e.target.value })
+                    }
+                    placeholder="Custom mix notes"
+                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] text-stone-500 font-semibold">Quantity</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={customMixState.qty}
+                    onChange={(e) =>
+                      setCustomMixState({ ...customMixState, qty: Number(e.target.value) })
+                    }
+                    className="w-full h-8 px-2.5 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* 5. Select Images for this Mixed Component */}
+              <div className="space-y-2 pt-1 border-t border-[#F0EBE0]">
+                <span className="block font-bold text-stone-900 text-xs">
+                  4. Select Images to Attach ({customMixState.selectedPhotos.length} selected)
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    ...(customMixComponent.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
+                    ...(customMixComponent.premium?.images || []).map((i) => ({
+                      ...i,
+                      variant: "Premium"
+                    })),
+                    ...(customMixComponent.standard?.images || []).map((i) => ({
+                      ...i,
+                      variant: "Standard"
+                    })),
+                    ...(customMixComponent.images || []).map((i) => ({ ...i, variant: "General" }))
+                  ].map((img, iIdx) => {
+                    const isSelected = customMixState.selectedPhotos.some((p) => p.url === img.url);
+                    return (
+                      <div
+                        key={iIdx}
+                        onClick={() => {
+                          setCustomMixState((prev) => {
+                            const exists = prev.selectedPhotos.some((p) => p.url === img.url);
+                            return {
+                              ...prev,
+                              selectedPhotos: exists
+                                ? prev.selectedPhotos.filter((p) => p.url !== img.url)
+                                : [
+                                    ...prev.selectedPhotos,
+                                    { url: img.url, caption: img.name || customMixComponent.name }
+                                  ]
+                            };
+                          });
+                        }}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${
+                          isSelected ? "border-[#D4AF37] ring-2 ring-amber-200" : "border-stone-200 hover:border-amber-300"
+                        }`}
+                      >
+                        <img src={img.url} alt="Variant" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 left-1 bg-stone-900/80 text-white text-[8px] font-bold px-1 rounded">
+                          {img.variant}
+                        </span>
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#D4AF37] text-stone-950 rounded-full flex items-center justify-center text-[10px] font-black">
+                            ✓
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsCustomMixModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyCustomMix}
+                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition"
+              >
+                Add Mixed Item to Space
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* COMPONENT IMAGE PICKER & GALLERY SELECTOR MODAL */}
+      {/* ========================================================================= */}
+      {isImagePickerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900">
+                  Select Photos for Item:{" "}
+                  {activeBOQ?.spaces?.[activeSpaceIdx]?.items?.[activeItemImageIdx]?.name || "Component"}
+                </h3>
+                <p className="text-[11px] text-stone-500 font-medium">
+                  Pick from uploaded component gallery images or attach custom site images
+                </p>
+              </div>
+              <button
+                onClick={() => setIsImagePickerModalOpen(false)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4 text-xs">
+              {/* Upload extra photo button */}
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-stone-800 text-xs">
+                  Available Component Images ({availableLibraryImages.length})
+                </span>
+
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-[#D4AF37] bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] font-bold text-xs rounded-xl cursor-pointer transition">
+                  {isUploadingPhoto ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                  <span>{isUploadingPhoto ? "Uploading..." : "+ Upload New Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={isUploadingPhoto}
+                    onChange={handleUploadNewPhotoForItem}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Grid of Selectable Images */}
+              {availableLibraryImages.length === 0 ? (
+                <div className="py-12 text-center text-stone-400 border border-dashed border-stone-200 rounded-2xl">
+                  <ImageIcon size={28} className="mx-auto text-stone-300 mb-2" />
+                  <p>No gallery images uploaded for this component yet.</p>
+                  <p className="text-[11px] text-stone-400">Click (+ Upload New Photo) above to attach photos.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {availableLibraryImages.map((img, idx) => {
+                    const isSelected = selectedItemPhotos.some((p) => p.url === img.url);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleToggleSelectPhoto(img)}
+                        className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition shadow-2xs ${
+                          isSelected
+                            ? "border-[#D4AF37] ring-3 ring-amber-200"
+                            : "border-stone-200 hover:border-amber-300"
+                        }`}
+                      >
+                        <img src={img.url} alt={img.name || "Preview"} className="w-full h-full object-cover" />
+
+                        {/* Top Right Checkbox Badge */}
+                        <div
+                          className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition ${
+                            isSelected ? "bg-[#D4AF37] text-stone-950" : "bg-stone-900/40 text-white"
+                          }`}
+                        >
+                          {isSelected ? "✓" : "+"}
+                        </div>
+
+                        {/* Bottom Variant / Name Tag */}
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-stone-950/80 to-transparent p-2 flex items-center justify-between text-white text-[10px]">
+                          <span className="font-bold truncate">{img.variant || "Gallery"}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImageModal(img.url);
+                            }}
+                            className="p-1 hover:text-[#D4AF37]"
+                          >
+                            <Eye size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-between">
+              <span className="text-xs font-semibold text-stone-600">
+                {selectedItemPhotos.length} photo(s) selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsImagePickerModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSelectedPhotos}
+                  className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition"
+                >
+                  Attach to Item
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {previewImageModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/85 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setPreviewImageModal(null)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[85vh] bg-stone-900 rounded-2xl overflow-hidden p-2 border border-stone-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImageModal(null)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-stone-950/70 text-white hover:bg-stone-800 transition cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+            <img
+              src={previewImageModal}
+              alt="Preview"
+              className="max-h-[80vh] w-auto mx-auto object-contain rounded-xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

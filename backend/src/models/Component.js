@@ -1,5 +1,27 @@
 import mongoose from "mongoose";
 
+const variantDetailSchema = {
+  type: { type: String, default: "Box" },
+  rate: { type: Number, default: 0 },
+  unit: {
+    lengthFt: { type: Number, default: 0 },
+    lengthIn: { type: Number, default: 0 },
+    heightFt: { type: Number, default: 0 },
+    heightIn: { type: Number, default: 0 },
+    depthFt: { type: Number, default: 0 },
+    depthIn: { type: Number, default: 0 },
+    rate: { type: Number, default: 0 }
+  },
+  images: [
+    {
+      url: { type: String, required: true },
+      name: { type: String, default: "" },
+      publicId: { type: String, default: "" }
+    }
+  ],
+  description: { type: String, default: "" }
+};
+
 const componentSchema = new mongoose.Schema(
   {
     name: {
@@ -11,6 +33,10 @@ const componentSchema = new mongoose.Schema(
       type: String,
       default: "General",
       trim: true
+    },
+    selectedVariants: {
+      type: [String],
+      default: ["Elite", "Premium", "Standard"]
     },
     variant: {
       type: String,
@@ -27,16 +53,74 @@ const componentSchema = new mongoose.Schema(
     },
     elite: {
       type: { type: String, default: "Box" },
-      rate: { type: Number, default: 2200 }
+      rate: { type: Number, default: 2200 },
+      unit: {
+        lengthFt: { type: Number, default: 0 },
+        lengthIn: { type: Number, default: 0 },
+        heightFt: { type: Number, default: 0 },
+        heightIn: { type: Number, default: 0 },
+        depthFt: { type: Number, default: 0 },
+        depthIn: { type: Number, default: 0 },
+        rate: { type: Number, default: 2200 }
+      },
+      images: [
+        {
+          url: { type: String, required: true },
+          name: { type: String, default: "" },
+          publicId: { type: String, default: "" }
+        }
+      ],
+      description: { type: String, default: "" }
     },
     premium: {
       type: { type: String, default: "Box" },
-      rate: { type: Number, default: 1800 }
+      rate: { type: Number, default: 1800 },
+      unit: {
+        lengthFt: { type: Number, default: 0 },
+        lengthIn: { type: Number, default: 0 },
+        heightFt: { type: Number, default: 0 },
+        heightIn: { type: Number, default: 0 },
+        depthFt: { type: Number, default: 0 },
+        depthIn: { type: Number, default: 0 },
+        rate: { type: Number, default: 1800 }
+      },
+      images: [
+        {
+          url: { type: String, required: true },
+          name: { type: String, default: "" },
+          publicId: { type: String, default: "" }
+        }
+      ],
+      description: { type: String, default: "" }
     },
     standard: {
       type: { type: String, default: "Box" },
-      rate: { type: Number, default: 1500 }
+      rate: { type: Number, default: 1500 },
+      unit: {
+        lengthFt: { type: Number, default: 0 },
+        lengthIn: { type: Number, default: 0 },
+        heightFt: { type: Number, default: 0 },
+        heightIn: { type: Number, default: 0 },
+        depthFt: { type: Number, default: 0 },
+        depthIn: { type: Number, default: 0 },
+        rate: { type: Number, default: 1500 }
+      },
+      images: [
+        {
+          url: { type: String, required: true },
+          name: { type: String, default: "" },
+          publicId: { type: String, default: "" }
+        }
+      ],
+      description: { type: String, default: "" }
     },
+    images: [
+      {
+        url: { type: String, required: true },
+        name: { type: String, default: "" },
+        publicId: { type: String, default: "" }
+      }
+    ],
     unit: {
       type: String,
       default: "sq.ft"

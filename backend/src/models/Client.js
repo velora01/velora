@@ -12,6 +12,15 @@ const clientSchema = new mongoose.Schema(
     assignedDesigner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     assignedSales: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: { type: String, enum: ["Lead", "Active", "Completed", "Archived"], default: "Active" },
+    
+    // Requirements & Preferences
+    projectType: { type: String, default: "3BHK Luxury Apartment" },
+    preferredStyle: { type: String, default: "Modern Contemporary" },
+    budgetRange: { type: String, default: "₹25L - ₹40L" },
+    spaceRequirements: [{ type: String }],
+    targetHandoverDate: { type: Date },
+    specialInstructions: { type: String, default: "" },
+
     notes: { type: String, default: "" },
     communicationHistory: [
       {

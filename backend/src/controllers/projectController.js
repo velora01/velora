@@ -2,20 +2,88 @@ import Project from "../models/Project.js";
 import { logActivity } from "../services/auditService.js";
 import { emitNotification } from "../services/socketService.js";
 
+const SEED_PROJECTS = [
+  {
+    heading: "The Singhal Penthouse & Bespoke Residence",
+    tag: "Luxury 4BHK Penthouse",
+    clientName: "Rajeev Singhal",
+    address: "Koregaon Park, Pune",
+    budget: 4500000,
+    priority: "Urgent",
+    stage: "BOQ",
+    progressPercent: 45,
+    description: "Complete bespoke 4BHK interior renovation with Italian marble, fluted wall louvers, and smart home automation."
+  },
+  {
+    heading: "Krishnani Bandra Sea-facing Villa",
+    tag: "Modern Villa Interior",
+    clientName: "Meenakshi Krishnani",
+    address: "Bandra West, Mumbai",
+    budget: 3500000,
+    priority: "High",
+    stage: "Design",
+    progressPercent: 30,
+    description: "Sea-facing contemporary aesthetic with minimal clean lines and acoustic wall treatment."
+  },
+  {
+    heading: "Prem Shukla Royal Baner Suite",
+    tag: "Neo-Classical Penthouse",
+    clientName: "PREM SHUKLA",
+    address: "Baner, Pune",
+    budget: 6500000,
+    priority: "Urgent",
+    stage: "Site Visit",
+    progressPercent: 20,
+    description: "Neo-classical luxury residence featuring custom gold accents and modular high-end kitchen."
+  },
+  {
+    heading: "Akash Jain Kalyani Nagar Residence",
+    tag: "Scandinavian 3BHK",
+    clientName: "Akash Jain",
+    address: "Kalyani Nagar, Pune",
+    budget: 2800000,
+    priority: "Medium",
+    stage: "Quotation",
+    progressPercent: 25,
+    description: "Warm oak and Scandinavian storage integration with ergonomic kitchen."
+  },
+  {
+    heading: "Wipro Lincraft Executive Tech Hub",
+    tag: "Commercial Luxury HQ",
+    clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
+    address: "Electronic City, Bengaluru",
+    budget: 12000000,
+    priority: "High",
+    stage: "Approval",
+    progressPercent: 55,
+    description: "High-tech corporate headquarters with luxury executive lounge and boardroom."
+  }
+];
+
 export const getProjects = async (req, res) => {
   try {
-    const { search = "", stage = "", page = 1, limit = 10, sortBy = "createdAt" } = req.query;
+    const count = await Project.countDocuments();
+    if (count === 0) {
+      await Project.insertMany(SEED_PROJECTS);
+    }
+
+    const { search = "", stage = "", priority = "", page = 1, limit = 10, sortBy = "createdAt" } = req.query;
     const query = {};
-    if (search) query.$or = [{ heading: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }];
+    if (search) query.$or = [{ heading: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }, { address: new RegExp(search, "i") }];
     if (stage) query.stage = stage;
+    if (priority) query.priority = priority;
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
 
     const projects = await Project.find(query)
       .sort({ [sortBy]: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .skip(skip)
+      .limit(limitNum);
     const total = await Project.countDocuments(query);
 
-    res.json({ success: true, data: projects, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
+    res.json({ success: true, data: projects, pagination: { total, page: pageNum, pages: Math.ceil(total / limitNum) || 1 } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -27,6 +95,19 @@ export const createProject = async (req, res) => {
     await logActivity({ userName: req.user?.name || "Admin", action: "Created", module: "Projects", description: `Created project ${project.heading}` });
     emitNotification("project-updated", { message: `New project ${project.heading} initialized`, project });
     res.status(201).json({ success: true, data: project });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const updateProject = async (req, res) => {
+  try {
+    const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!project) return res.status(404).json({ success: false, message: "Project not found" });
+
+    await logActivity({ userName: req.user?.name || "Admin", action: "Updated", module: "Projects", description: `Updated project ${project.heading}` });
+    emitNotification("project-updated", { message: `Project ${project.heading} updated`, project });
+    res.json({ success: true, data: project });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -48,6 +129,18 @@ export const updateProjectStage = async (req, res) => {
     res.json({ success: true, data: project });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findByIdAndDelete(req.params.id);
+    if (!project) return res.status(404).json({ success: false, message: "Project not found" });
+
+    await logActivity({ userName: req.user?.name || "Admin", action: "Deleted", module: "Projects", description: `Deleted project ${project.heading}` });
+    res.json({ success: true, message: "Project deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

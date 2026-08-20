@@ -62,8 +62,21 @@ export const exportInvoicePdf = async (req, res) => {
 // Quotations
 export const getQuotations = async (req, res) => {
   try {
-    const quotations = await Quotation.find().sort({ createdAt: -1 });
-    res.json({ success: true, data: quotations });
+    const { search = "", status = "", page = 1, limit = 10 } = req.query;
+    const query = {};
+    if (search) {
+      query.$or = [{ quotationNumber: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }];
+    }
+    if (status) query.status = status;
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    const quotations = await Quotation.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum);
+    const total = await Quotation.countDocuments(query);
+
+    res.json({ success: true, data: quotations, pagination: { total, page: pageNum, pages: Math.ceil(total / limitNum) || 1 } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -71,10 +84,35 @@ export const getQuotations = async (req, res) => {
 
 export const createQuotation = async (req, res) => {
   try {
-    const qNum = "QUOTE-VEL-" + Math.floor(1000 + Math.random() * 9000);
+    const qNum = req.body.quotationNumber || "QUOTE-VEL-" + Math.floor(1000 + Math.random() * 9000);
     const quote = await Quotation.create({ ...req.body, quotationNumber: qNum });
+    await logActivity({ userName: req.user?.name || "Admin", action: "Created", module: "Quotations", description: `Created Quotation ${qNum} for ${quote.clientName}` });
     res.status(201).json({ success: true, data: quote });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const updateQuotation = async (req, res) => {
+  try {
+    const quote = await Quotation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!quote) return res.status(404).json({ success: false, message: "Quotation not found" });
+
+    await logActivity({ userName: req.user?.name || "Admin", action: "Updated", module: "Quotations", description: `Updated Quotation ${quote.quotationNumber}` });
+    res.json({ success: true, data: quote });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const deleteQuotation = async (req, res) => {
+  try {
+    const quote = await Quotation.findByIdAndDelete(req.params.id);
+    if (!quote) return res.status(404).json({ success: false, message: "Quotation not found" });
+
+    await logActivity({ userName: req.user?.name || "Admin", action: "Deleted", module: "Quotations", description: `Deleted Quotation ${quote.quotationNumber}` });
+    res.json({ success: true, message: "Quotation deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

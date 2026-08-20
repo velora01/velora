@@ -4,12 +4,12 @@ import { checkRole } from "../middleware/rbac.middleware.js";
 
 import { getLeads, createLead, updateLead, deleteLead, exportLeadsExcel, bulkUploadLeads } from "../controllers/leadController.js";
 import { getWebsiteLeads, createWebsiteLead, convertWebsiteLead } from "../controllers/websiteLeadController.js";
-import { getClients, createClient, updateClient, addClientCommunication } from "../controllers/clientController.js";
-import { getProjects, createProject, updateProjectStage } from "../controllers/projectController.js";
+import { getClients, createClient, updateClient, deleteClient, addClientCommunication } from "../controllers/clientController.js";
+import { getProjects, createProject, updateProject, updateProjectStage, deleteProject } from "../controllers/projectController.js";
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
 import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
 import { getComponents, createComponent, updateComponent, deleteComponent } from "../controllers/componentController.js";
-import { getInvoices, createInvoice, exportInvoicePdf, getQuotations, createQuotation } from "../controllers/quotationInvoiceController.js";
+import { getInvoices, createInvoice, exportInvoicePdf, getQuotations, createQuotation, updateQuotation, deleteQuotation } from "../controllers/quotationInvoiceController.js";
 import { getPayments, createPayment, exportReceiptPdf } from "../controllers/paymentController.js";
 import { getMaterials, createMaterial, getVendors, createVendor } from "../controllers/inventoryController.js";
 import { getProductionItems, createProductionOrder, updateProductionStatus } from "../controllers/productionController.js";
@@ -44,12 +44,15 @@ router.post("/website-leads/:id/convert", checkRole(["Admin", "Sales", "Super Ad
 router.get("/clients", getClients);
 router.post("/clients", checkRole(["Admin", "Sales", "Super Admin"]), createClient);
 router.put("/clients/:id", checkRole(["Admin", "Sales", "Super Admin"]), updateClient);
+router.delete("/clients/:id", checkRole(["Admin", "Super Admin"]), deleteClient);
 router.post("/clients/:id/communication", addClientCommunication);
 
 // Projects
 router.get("/projects", getProjects);
 router.post("/projects", checkRole(["Admin", "Project Manager", "Super Admin"]), createProject);
+router.put("/projects/:id", checkRole(["Admin", "Project Manager", "Super Admin"]), updateProject);
 router.put("/projects/:id/stage", checkRole(["Admin", "Project Manager", "Designer", "Super Admin"]), updateProjectStage);
+router.delete("/projects/:id", checkRole(["Admin", "Super Admin"]), deleteProject);
 
 // Tasks
 router.get("/tasks", getTasks);
@@ -73,6 +76,8 @@ router.delete("/components/:id", checkRole(["Admin", "Super Admin"]), deleteComp
 
 router.get("/quotations", getQuotations);
 router.post("/quotations", createQuotation);
+router.put("/quotations/:id", updateQuotation);
+router.delete("/quotations/:id", deleteQuotation);
 
 // Invoices & Payments
 router.get("/invoices", getInvoices);

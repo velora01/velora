@@ -51,12 +51,22 @@ export const erpApi = {
   // Clients
   getClients: async (params) => (await api.get("/erp/clients", { params })).data,
   createClient: async (data) => (await api.post("/erp/clients", data)).data,
+  updateClient: async (id, data) => (await api.put(`/erp/clients/${id}`, data)).data,
+  deleteClient: async (id) => (await api.delete(`/erp/clients/${id}`)).data,
   addClientCommunication: async (id, data) => (await api.post(`/erp/clients/${id}/communication`, data)).data,
 
   // Projects
   getProjects: async (params) => (await api.get("/erp/projects", { params })).data,
   createProject: async (data) => (await api.post("/erp/projects", data)).data,
+  updateProject: async (id, data) => (await api.put(`/erp/projects/${id}`, data)).data,
   updateProjectStage: async (id, data) => (await api.put(`/erp/projects/${id}/stage`, data)).data,
+  deleteProject: async (id) => (await api.delete(`/erp/projects/${id}`)).data,
+
+  // Quotations
+  getQuotations: async (params) => (await api.get("/erp/quotations", { params })).data,
+  createQuotation: async (data) => (await api.post("/erp/quotations", data)).data,
+  updateQuotation: async (id, data) => (await api.put(`/erp/quotations/${id}`, data)).data,
+  deleteQuotation: async (id) => (await api.delete(`/erp/quotations/${id}`)).data,
 
   // Tasks
   getTasks: async (params) => (await api.get("/erp/tasks", { params })).data,

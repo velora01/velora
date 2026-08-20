@@ -31,7 +31,9 @@ import {
   SlidersHorizontal,
   Eye,
   Upload,
-  Loader2
+  Loader2,
+  FileText,
+  Printer
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
@@ -58,6 +60,10 @@ export default function BOQManagement() {
   const [libraryComponents, setLibraryComponents] = useState([]);
   const [autoSave, setAutoSave] = useState(true);
   const [successToast, setSuccessToast] = useState("");
+
+  // Quotation Modal State
+  const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
+  const [quotationBOQ, setQuotationBOQ] = useState(null);
 
   // Measurement Unit State (Screenshot 1)
   const [measurementUnit, setMeasurementUnit] = useState("Feet.inch"); // Feet.inch | Millimeter
@@ -495,6 +501,31 @@ export default function BOQManagement() {
     setViewMode("builder");
     setSuccessToast(`BOQ created for ${enquiry.name}!`);
     setTimeout(() => setSuccessToast(""), 3500);
+  };
+
+  // Open Quotation Preview & Export Modal from BOQ
+  const handleOpenQuotationModal = async (boqTarget = null) => {
+    const target = boqTarget || activeBOQ;
+    if (!target) return;
+    setQuotationBOQ(target);
+    setIsQuotationModalOpen(true);
+
+    // Sync / record Quotation in DB
+    try {
+      await erpApi.createQuotation({
+        clientName: target.clientName,
+        clientPhone: target.clientPhone,
+        clientEmail: target.clientEmail,
+        boqRef: target._id?.startsWith("boq_") ? null : target._id,
+        amount: target.subtotal || Math.round((target.grandTotal || 0) / 1.18),
+        gstAmount: target.gstTotal || Math.round((target.grandTotal || 0) - ((target.grandTotal || 0) / 1.18)),
+        netTotal: target.grandTotal || 0,
+        status: "Draft",
+        notes: `Generated from BOQ ${target.boqNumber || target.enquiryNo}`
+      });
+    } catch {
+      // Background sync, non-blocking
+    }
   };
 
   // Active space reference
@@ -1081,7 +1112,14 @@ export default function BOQManagement() {
 
                       {/* Actions (Screenshot 1) */}
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenQuotationModal(row)}
+                            title="Generate & View Official Quotation"
+                            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                          >
+                            <FileText size={14} />
+                          </button>
                           <button
                             onClick={() => handleOpenBuilder(row)}
                             title="Edit Space & Components"
@@ -1373,8 +1411,17 @@ export default function BOQManagement() {
         {/* Right: Actions */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
+            onClick={() => handleOpenQuotationModal(activeBOQ)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+            title="Generate & View Official Quotation"
+          >
+            <FileText size={13} />
+            <span>Quotation</span>
+          </button>
+
+          <button
             onClick={handleSaveBOQ}
-            className="px-4 py-1.5 text-xs font-bold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+            className="px-4 py-1.5 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl shadow-xs transition cursor-pointer"
           >
             Apply
           </button>
@@ -2409,6 +2456,219 @@ export default function BOQManagement() {
                   Attach to Item
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* QUOTATION PREVIEW & EXPORT MODAL */}
+      {/* ========================================================================= */}
+      {isQuotationModalOpen && quotationBOQ && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+              <div className="flex items-center gap-2">
+                <FileText size={18} className="text-[#9E7B1D]" />
+                <h3 className="font-extrabold text-sm text-stone-900">
+                  Official Project Quotation • {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={erpApi.exportBOQPdfUrl(quotationBOQ._id)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
+                >
+                  <Download size={13} />
+                  <span>Download PDF</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 rounded-xl transition cursor-pointer"
+                >
+                  <Printer size={13} />
+                  <span>Print</span>
+                </button>
+                <button
+                  onClick={() => setIsQuotationModalOpen(false)}
+                  className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Quotation Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
+              {/* Brand Header */}
+              <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b-2 border-stone-900">
+                <div>
+                  <h1 className="text-xl font-black tracking-tight text-[#9E7B1D]">VELORA LUXURY INTERIORS</h1>
+                  <p className="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">
+                    Bespoke Turnkey Residential & Commercial Interiors
+                  </p>
+                  <p className="text-[11px] text-stone-600 mt-1">
+                    Pune & Mumbai • info@velorainteriors.com • +91 98765 43210
+                  </p>
+                </div>
+
+                <div className="text-right space-y-0.5">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase block">Quotation Reference</span>
+                  <span className="text-sm font-black font-mono text-stone-900 block">
+                    {quotationBOQ.boqNumber || "QUOTATION"}
+                  </span>
+                  <span className="text-[11px] text-stone-500 font-medium block">
+                    Date: {new Date(quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Client & Project Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF9F5] p-4 rounded-2xl border border-[#EAE3D2]">
+                <div>
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block mb-1">Quotation Prepared For:</span>
+                  <p className="font-extrabold text-stone-900 text-sm">{quotationBOQ.clientName || "Valued Client"}</p>
+                  {quotationBOQ.clientPhone && (
+                    <p className="text-stone-600">Phone: {quotationBOQ.clientPhone}</p>
+                  )}
+                  {quotationBOQ.clientEmail && (
+                    <p className="text-stone-600">Email: {quotationBOQ.clientEmail}</p>
+                  )}
+                </div>
+
+                <div className="sm:text-right space-y-1">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Specification Package:</span>
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
+                    {quotationBOQ.activePackage || "Standard"} Luxury Package
+                  </span>
+                  <p className="text-stone-500 text-[11px]">
+                    Valid for: <b>30 Calendar Days</b>
+                  </p>
+                </div>
+              </div>
+
+              {/* Itemized Space Breakdown */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                  Scope of Work & Space Breakdown
+                </h4>
+
+                {(quotationBOQ.spaces || []).map((space, sIdx) => (
+                  <div key={sIdx} className="border border-[#EAE3D2] rounded-xl overflow-hidden shadow-2xs">
+                    <div className="bg-[#FAF9F5] px-4 py-2 flex items-center justify-between border-b border-[#EAE3D2]">
+                      <span className="font-extrabold text-stone-900">{space.name}</span>
+                      <span className="font-black text-[#9E7B1D]">
+                        ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead className="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
+                        <tr>
+                          <th className="py-2 px-3">Item Name</th>
+                          <th className="py-2 px-2">Type / Spec</th>
+                          <th className="py-2 px-2 text-center">Dimensions</th>
+                          <th className="py-2 px-2 text-right">Sq.ft</th>
+                          <th className="py-2 px-2 text-center">Qty</th>
+                          <th className="py-2 px-2 text-right">Rate</th>
+                          <th className="py-2 px-3 text-right">Amount (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100 text-stone-700">
+                        {(!space.items || space.items.length === 0) ? (
+                          <tr>
+                            <td colSpan={7} className="py-3 text-center text-stone-400 italic">
+                              No items in this space
+                            </td>
+                          </tr>
+                        ) : (
+                          space.items.map((it, itIdx) => (
+                            <tr key={itIdx}>
+                              <td className="py-2 px-3 font-semibold text-stone-900">{it.name}</td>
+                              <td className="py-2 px-2 text-stone-600">{it.typeVariant || "Box"}</td>
+                              <td className="py-2 px-2 text-center text-stone-500">
+                                {it.lengthFt ? `${it.lengthFt}ft ${it.lengthIn || 0}in x ${it.heightFt || 0}ft` : "-"}
+                              </td>
+                              <td className="py-2 px-2 text-right font-mono">{it.sqft || 1}</td>
+                              <td className="py-2 px-2 text-center">{it.qty || 1}</td>
+                              <td className="py-2 px-2 text-right font-mono">₹{(it.rate || 0).toLocaleString("en-IN")}</td>
+                              <td className="py-2 px-3 text-right font-bold text-stone-900">
+                                ₹{(it.amount || 0).toLocaleString("en-IN")}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+
+              {/* Commercial Summary Box */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {/* Milestone Payment Terms */}
+                <div className="p-4 bg-[#FAF9F5] rounded-2xl border border-[#EAE3D2] space-y-2">
+                  <h5 className="font-extrabold text-stone-900 text-xs">Payment Milestone Schedule</h5>
+                  <div className="space-y-1.5 text-[11px] text-stone-700">
+                    <div className="flex justify-between border-b border-stone-200 pb-1">
+                      <span>1. Booking & Design Sign-off (50%):</span>
+                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.5).toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-stone-200 pb-1">
+                      <span>2. Production Commencement (40%):</span>
+                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.4).toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>3. Handover & Final Snag (10%):</span>
+                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.1).toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Totals */}
+                <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2">
+                  <h5 className="font-extrabold text-stone-900 text-xs">Commercial Summary</h5>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between text-stone-600">
+                      <span>Subtotal (Excl. GST):</span>
+                      <span className="font-bold font-mono">
+                        ₹{Math.round((quotationBOQ.grandTotal || 0) / 1.18).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-stone-600">
+                      <span>Estimated GST (18%):</span>
+                      <span className="font-bold font-mono">
+                        ₹{Math.round((quotationBOQ.grandTotal || 0) - (quotationBOQ.grandTotal || 0) / 1.18).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm font-black text-[#9E7B1D] border-t border-amber-300 pt-1.5">
+                      <span>Grand Total:</span>
+                      <span>₹{(quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Terms */}
+              <div className="pt-2 text-[10px] text-stone-400 space-y-0.5 border-t border-stone-100">
+                <p>1. Rates quoted are subject to final site measurement verification.</p>
+                <p>2. Delivery timeline: 45 working days from final sign-off of 2D/3D layouts and material selection.</p>
+                <p>3. This is an electronically issued quotation from Velora ERP.</p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-2">
+              <button
+                onClick={() => setIsQuotationModalOpen(false)}
+                className="px-5 py-2 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

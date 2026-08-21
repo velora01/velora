@@ -3,6 +3,7 @@ import EstimateBuilder from "../components/EstimateBuilder";
 import DataTable from "../components/DataTable";
 import erpApi from "../services/erpService";
 import { Download } from "lucide-react";
+import { downloadBOQPdf } from "../utils/downloadHelper";
 
 export default function EstimateManager() {
   const [activeTab, setActiveTab] = useState("builder");
@@ -42,15 +43,13 @@ export default function EstimateManager() {
     {
       header: "PDF Export",
       render: (row) => (
-        <a
-          href={erpApi.exportBOQPdfUrl(row._id)}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059]"
+        <button
+          onClick={() => downloadBOQPdf(row)}
+          className="flex items-center gap-1 px-2.5 py-1 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059] transition cursor-pointer"
         >
           <Download size={12} />
           <span>Download PDF</span>
-        </a>
+        </button>
       )
     }
   ];

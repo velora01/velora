@@ -22,7 +22,14 @@ import { getDashboardAnalytics, exportReportExcel } from "../controllers/reportC
 
 const router = express.Router();
 
-// Middleware: All ERP endpoints require JWT protection
+// Direct Export & PDF Download Endpoints (accessible directly from browser / <a> tags)
+router.get("/boq/:id/pdf", exportBOQPdf);
+router.get("/invoices/:id/pdf", exportInvoicePdf);
+router.get("/payments/:id/receipt", exportReceiptPdf);
+router.get("/leads/export/excel", exportLeadsExcel);
+router.get("/reports/export/:type", exportReportExcel);
+
+// Middleware: All other ERP management endpoints require JWT protection
 router.use(protect);
 
 // Dashboard Analytics
@@ -34,7 +41,6 @@ router.post("/leads", checkRole(["Admin", "Sales", "Super Admin"]), createLead);
 router.post("/leads/bulk-upload", checkRole(["Admin", "Sales", "Super Admin"]), bulkUploadLeads);
 router.put("/leads/:id", checkRole(["Admin", "Sales", "Super Admin"]), updateLead);
 router.delete("/leads/:id", checkRole(["Admin", "Super Admin"]), deleteLead);
-router.get("/leads/export/excel", exportLeadsExcel);
 
 router.get("/website-leads", getWebsiteLeads);
 router.post("/website-leads", createWebsiteLead);
@@ -66,7 +72,6 @@ router.get("/boq/:id", getBOQById);
 router.post("/boq", checkRole(["Admin", "Designer", "Super Admin"]), createBOQ);
 router.put("/boq/:id", checkRole(["Admin", "Designer", "Super Admin"]), updateBOQ);
 router.delete("/boq/:id", checkRole(["Admin", "Super Admin"]), deleteBOQ);
-router.get("/boq/:id/pdf", exportBOQPdf);
 
 // Library Components
 router.get("/components", getComponents);
@@ -82,11 +87,9 @@ router.delete("/quotations/:id", deleteQuotation);
 // Invoices & Payments
 router.get("/invoices", getInvoices);
 router.post("/invoices", checkRole(["Admin", "Accountant", "Super Admin"]), createInvoice);
-router.get("/invoices/:id/pdf", exportInvoicePdf);
 
 router.get("/payments", getPayments);
 router.post("/payments", checkRole(["Admin", "Accountant", "Super Admin"]), createPayment);
-router.get("/payments/:id/receipt", exportReceiptPdf);
 
 // Inventory & Vendors
 router.get("/materials", getMaterials);

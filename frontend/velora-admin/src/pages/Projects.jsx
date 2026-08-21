@@ -22,6 +22,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import EstimateBuilder from "../components/EstimateBuilder";
+import { downloadBOQPdf } from "../utils/downloadHelper";
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -729,15 +730,13 @@ export default function Projects() {
                                 ₹{Math.round(boq.grandTotal).toLocaleString("en-IN")}
                               </span>
                             </div>
-                            <a
-                              href={erpApi.exportBOQPdfUrl(boq._id)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-2 bg-stone-50 hover:bg-amber-50 text-stone-600 hover:text-[#9E7B1D] border border-stone-200 rounded-xl transition"
+                            <button
+                              onClick={() => downloadBOQPdf(boq)}
+                              className="p-2 bg-stone-50 hover:bg-amber-50 text-stone-600 hover:text-[#9E7B1D] border border-stone-200 rounded-xl transition cursor-pointer"
                               title="Download Quotation PDF"
                             >
                               <Download size={14} />
-                            </a>
+                            </button>
                           </div>
                         </div>
                       ))}

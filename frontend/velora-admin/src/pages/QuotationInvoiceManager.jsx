@@ -16,6 +16,7 @@ import {
   X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { downloadBOQPdf, downloadInvoicePdf } from "../utils/downloadHelper";
 
 export default function QuotationInvoiceManager() {
   const navigate = useNavigate();
@@ -221,17 +222,13 @@ export default function QuotationInvoiceManager() {
       header: "Actions",
       render: (row) => (
         <div className="flex items-center gap-1.5">
-          {row.boqRef && (
-            <a
-              href={erpApi.exportBOQPdfUrl(row.boqRef)}
-              target="_blank"
-              rel="noreferrer"
-              className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition"
-              title="Download BOQ Quotation PDF"
-            >
-              <Download size={13} />
-            </a>
-          )}
+          <button
+            onClick={() => downloadBOQPdf(row.boqRef || row, `${row.quotationNumber || "Quotation"}.pdf`)}
+            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+            title="Download BOQ Quotation PDF"
+          >
+            <Download size={13} />
+          </button>
           <button
             onClick={() => handleDeleteQuotation(row._id, row.quotationNumber)}
             className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
@@ -284,15 +281,13 @@ export default function QuotationInvoiceManager() {
     {
       header: "PDF",
       render: (row) => (
-        <a
-          href={erpApi.exportInvoicePdfUrl(row._id)}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1 px-2.5 py-1 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059] transition"
+        <button
+          onClick={() => downloadInvoicePdf(row)}
+          className="flex items-center gap-1 px-2.5 py-1 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059] transition cursor-pointer"
         >
           <Download size={12} />
           <span>Tax Invoice</span>
-        </a>
+        </button>
       )
     }
   ];

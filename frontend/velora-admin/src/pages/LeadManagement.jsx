@@ -20,6 +20,7 @@ import {
   Layers,
   MapPin
 } from "lucide-react";
+import { downloadBOQPdf, downloadCsv } from "../utils/downloadHelper";
 
 export default function LeadManagement() {
   const [viewMode, setViewMode] = useState("table");
@@ -1117,15 +1118,14 @@ export default function LeadManagement() {
                                 ₹{Math.round(boq.grandTotal || 0).toLocaleString("en-IN")}
                               </td>
                               <td className="px-4 py-3.5 text-center">
-                                <a
-                                  href={erpApi.exportBOQPdfUrl(boq._id)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAF6ED] border border-[#E8DCC4] rounded-lg text-[10px] font-bold text-[#9E7B1D] hover:border-[#D4AF37] transition"
+                                <button
+                                  onClick={() => downloadBOQPdf(boq)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAF6ED] border border-[#E8DCC4] rounded-lg text-[10px] font-bold text-[#9E7B1D] hover:border-[#D4AF37] transition cursor-pointer"
+                                  title="Download BOQ Quotation PDF"
                                 >
                                   <Download size={10} />
                                   <span>PDF</span>
-                                </a>
+                                </button>
                               </td>
                             </tr>
                           ))}

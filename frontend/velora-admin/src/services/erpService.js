@@ -80,7 +80,10 @@ export const erpApi = {
   createBOQ: async (data) => (await api.post("/erp/boq", data)).data,
   updateBOQ: async (id, data) => (await api.put(`/erp/boq/${id}`, data)).data,
   deleteBOQ: async (id) => (await api.delete(`/erp/boq/${id}`)).data,
-  exportBOQPdfUrl: (id) => `${API_BASE_URL}/erp/boq/${id}/pdf`,
+  exportBOQPdfUrl: (id) => {
+    const token = localStorage.getItem("velora_token") || "";
+    return `${API_BASE_URL}/erp/boq/${id}/pdf${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  },
 
   // Library Components
   getComponents: async (params) => (await api.get("/erp/components", { params })).data,
@@ -115,11 +118,17 @@ export const erpApi = {
   // Invoices & Payments
   getInvoices: async (params) => (await api.get("/erp/invoices", { params })).data,
   createInvoice: async (data) => (await api.post("/erp/invoices", data)).data,
-  exportInvoicePdfUrl: (id) => `${API_BASE_URL}/erp/invoices/${id}/pdf`,
+  exportInvoicePdfUrl: (id) => {
+    const token = localStorage.getItem("velora_token") || "";
+    return `${API_BASE_URL}/erp/invoices/${id}/pdf${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  },
 
   getPayments: async (params) => (await api.get("/erp/payments", { params })).data,
   createPayment: async (data) => (await api.post("/erp/payments", data)).data,
-  exportReceiptPdfUrl: (id) => `${API_BASE_URL}/erp/payments/${id}/receipt`,
+  exportReceiptPdfUrl: (id) => {
+    const token = localStorage.getItem("velora_token") || "";
+    return `${API_BASE_URL}/erp/payments/${id}/receipt${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  },
 
   // Inventory & Vendors
   getMaterials: async (params) => (await api.get("/erp/materials", { params })).data,
@@ -128,29 +137,37 @@ export const erpApi = {
   createVendor: async (data) => (await api.post("/erp/vendors", data)).data,
 
   // Factory / Production
-  getProduction: async (params) => (await api.get("/erp/production", { params })).data,
-  createProduction: async (data) => (await api.post("/erp/production", data)).data,
+  getProductionItems: async (params) => (await api.get("/erp/production", { params })).data,
+  createProductionOrder: async (data) => (await api.post("/erp/production", data)).data,
   updateProductionStatus: async (id, data) => (await api.put(`/erp/production/${id}/status`, data)).data,
 
-  // Installation & Site Visits
-  getInstallations: async (params) => (await api.get("/erp/installation", { params })).data,
-  createInstallation: async (data) => (await api.post("/erp/installation", data)).data,
+  // Installation
+  getInstallations: async (params) => (await api.get("/erp/installations", { params })).data,
+  createInstallation: async (data) => (await api.post("/erp/installations", data)).data,
+  updateInstallationStatus: async (id, data) => (await api.put(`/erp/installations/${id}/status`, data)).data,
 
+  // Site Visits
   getSiteVisits: async (params) => (await api.get("/erp/site-visits", { params })).data,
   createSiteVisit: async (data) => (await api.post("/erp/site-visits", data)).data,
+  updateSiteVisit: async (id, data) => (await api.put(`/erp/site-visits/${id}`, data)).data,
 
   // Calendar
-  getCalendarEvents: async () => (await api.get("/erp/calendar")).data,
-  createCalendarEvent: async (data) => (await api.post("/erp/calendar", data)).data,
+  getEvents: async (params) => (await api.get("/erp/calendar", { params })).data,
+  createEvent: async (data) => (await api.post("/erp/calendar", data)).data,
 
-  // Users & Roles
-  getUsers: async () => (await api.get("/erp/users")).data,
+  // User Management
+  getUsers: async (params) => (await api.get("/erp/users", { params })).data,
   createUser: async (data) => (await api.post("/erp/users", data)).data,
   updateUserRole: async (id, data) => (await api.put(`/erp/users/${id}/role`, data)).data,
+  getRoles: async () => (await api.get("/erp/roles")).data,
 
-  // Activity Logs & Exports
+  // Activity Logs & Reports
   getActivityLogs: async (params) => (await api.get("/erp/activity-logs", { params })).data,
-  getExportUrl: (type) => `${API_BASE_URL}/erp/reports/export/${type}`
+  getDashboardAnalytics: async () => (await api.get("/erp/dashboard/analytics")).data,
+  getExportUrl: (type) => {
+    const token = localStorage.getItem("velora_token") || "";
+    return `${API_BASE_URL}/erp/reports/export/${type}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  }
 };
 
 export default erpApi;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, Filter, Download, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import StatusBadge from "./StatusBadge";
+import { downloadCsv } from "../utils/downloadHelper";
 
 export default function DataTable({
   title,
@@ -61,30 +62,38 @@ export default function DataTable({
     }
   };
 
+  const handleExport = () => {
+    if (typeof onExportExcel === "function") {
+      onExportExcel();
+    } else {
+      downloadCsv(title || "Velora_Export", columns, processedData);
+    }
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+    <div className="bg-white border border-[#EAE3D2] rounded-2xl p-6 shadow-xs space-y-5">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE3D2] pb-5">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
             {title}
             <span className="text-xs bg-[#FFFBF0] text-[#9E7B1D] px-2.5 py-0.5 rounded-full font-bold border border-[#E8D49E]">
               {processedData.length} records
             </span>
           </h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-stone-500 mt-1 font-medium">{subtitle}</p>}
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          {onExportExcel && (
-            <button
-              onClick={onExportExcel}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-[#C5A059] hover:text-[#9E7B1D] transition shadow-xs cursor-pointer"
-            >
-              <Download size={14} className="text-[#9E7B1D]" />
-              <span>Export Excel</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-stone-700 bg-stone-50 border border-stone-200 rounded-xl hover:border-[#C5A059] hover:text-[#9E7B1D] transition shadow-2xs cursor-pointer"
+            title="Export Table Data to CSV/Excel"
+          >
+            <Download size={14} className="text-[#9E7B1D]" />
+            <span>Export Data</span>
+          </button>
 
           {onAddNew && (
             <button

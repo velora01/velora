@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
+import { downloadBOQPdf } from "../utils/downloadHelper";
 
 export default function BOQManagement() {
   const { id: urlId } = useParams();
@@ -2476,15 +2477,15 @@ export default function BOQManagement() {
                 </h3>
               </div>
               <div className="flex items-center gap-2">
-                <a
-                  href={erpApi.exportBOQPdfUrl(quotationBOQ._id)}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => downloadBOQPdf(quotationBOQ)}
                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
+                  title="Download PDF Quotation"
                 >
                   <Download size={13} />
                   <span>Download PDF</span>
-                </a>
+                </button>
                 <button
                   type="button"
                   onClick={() => window.print()}
@@ -2581,8 +2582,18 @@ export default function BOQManagement() {
                       <tbody className="divide-y divide-stone-100 text-stone-700">
                         {(!space.items || space.items.length === 0) ? (
                           <tr>
-                            <td colSpan={7} className="py-3 text-center text-stone-400 italic">
-                              No items in this space
+                            <td className="py-2 px-3 font-semibold text-stone-900">
+                              {space.roomTotal > 0 ? `${space.name} Turnkey Scope & Fitout` : `${space.name} Space`}
+                            </td>
+                            <td className="py-2 px-2 text-stone-600">Standard Spec</td>
+                            <td className="py-2 px-2 text-center text-stone-500">-</td>
+                            <td className="py-2 px-2 text-right font-mono">1</td>
+                            <td className="py-2 px-2 text-center">1</td>
+                            <td className="py-2 px-2 text-right font-mono">
+                              ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-2 px-3 text-right font-bold text-stone-900">
+                              ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
                             </td>
                           </tr>
                         ) : (

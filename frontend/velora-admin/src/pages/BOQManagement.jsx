@@ -586,6 +586,9 @@ export default function BOQManagement() {
     const targetSpace = updated.spaces[activeSpaceIdx];
     if (!targetSpace) return;
 
+    // if(targetSpace)return;
+
+
     if (customConfig) {
       targetSpace.items.push(customConfig);
     } else {
@@ -646,6 +649,7 @@ export default function BOQManagement() {
     setActiveBOQ(recalculated);
     setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}`);
     setTimeout(() => setSuccessToast(""), 2000);
+    
   };
 
   // Change Item Package Variant dynamically (e.g. Standard -> Elite)
@@ -737,7 +741,7 @@ export default function BOQManagement() {
     const sqft = parseFloat(
       (
         (customMixState.lengthFt + customMixState.lengthIn / 12) *
-          (customMixState.heightFt + customMixState.heightIn / 12) || 1
+        (customMixState.heightFt + customMixState.heightIn / 12) || 1
       ).toFixed(3)
     );
     const amount = Math.round(sqft * customMixState.rate * (customMixState.qty || 1));
@@ -1381,11 +1385,10 @@ export default function BOQManagement() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  activeCategory === cat
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeCategory === cat
                     ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
                     : "text-stone-600 hover:text-stone-950"
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -1462,14 +1465,12 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={() => setAutoSave(!autoSave)}
-              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${
-                autoSave ? "bg-blue-600" : "bg-stone-300"
-              }`}
+              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${autoSave ? "bg-blue-600" : "bg-stone-300"
+                }`}
             >
               <div
-                className={`bg-white w-3 h-3 rounded-full shadow-xs transform transition ${
-                  autoSave ? "translate-x-4" : "translate-x-0"
-                }`}
+                className={`bg-white w-3 h-3 rounded-full shadow-xs transform transition ${autoSave ? "translate-x-4" : "translate-x-0"
+                  }`}
               />
             </button>
           </div>
@@ -1485,11 +1486,10 @@ export default function BOQManagement() {
               <button
                 key={sIdx}
                 onClick={() => setActiveSpaceIdx(sIdx)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${
-                  isActive
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${isActive
                     ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
                     : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
-                }`}
+                  }`}
               >
                 <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
                 <span>{space.name}</span>
@@ -1778,15 +1778,14 @@ export default function BOQManagement() {
                           <select
                             value={item.packageVariant || "Standard"}
                             onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
-                            className={`w-full h-7 px-1.5 border rounded text-[11px] font-extrabold transition cursor-pointer ${
-                              item.packageVariant === "Elite"
+                            className={`w-full h-7 px-1.5 border rounded text-[11px] font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
                                 ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
                                 : item.packageVariant === "Premium"
-                                ? "bg-sky-50 text-sky-800 border-sky-300"
-                                : item.packageVariant === "Custom"
-                                ? "bg-purple-50 text-purple-800 border-purple-300"
-                                : "bg-stone-50 text-stone-800 border-stone-300"
-                            }`}
+                                  ? "bg-sky-50 text-sky-800 border-sky-300"
+                                  : item.packageVariant === "Custom"
+                                    ? "bg-purple-50 text-purple-800 border-purple-300"
+                                    : "bg-stone-50 text-stone-800 border-stone-300"
+                              }`}
                           >
                             {itemVariants.map((v) => (
                               <option key={v} value={v}>
@@ -1807,144 +1806,143 @@ export default function BOQManagement() {
                           />
                         </td>
 
-                      {/* Length (ft & inch) */}
-                      <td className="py-2 px-2">
-                        <div className="flex items-center gap-1 justify-center">
+                        {/* Length (ft & inch) */}
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-1 justify-center">
+                            <input
+                              type="number"
+                              value={item.lengthFt}
+                              onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Feet"
+                            />
+                            <input
+                              type="number"
+                              value={item.lengthIn}
+                              onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Inches"
+                            />
+                          </div>
+                        </td>
+
+                        {/* Height (ft & inch) */}
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-1 justify-center">
+                            <input
+                              type="number"
+                              value={item.heightFt}
+                              onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Feet"
+                            />
+                            <input
+                              type="number"
+                              value={item.heightIn}
+                              onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Inches"
+                            />
+                          </div>
+                        </td>
+
+                        {/* Depth (ft & inch) */}
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-1 justify-center">
+                            <input
+                              type="number"
+                              value={item.depthFt}
+                              onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Feet"
+                            />
+                            <input
+                              type="number"
+                              value={item.depthIn}
+                              onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
+                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              title="Inches"
+                            />
+                          </div>
+                        </td>
+
+                        {/* Qty */}
+                        <td className="py-2 px-2">
                           <input
                             type="number"
-                            value={item.lengthFt}
-                            onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Feet"
+                            min={1}
+                            value={item.qty || 1}
+                            onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
+                            className="w-12 h-7 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-xs"
                           />
+                        </td>
+
+                        {/* Description */}
+                        <td className="py-2 px-3">
+                          <input
+                            type="text"
+                            value={item.description || ""}
+                            onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
+                            placeholder="Specification notes"
+                            className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs"
+                          />
+                        </td>
+
+                        {/* Sq.ft (calculated) */}
+                        <td className="py-2 px-2 text-right font-mono font-semibold text-stone-700">
+                          {item.sqft || 1}
+                        </td>
+
+                        {/* Rate */}
+                        <td className="py-2 px-3 text-right">
                           <input
                             type="number"
-                            value={item.lengthIn}
-                            onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Inches"
+                            value={item.rate || 0}
+                            onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
+                            className="w-20 h-7 text-right px-1.5 bg-white border border-[#EAE3D2] rounded text-xs font-semibold text-stone-800"
                           />
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Height (ft & inch) */}
-                      <td className="py-2 px-2">
-                        <div className="flex items-center gap-1 justify-center">
-                          <input
-                            type="number"
-                            value={item.heightFt}
-                            onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Feet"
-                          />
-                          <input
-                            type="number"
-                            value={item.heightIn}
-                            onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Inches"
-                          />
-                        </div>
-                      </td>
+                        {/* Amount */}
+                        <td className="py-2 px-3 text-right font-black text-[#9E7B1D]">
+                          ₹{(item.amount || 0).toLocaleString("en-IN")}
+                        </td>
 
-                      {/* Depth (ft & inch) */}
-                      <td className="py-2 px-2">
-                        <div className="flex items-center gap-1 justify-center">
-                          <input
-                            type="number"
-                            value={item.depthFt}
-                            onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Feet"
-                          />
-                          <input
-                            type="number"
-                            value={item.depthIn}
-                            onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
-                            className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                            title="Inches"
-                          />
-                        </div>
-                      </td>
-
-                      {/* Qty */}
-                      <td className="py-2 px-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.qty || 1}
-                          onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
-                          className="w-12 h-7 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-xs"
-                        />
-                      </td>
-
-                      {/* Description */}
-                      <td className="py-2 px-3">
-                        <input
-                          type="text"
-                          value={item.description || ""}
-                          onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
-                          placeholder="Specification notes"
-                          className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs"
-                        />
-                      </td>
-
-                      {/* Sq.ft (calculated) */}
-                      <td className="py-2 px-2 text-right font-mono font-semibold text-stone-700">
-                        {item.sqft || 1}
-                      </td>
-
-                      {/* Rate */}
-                      <td className="py-2 px-3 text-right">
-                        <input
-                          type="number"
-                          value={item.rate || 0}
-                          onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
-                          className="w-20 h-7 text-right px-1.5 bg-white border border-[#EAE3D2] rounded text-xs font-semibold text-stone-800"
-                        />
-                      </td>
-
-                      {/* Amount */}
-                      <td className="py-2 px-3 text-right font-black text-[#9E7B1D]">
-                        ₹{(item.amount || 0).toLocaleString("en-IN")}
-                      </td>
-
-                      {/* Actions: Photo Selector, Minus Delete */}
-                      <td className="py-2 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleOpenImagePicker(idx)}
-                            title={
-                              item.photos?.length
-                                ? `${item.photos.length} image(s) attached. Click to select/change.`
-                                : "Select/Upload Component Images"
-                            }
-                            className={`p-1 rounded-lg transition cursor-pointer relative ${
-                              item.photos?.length
-                                ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
-                                : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
-                            }`}
-                          >
-                            <ImageIcon size={14} />
-                            {item.photos?.length > 0 && (
-                              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] text-stone-950 font-extrabold text-[8px] rounded-full flex items-center justify-center">
-                                {item.photos.length}
-                              </span>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleRemoveItem(idx)}
-                            title="Remove item"
-                            className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                          >
-                            <MinusCircle size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+                        {/* Actions: Photo Selector, Minus Delete */}
+                        <td className="py-2 px-2 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleOpenImagePicker(idx)}
+                              title={
+                                item.photos?.length
+                                  ? `${item.photos.length} image(s) attached. Click to select/change.`
+                                  : "Select/Upload Component Images"
+                              }
+                              className={`p-1 rounded-lg transition cursor-pointer relative ${item.photos?.length
+                                  ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
+                                  : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
+                                }`}
+                            >
+                              <ImageIcon size={14} />
+                              {item.photos?.length > 0 && (
+                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] text-stone-950 font-extrabold text-[8px] rounded-full flex items-center justify-center">
+                                  {item.photos.length}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleRemoveItem(idx)}
+                              title="Remove item"
+                              className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            >
+                              <MinusCircle size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -2070,11 +2068,10 @@ export default function BOQManagement() {
                             depthIn: unit.depthIn || 0
                           }));
                         }}
-                        className={`px-2 py-0.5 rounded-md font-semibold ${
-                          customMixState.dimSource === v
+                        className={`px-2 py-0.5 rounded-md font-semibold ${customMixState.dimSource === v
                             ? "bg-[#D4AF37] text-stone-950"
                             : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                        }`}
+                          }`}
                       >
                         {v}
                       </button>
@@ -2290,15 +2287,14 @@ export default function BOQManagement() {
                               selectedPhotos: exists
                                 ? prev.selectedPhotos.filter((p) => p.url !== img.url)
                                 : [
-                                    ...prev.selectedPhotos,
-                                    { url: img.url, caption: img.name || customMixComponent.name }
-                                  ]
+                                  ...prev.selectedPhotos,
+                                  { url: img.url, caption: img.name || customMixComponent.name }
+                                ]
                             };
                           });
                         }}
-                        className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${
-                          isSelected ? "border-[#D4AF37] ring-2 ring-amber-200" : "border-stone-200 hover:border-amber-300"
-                        }`}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${isSelected ? "border-[#D4AF37] ring-2 ring-amber-200" : "border-stone-200 hover:border-amber-300"
+                          }`}
                       >
                         <img src={img.url} alt="Variant" className="w-full h-full object-cover" />
                         <span className="absolute bottom-1 left-1 bg-stone-900/80 text-white text-[8px] font-bold px-1 rounded">
@@ -2398,19 +2394,17 @@ export default function BOQManagement() {
                       <div
                         key={idx}
                         onClick={() => handleToggleSelectPhoto(img)}
-                        className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition shadow-2xs ${
-                          isSelected
+                        className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition shadow-2xs ${isSelected
                             ? "border-[#D4AF37] ring-3 ring-amber-200"
                             : "border-stone-200 hover:border-amber-300"
-                        }`}
+                          }`}
                       >
                         <img src={img.url} alt={img.name || "Preview"} className="w-full h-full object-cover" />
 
                         {/* Top Right Checkbox Badge */}
                         <div
-                          className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition ${
-                            isSelected ? "bg-[#D4AF37] text-stone-950" : "bg-stone-900/40 text-white"
-                          }`}
+                          className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition ${isSelected ? "bg-[#D4AF37] text-stone-950" : "bg-stone-900/40 text-white"
+                            }`}
                         >
                           {isSelected ? "✓" : "+"}
                         </div>
@@ -2673,7 +2667,69 @@ export default function BOQManagement() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => downloadBOQPdf(quotationBOQ)}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Download Quotation PDF</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsQuotationModalOpen(false);
+                    // Extract items for invoice
+                    const invoiceItems = [];
+                    (quotationBOQ.spaces || []).forEach((sp) => {
+                      (sp.items || []).forEach((it) => {
+                        invoiceItems.push({
+                          productName: it.name || "Custom Component",
+                          hsnSac: "HSN/SAC",
+                          quantity: it.qty || 1,
+                          unit: String(it.sqft || it.unit || "1"),
+                          rate: it.rate || 0,
+                          gstPercent: 0,
+                          gstAmount: 0,
+                          total: it.amount || (it.rate * (it.sqft || it.qty || 1))
+                        });
+                      });
+                    });
+
+                    navigate("/invoices", {
+                      state: {
+                        createFromBOQ: true,
+                        boqData: {
+                          projectName: quotationBOQ.clientName,
+                          projectNumber: `PRJ-2026-${String(Math.floor(100 + Math.random() * 900))}`,
+                          clientName: quotationBOQ.clientName,
+                          clientEmail: quotationBOQ.clientEmail,
+                          clientPhone: quotationBOQ.clientPhone,
+                          subtotal: quotationBOQ.grandTotal || 0,
+                          grandTotal: quotationBOQ.grandTotal || 0,
+                          items: invoiceItems.length > 0 ? invoiceItems : [
+                            {
+                              productName: "Turnkey Interior Fitout Scope",
+                              hsnSac: "HSN/SAC",
+                              quantity: 1,
+                              unit: "1",
+                              rate: quotationBOQ.grandTotal || 0,
+                              gstPercent: 0,
+                              gstAmount: 0,
+                              total: quotationBOQ.grandTotal || 0
+                            }
+                          ]
+                        }
+                      }
+                    });
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  <FileText size={14} />
+                  <span>Convert / Create Tax Invoice</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => setIsQuotationModalOpen(false)}
                 className="px-5 py-2 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition cursor-pointer"

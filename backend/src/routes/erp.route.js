@@ -9,7 +9,7 @@ import { getProjects, createProject, updateProject, updateProjectStage, deletePr
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
 import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
 import { getComponents, createComponent, updateComponent, deleteComponent } from "../controllers/componentController.js";
-import { getInvoices, createInvoice, exportInvoicePdf, getQuotations, createQuotation, updateQuotation, deleteQuotation } from "../controllers/quotationInvoiceController.js";
+import { getInvoices, getInvoiceById, createInvoice, updateInvoice, deleteInvoice, exportInvoicePdf, getQuotations, createQuotation, updateQuotation, deleteQuotation } from "../controllers/quotationInvoiceController.js";
 import { getPayments, createPayment, exportReceiptPdf } from "../controllers/paymentController.js";
 import { getMaterials, createMaterial, getVendors, createVendor } from "../controllers/inventoryController.js";
 import { getProductionItems, createProductionOrder, updateProductionStatus } from "../controllers/productionController.js";
@@ -86,7 +86,10 @@ router.delete("/quotations/:id", deleteQuotation);
 
 // Invoices & Payments
 router.get("/invoices", getInvoices);
+router.get("/invoices/:id", getInvoiceById);
 router.post("/invoices", checkRole(["Admin", "Accountant", "Super Admin"]), createInvoice);
+router.put("/invoices/:id", checkRole(["Admin", "Accountant", "Super Admin"]), updateInvoice);
+router.delete("/invoices/:id", checkRole(["Admin", "Super Admin"]), deleteInvoice);
 
 router.get("/payments", getPayments);
 router.post("/payments", checkRole(["Admin", "Accountant", "Super Admin"]), createPayment);

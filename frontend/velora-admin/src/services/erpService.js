@@ -117,7 +117,10 @@ export const erpApi = {
 
   // Invoices & Payments
   getInvoices: async (params) => (await api.get("/erp/invoices", { params })).data,
+  getInvoiceById: async (id) => (await api.get(`/erp/invoices/${id}`)).data,
   createInvoice: async (data) => (await api.post("/erp/invoices", data)).data,
+  updateInvoice: async (id, data) => (await api.put(`/erp/invoices/${id}`, data)).data,
+  deleteInvoice: async (id) => (await api.delete(`/erp/invoices/${id}`)).data,
   exportInvoicePdfUrl: (id) => {
     const token = localStorage.getItem("velora_token") || "";
     return `${API_BASE_URL}/erp/invoices/${id}/pdf${token ? `?token=${encodeURIComponent(token)}` : ""}`;

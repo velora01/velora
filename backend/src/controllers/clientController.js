@@ -71,6 +71,62 @@ const SEED_CLIENTS = [
     spaceRequirements: ["Reception", "Boardroom", "Executive Cabins", "Breakout Zone"],
     status: "Active",
     notes: "Executive interiors with acoustic partitions and biometric systems."
+  },
+  {
+    clientCode: "VEL-CL-1006",
+    name: "Rashid sir",
+    phone: "84128 52592",
+    email: "rasid@example.com",
+    city: "Pune",
+    address: "Bafana Complex, Wakad, Pune",
+    projectType: "Commercial Retail Boutique",
+    preferredStyle: "Modern Retail Display",
+    budgetRange: "₹15L - ₹25L",
+    spaceRequirements: ["Showroom Front", "Display Racks", "Storage"],
+    status: "Active",
+    notes: "Commercial display units and custom shopfitting."
+  },
+  {
+    clientCode: "VEL-CL-1007",
+    name: "Dr Hardik",
+    phone: "98220 14592",
+    email: "drhardik@example.com",
+    city: "Pune",
+    address: "Kothrud, Pune",
+    projectType: "Medical Clinic Luxury",
+    preferredStyle: "Minimalist Modern Hygiene",
+    budgetRange: "₹25L - ₹40L",
+    spaceRequirements: ["Reception", "Consultation Cabin", "Waiting Lounge"],
+    status: "Active",
+    notes: "Clinic interior with acoustic wall panels and sleek laminate counters."
+  },
+  {
+    clientCode: "VEL-CL-1008",
+    name: "Dr Saurabh",
+    phone: "77090 19535",
+    email: "dr.saurabh@example.com",
+    city: "Pune",
+    address: "Aundh, Pune",
+    projectType: "Wellness Clinic",
+    preferredStyle: "Scandinavian Warm Wood",
+    budgetRange: "₹20L - ₹35L",
+    spaceRequirements: ["Waiting Lounge", "Doctor Suite", "Treatment Room"],
+    status: "Active",
+    notes: "Calming interior palette with warm LED lighting."
+  },
+  {
+    clientCode: "VEL-CL-1009",
+    name: "Khushi",
+    phone: "73551 23408",
+    email: "khushi@example.com",
+    city: "Pune",
+    address: "Kharadi, Pune",
+    projectType: "2BHK Apartment",
+    preferredStyle: "Modern Minimalist",
+    budgetRange: "₹15L - ₹25L",
+    spaceRequirements: ["Living Room", "Modular Kitchen", "Master Bedroom"],
+    status: "Active",
+    notes: "Compact modular smart storage solutions."
   }
 ];
 

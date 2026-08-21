@@ -210,12 +210,19 @@ export default function Projects() {
       sortable: true,
       render: (row) => (
         <div>
-          <span
-            onClick={() => handleSelectProject(row)}
-            className="font-extrabold text-stone-900 block hover:text-[#9E7B1D] transition cursor-pointer"
-          >
-            {row.heading}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              onClick={() => handleSelectProject(row)}
+              className="font-extrabold text-stone-900 hover:text-[#9E7B1D] transition cursor-pointer"
+            >
+              {row.heading}
+            </span>
+            {row.projectNumber && (
+              <span className="px-1.5 py-0.5 bg-stone-100 border border-stone-200 text-stone-600 font-mono text-[9px] font-bold rounded">
+                {row.projectNumber}
+              </span>
+            )}
+          </div>
           <span className="text-[10px] text-stone-400 font-semibold">{row.tag || "Luxury Interior"}</span>
         </div>
       )

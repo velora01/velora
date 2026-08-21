@@ -3,11 +3,14 @@ import mongoose from "mongoose";
 const projectSchema = new mongoose.Schema(
   {
     heading: { type: String, required: true, trim: true },
+    projectNumber: { type: String, default: "" },
     tag: { type: String, default: "Luxury Interior" },
     slug: { type: String, default: "" },
     description: { type: String, default: "" },
     client: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
     clientName: { type: String, default: "Bespoke Client" },
+    clientPhone: { type: String, default: "" },
+    clientEmail: { type: String, default: "" },
     address: { type: String, default: "Pune, Maharashtra" },
     designer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     manager: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

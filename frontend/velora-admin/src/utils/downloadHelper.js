@@ -226,90 +226,279 @@ export const downloadBOQPdf = async (boqOrId, customFilename) => {
  */
 export const generateClientSideInvoicePdf = (invoice) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-  const invNum = invoice?.invoiceNumber || "INV-VEL-1001";
-  const clientName = invoice?.clientName || "Valued Client";
+  const invNum = invoice?.invoiceNumber || "NCIA003";
+  const projName = invoice?.projectName || invoice?.clientName || "PREM SHUKLA";
+  const projNumber = invoice?.projectNumber || "PRJ-2026-008";
+  const clientName = invoice?.billTo?.name || invoice?.clientName || "PREM SHUKLA";
+  const clientEmail = invoice?.billTo?.email || invoice?.clientEmail || "";
+  const clientPhone = invoice?.billTo?.phone || invoice?.clientPhone || "";
+  const clientAddress = invoice?.billTo?.address || invoice?.clientAddress || "";
+  const clientGst = invoice?.billTo?.gstin || "";
+
+  const shipName = invoice?.shipTo?.name || (invoice?.sameAsBillTo ? clientName : "-");
+  const shipEmail = invoice?.shipTo?.email || (invoice?.sameAsBillTo ? clientEmail : "-");
+  const shipPhone = invoice?.shipTo?.phone || (invoice?.sameAsBillTo ? clientPhone : "-");
+  const shipAddress = invoice?.shipTo?.address || (invoice?.sameAsBillTo ? clientAddress : "-");
+
   const grandTotal = Number(invoice?.grandTotal) || 0;
-  const subtotal = Number(invoice?.subtotal) || Math.round(grandTotal / 1.18);
-  const gstTotal = Number(invoice?.gstTotal) || (grandTotal - subtotal);
-  const paidAmount = Number(invoice?.paidAmount) || 0;
-  const balanceDue = Number(invoice?.balanceDue) || (grandTotal - paidAmount);
+  const subtotal = Number(invoice?.subtotal) || grandTotal;
+  const gstTotal = Number(invoice?.gstTotal) || 0;
 
-  // Brand Header
-  doc.setFillColor(197, 160, 89);
-  doc.rect(40, 30, 515, 4, "F");
+  // Primary branding blue
+  const brandBlue = [67, 120, 240];
+  const darkText = [30, 41, 59];
+  const lightGrey = [248, 250, 252];
 
+  // Header Title
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(158, 123, 29);
-  doc.text("VELORA LUXURY INTERIORS", 40, 55);
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.setTextColor(100, 116, 139);
-  doc.text("TAX INVOICE / COMMERCIAL BILLING", 40, 68);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(28, 25, 23);
-  doc.text(`INVOICE: ${invNum}`, 555, 55, { align: "right" });
+  doc.setFontSize(14);
+  doc.setTextColor(30, 41, 59);
+  doc.text("NETTLE CREEK INTERIORS", 150, 45);
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100, 116, 139);
-  doc.text(`Date: ${new Date(invoice?.issueDate || Date.now()).toLocaleDateString("en-IN")}`, 555, 68, { align: "right" });
+  doc.text("Luxury Interior Design & Turnkey Solutions", 150, 58);
 
-  // Client Details Card
-  doc.setFillColor(250, 249, 245);
-  doc.roundedRect(40, 82, 515, 45, 6, 6, "F");
-  doc.setDrawColor(234, 227, 210);
-  doc.roundedRect(40, 82, 515, 45, 6, 6, "S");
-
-  doc.setFontSize(9);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(28, 25, 23);
-  doc.text(`BILLED TO: ${clientName.toUpperCase()}`, 50, 98);
+  doc.setTextColor(15, 23, 42);
+  doc.text("TAX INVOICE", 440, 45);
 
+  // Top Right Box: Original for Recipient / Invoice No / Date
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(67, 120, 240);
+  doc.setLineWidth(1);
+  doc.rect(370, 55, 185, 45, "S");
+
+  doc.setFillColor(67, 120, 240);
+  doc.rect(370, 55, 185, 15, "F");
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Email: ${invoice?.clientEmail || "N/A"} | Status: ${invoice?.status || "Issued"}`, 50, 112);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.text("Original For Recipient", 462.5, 66, { align: "center" });
 
-  // Line items
-  const items = (invoice?.items && invoice.items.length > 0)
-    ? invoice.items.map((it) => [it.description || "Turnkey Interior Execution", String(it.quantity || 1), `Rs. ${(it.unitPrice || subtotal).toLocaleString("en-IN")}`, `Rs. ${(it.total || subtotal).toLocaleString("en-IN")}`])
-    : [["Interior Execution Milestone Stage", "1", `Rs. ${subtotal.toLocaleString("en-IN")}`, `Rs. ${subtotal.toLocaleString("en-IN")}`]];
+  doc.setFontSize(7.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`E-INVOICE NO:`, 376, 82);
+  doc.setFont("helvetica", "bold");
+  doc.text(invNum, 470, 82);
+
+  doc.setFont("helvetica", "normal");
+  doc.text(`INVOICE DATE:`, 376, 94);
+  doc.setFont("helvetica", "bold");
+  doc.text(new Date(invoice?.issueDate || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }), 470, 94);
+
+  // INVOICE FROM vs PROJECT INFORMATION Table Header
+  let startY = 110;
+  doc.setFillColor(...brandBlue);
+  doc.rect(40, startY, 255, 18, "F");
+  doc.rect(300, startY, 255, 18, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text("INVOICE FROM", 48, startY + 12);
+  doc.text("PROJECT INFORMATION", 308, startY + 12);
+
+  // Box contents
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.5);
+  doc.rect(40, startY + 18, 255, 80, "S");
+  doc.rect(300, startY + 18, 255, 80, "S");
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
+
+  // Invoice From data
+  doc.text("LEGAL NAME:", 46, startY + 30);
+  doc.setFont("helvetica", "bold");
+  doc.text("NETTLE CREEK INTERIORS", 115, startY + 30);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("GST NO:", 46, startY + 42);
+  doc.text("27CHCPS9945R1Z4", 115, startY + 42);
+
+  doc.text("STATE:", 46, startY + 54);
+  doc.text("Maharashtra", 115, startY + 54);
+
+  doc.text("EMAIL:", 46, startY + 66);
+  doc.text("writeous@nettlecreekinteriors.com", 115, startY + 66);
+
+  doc.text("CONTACT NO:", 46, startY + 78);
+  doc.text("8055526603", 115, startY + 78);
+
+  doc.text("ADDRESS:", 46, startY + 90);
+  doc.text("Hinjawadi Wakad Chowk, Pune 411057", 115, startY + 90);
+
+  // Project Info data
+  doc.text("PROJECT NAME:", 308, startY + 30);
+  doc.setFont("helvetica", "bold");
+  doc.text(projName, 385, startY + 30);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("PROJECT (PID):", 308, startY + 42);
+  doc.setFont("helvetica", "bold");
+  doc.text(projNumber, 385, startY + 42);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("INVOICE TYPE:", 308, startY + 54);
+  doc.text(invoice?.invoiceType || "Supply", 385, startY + 54);
+
+  doc.text("PLACE OF SUPPLY:", 308, startY + 66);
+  doc.text("Maharashtra (27)", 385, startY + 66);
+
+  // Details of Receiver (Bill to) vs Details of Consignee (Ship to)
+  startY = startY + 105;
+  doc.setFillColor(...brandBlue);
+  doc.rect(40, startY, 255, 18, "F");
+  doc.rect(300, startY, 255, 18, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text("Details of Receiver (Bill to)", 48, startY + 12);
+  doc.text("Details of Consignee (Ship to)", 308, startY + 12);
+
+  doc.setDrawColor(203, 213, 225);
+  doc.rect(40, startY + 18, 255, 65, "S");
+  doc.rect(300, startY + 18, 255, 65, "S");
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
+
+  // Bill to
+  doc.text("CLIENT NAME:", 46, startY + 30);
+  doc.setFont("helvetica", "bold");
+  doc.text(clientName, 115, startY + 30);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("CONTACT NO:", 46, startY + 42);
+  doc.text(clientPhone || "-", 115, startY + 42);
+
+  doc.text("EMAIL:", 46, startY + 54);
+  doc.text(clientEmail || "-", 115, startY + 54);
+
+  doc.text("ADDRESS:", 46, startY + 66);
+  doc.text(clientAddress ? clientAddress.substring(0, 35) : "-", 115, startY + 66);
+
+  // Ship to
+  doc.text("CLIENT NAME:", 308, startY + 30);
+  doc.setFont("helvetica", "bold");
+  doc.text(shipName || clientName, 380, startY + 30);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("CONTACT NO:", 308, startY + 42);
+  doc.text(shipPhone || clientPhone || "-", 380, startY + 42);
+
+  doc.text("EMAIL:", 308, startY + 54);
+  doc.text(shipEmail || clientEmail || "-", 380, startY + 54);
+
+  doc.text("ADDRESS:", 308, startY + 66);
+  doc.text(shipAddress ? shipAddress.substring(0, 35) : (clientAddress ? clientAddress.substring(0, 35) : "-"), 380, startY + 66);
+
+  // Line items Table
+  const tableRows = (invoice?.items && invoice.items.length > 0)
+    ? invoice.items.map((it, idx) => [
+        String(idx + 1),
+        it.productName || it.description || "Supply Item",
+        it.hsnSac || "HSN/SAC",
+        String(it.quantity || 1),
+        String(it.unit || "1"),
+        `Rs. ${(Number(it.rate) || 0).toLocaleString("en-IN")}`,
+        `${it.gstPercent || 0}%`,
+        `Rs. ${(Number(it.gstAmount) || 0).toLocaleString("en-IN")}`,
+        `Rs. ${(Number(it.total) || (Number(it.rate) * Number(it.quantity || 1))).toLocaleString("en-IN")}`
+      ])
+    : [
+        ["1", "Turnkey Interior Fitout Scope", "HSN/SAC", "1", "Unit", `Rs. ${subtotal.toLocaleString("en-IN")}`, "0%", "Rs. 0", `Rs. ${subtotal.toLocaleString("en-IN")}`]
+      ];
 
   autoTable(doc, {
-    startY: 140,
+    startY: startY + 90,
     margin: { left: 40, right: 40 },
-    head: [["Description / Milestone", "Qty", "Unit Rate", "Total Amount"]],
-    body: items,
-    theme: "striped",
-    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontSize: 8, fontStyle: "bold" },
-    bodyStyles: { fontSize: 8, textColor: [51, 65, 85] }
+    head: [["#", "Product / Scope Name", "HSN/SAC", "Qty", "Unit", "Rate", "GST %", "GST (Rs)", "Total (Rs)"]],
+    body: tableRows,
+    theme: "grid",
+    headStyles: {
+      fillColor: [67, 120, 240],
+      textColor: [255, 255, 255],
+      fontSize: 7.5,
+      fontStyle: "bold"
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: [51, 65, 85]
+    },
+    columnStyles: {
+      0: { cellWidth: 20, halign: "center" },
+      1: { cellWidth: 160 },
+      2: { cellWidth: 55, halign: "center" },
+      3: { cellWidth: 30, halign: "center" },
+      4: { cellWidth: 35, halign: "center" },
+      5: { cellWidth: 55, halign: "right" },
+      6: { cellWidth: 35, halign: "center" },
+      7: { cellWidth: 45, halign: "right" },
+      8: { cellWidth: 65, halign: "right", fontStyle: "bold" }
+    }
   });
 
-  const finalY = doc.lastAutoTable.finalY + 20;
+  let finalY = doc.lastAutoTable.finalY + 15;
+  if (finalY > 670) {
+    doc.addPage();
+    finalY = 50;
+  }
 
-  // Totals Box
-  doc.setFillColor(250, 246, 237);
-  doc.roundedRect(300, finalY, 255, 80, 6, 6, "F");
-  doc.setDrawColor(212, 175, 55);
-  doc.roundedRect(300, finalY, 255, 80, 6, 6, "S");
+  // Commercial Summary block
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(320, finalY, 235, 75, 4, 4, "F");
+  doc.setDrawColor(67, 120, 240);
+  doc.roundedRect(320, finalY, 235, 75, 4, 4, "S");
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text(`Subtotal: Rs. ${subtotal.toLocaleString("en-IN")}`, 315, finalY + 18);
-  doc.text(`GST (18%): Rs. ${gstTotal.toLocaleString("en-IN")}`, 315, finalY + 32);
-
+  doc.text("Sub Total:", 330, finalY + 18);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(158, 123, 29);
-  doc.text(`Grand Total: Rs. ${grandTotal.toLocaleString("en-IN")}`, 315, finalY + 48);
+  doc.text(`Rs. ${subtotal.toLocaleString("en-IN")}`, 540, finalY + 18, { align: "right" });
 
   doc.setFont("helvetica", "normal");
+  doc.text("GST Total:", 330, finalY + 34);
+  doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, 540, finalY + 34, { align: "right" });
+
+  doc.setFillColor(15, 23, 42);
+  doc.rect(320, finalY + 46, 235, 29, "F");
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.text("Total Amount:", 330, finalY + 64);
+  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 540, finalY + 64, { align: "right" });
+
+  // Terms & Bank Details (left side)
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59);
+  doc.text("BANK DETAILS:", 40, finalY + 14);
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text(`Amount Paid: Rs. ${paidAmount.toLocaleString("en-IN")} | Balance Due: Rs. ${balanceDue.toLocaleString("en-IN")}`, 315, finalY + 65);
+  doc.text("Account Holder: NETTLE CREEK INTERIORS", 40, finalY + 26);
+  doc.text("Account Number: 50200073374185", 40, finalY + 37);
+  doc.text("Bank: HDFC Bank, Wakad Branch | IFSC: HDFC0000123", 40, finalY + 48);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59);
+  doc.text("TERMS & CONDITIONS:", 40, finalY + 64);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 116, 139);
+  doc.text("1. Rates quoted are turnkey Supply/Installation specifications.", 40, finalY + 75);
+  doc.text("2. Delivery timeline starts after site clearance and booking advance.", 40, finalY + 85);
+
+  // Footer note
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text("This is an electronically generated Tax Invoice by Nettle Creek Interiors / Velora ERP.", 297.5, 815, { align: "center" });
 
   doc.save(`${invNum}.pdf`);
 };

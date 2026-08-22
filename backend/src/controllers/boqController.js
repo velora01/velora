@@ -1,8 +1,70 @@
 import mongoose from "mongoose";
 import BOQ from "../models/BOQ.js";
 import Lead from "../models/Lead.js";
+import Client from "../models/Client.js";
 import { logActivity } from "../services/auditService.js";
 import { generateBOQPdf } from "../services/exportService.js";
+
+// Helper to sync BOQ data & financials to the single client record
+export const syncClientCommercialsFromBOQ = async (boq) => {
+  try {
+    if (!boq) return;
+    let client = null;
+    if (boq.client) {
+      client = await Client.findById(boq.client);
+    }
+    if (!client && boq.clientPhone) {
+      client = await Client.findOne({ phone: boq.clientPhone });
+    }
+    if (!client && boq.clientEmail) {
+      client = await Client.findOne({ email: boq.clientEmail });
+    }
+    if (!client && boq.clientName) {
+      client = await Client.findOne({ name: boq.clientName });
+    }
+
+    if (!client && boq.clientName) {
+      // Auto-create client if not existing
+      const cCount = await Client.countDocuments();
+      const cCode = `VLA-CL-${String(cCount + 1001)}`;
+      client = await Client.create({
+        clientId: cCode,
+        clientCode: cCode,
+        name: boq.clientName,
+        phone: boq.clientPhone || "9876543210",
+        email: boq.clientEmail || `${boq.clientName.toLowerCase().replace(/\s+/g, "")}@client.velora.com`,
+        enquiryNo: boq.enquiryNo || "",
+        status: "Active"
+      });
+    }
+
+    if (client) {
+      if (!client.boqs.includes(boq._id)) {
+        client.boqs.push(boq._id);
+      }
+      const paid = client.commercialSummary?.paidAmount || 0;
+      client.commercialSummary = {
+        subtotal: boq.subtotal || Math.round((boq.grandTotal || 0) / 1.18),
+        discountTotal: boq.discountTotal || 0,
+        additionalCharges: boq.additionalCharges || {
+          installation: 0,
+          transportation: 0,
+          design: 0,
+          labour: 0,
+          other: 0,
+          totalCharges: 0
+        },
+        taxGst: boq.gstTotal || Math.round((boq.grandTotal || 0) - (boq.grandTotal || 0) / 1.18),
+        grandTotal: boq.grandTotal || 0,
+        paidAmount: paid,
+        balanceDue: Math.max(0, (boq.grandTotal || 0) - paid)
+      };
+      await client.save();
+    }
+  } catch (e) {
+    console.error("syncClientCommercialsFromBOQ error:", e);
+  }
+};
 
 const SEED_BOQS = [
   {
@@ -284,6 +346,8 @@ export const createBOQ = async (req, res) => {
       enquiryNo
     });
 
+    await syncClientCommercialsFromBOQ(boq);
+
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Created",
@@ -302,6 +366,8 @@ export const updateBOQ = async (req, res) => {
   try {
     const boq = await BOQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
+
+    await syncClientCommercialsFromBOQ(boq);
 
     await logActivity({
       userName: req.user?.name || "Admin",

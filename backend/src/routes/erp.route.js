@@ -4,7 +4,7 @@ import { checkRole } from "../middleware/rbac.middleware.js";
 
 import { getLeads, createLead, updateLead, deleteLead, exportLeadsExcel, bulkUploadLeads } from "../controllers/leadController.js";
 import { getWebsiteLeads, createWebsiteLead, convertWebsiteLead } from "../controllers/websiteLeadController.js";
-import { getClients, createClient, updateClient, deleteClient, addClientCommunication } from "../controllers/clientController.js";
+import { getClients, getClientById, createClient, updateClient, deleteClient, addClientCommunication } from "../controllers/clientController.js";
 import { getProjects, createProject, updateProject, updateProjectStage, deleteProject } from "../controllers/projectController.js";
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
 import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
@@ -48,6 +48,7 @@ router.post("/website-leads/:id/convert", checkRole(["Admin", "Sales", "Super Ad
 
 // Clients
 router.get("/clients", getClients);
+router.get("/clients/:id", getClientById);
 router.post("/clients", checkRole(["Admin", "Sales", "Super Admin"]), createClient);
 router.put("/clients/:id", checkRole(["Admin", "Sales", "Super Admin"]), updateClient);
 router.delete("/clients/:id", checkRole(["Admin", "Super Admin"]), deleteClient);

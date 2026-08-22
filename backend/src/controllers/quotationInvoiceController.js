@@ -1,5 +1,6 @@
 import Invoice from "../models/Invoice.js";
 import Quotation from "../models/Quotation.js";
+import Client from "../models/Client.js";
 import { logActivity } from "../services/auditService.js";
 import { generatePdfDoc } from "../services/exportService.js";
 
@@ -330,8 +331,36 @@ export const getInvoiceById = async (req, res) => {
 // POST /api/erp/invoices
 export const createInvoice = async (req, res) => {
   try {
-    const invNum = req.body.invoiceNumber || "NCI" + Math.floor(100 + Math.random() * 900);
-    const invoice = await Invoice.create({ ...req.body, invoiceNumber: invNum });
+    const invCount = await Invoice.countDocuments();
+    const invNum = req.body.invoiceNumber || `VLA-INV-2026-${String(invCount + 1).padStart(4, "0")}`;
+    
+    // Auto-link client if not directly provided
+    let clientId = req.body.client || null;
+    let clientRecord = null;
+    if (clientId) {
+      clientRecord = await Client.findById(clientId);
+    }
+    if (!clientRecord && req.body.clientPhone) {
+      clientRecord = await Client.findOne({ phone: req.body.clientPhone });
+    }
+    if (!clientRecord && req.body.clientName) {
+      clientRecord = await Client.findOne({ name: req.body.clientName });
+    }
+
+    const invoice = await Invoice.create({
+      ...req.body,
+      client: clientRecord ? clientRecord._id : null,
+      clientId: clientRecord ? (clientRecord.clientId || clientRecord.clientCode) : "",
+      invoiceNumber: invNum
+    });
+
+    if (clientRecord) {
+      if (!clientRecord.invoices.includes(invoice._id)) {
+        clientRecord.invoices.push(invoice._id);
+        await clientRecord.save();
+      }
+    }
+
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Created",
@@ -355,6 +384,20 @@ export const updateInvoice = async (req, res) => {
       invoice = await Invoice.findOneAndUpdate({ invoiceNumber: req.params.id }, req.body, { new: true });
     }
     if (!invoice) return res.status(404).json({ success: false, message: "Invoice not found" });
+
+    // Link to client if found
+    if (invoice.clientName && !invoice.client) {
+      const c = await Client.findOne({ name: invoice.clientName });
+      if (c) {
+        invoice.client = c._id;
+        invoice.clientId = c.clientId || c.clientCode;
+        await invoice.save();
+        if (!c.invoices.includes(invoice._id)) {
+          c.invoices.push(invoice._id);
+          await c.save();
+        }
+      }
+    }
 
     await logActivity({
       userName: req.user?.name || "Admin",

@@ -1,7 +1,65 @@
 import Lead from "../models/Lead.js";
 import WebsiteLead from "../models/WebsiteLead.js";
+import Client from "../models/Client.js";
 import { logActivity } from "../services/auditService.js";
 import { generateExcelReport, generatePdfDoc } from "../services/exportService.js";
+
+// Helper to auto-create or associate client from enquiry
+export const syncClientFromLead = async (lead) => {
+  try {
+    if (!lead || !lead.phone) return null;
+    let client = await Client.findOne({
+      $or: [
+        { phone: lead.phone },
+        { email: lead.email && lead.email.trim() ? lead.email.trim() : "non_existent_placeholder@velora.com" }
+      ]
+    });
+
+    if (!client) {
+      const cCount = await Client.countDocuments();
+      const cCode = `VLA-CL-${String(cCount + 1001)}`;
+      client = await Client.create({
+        clientId: cCode,
+        clientCode: cCode,
+        name: lead.name,
+        salutation: lead.salutation || "Mr",
+        phone: lead.phone,
+        altPhone: lead.altPhone || "",
+        email: lead.email && lead.email.trim() ? lead.email.trim() : `${lead.phone.replace(/[^0-9]/g, "")}@client.velora.com`,
+        altEmail: lead.altEmail || "",
+        city: lead.city || "Pune",
+        state: lead.state || "Maharashtra",
+        pincode: lead.pincode || "",
+        address: lead.address || lead.siteAddress || "",
+        siteAddress: lead.siteAddress || lead.address || "",
+        gstin: lead.gstNumber || "",
+        companyName: lead.companyName || "",
+        enquiry: lead._id,
+        enquiryNo: lead.enquiryNo || "",
+        enquiryDate: lead.enquiryDate || new Date(),
+        enquirySource: lead.source || "Website",
+        projectType: lead.projectSubtype || lead.projectType || "3BHK Luxury Apartment",
+        projectLocation: lead.siteLocation || lead.city || "Pune",
+        propertyType: lead.projectType || "Residential",
+        preferredStyle: lead.stylePreference || "Modern Contemporary",
+        budgetRange: lead.budget || "₹25L - ₹40L",
+        approximateBudget: lead.estimatedValue || 2500000,
+        status: "Active",
+        notes: lead.notes || lead.remarks || ""
+      });
+    } else {
+      client.enquiry = lead._id;
+      if (lead.enquiryNo) client.enquiryNo = lead.enquiryNo;
+      if (!client.address && (lead.address || lead.siteAddress)) client.address = lead.address || lead.siteAddress;
+      if (lead.projectType) client.projectType = lead.projectSubtype || lead.projectType;
+      await client.save();
+    }
+    return client;
+  } catch (e) {
+    console.error("syncClientFromLead error:", e);
+    return null;
+  }
+};
 
 // GET /api/leads
 export const getLeads = async (req, res) => {
@@ -72,6 +130,9 @@ export const createLead = async (req, res) => {
       timeline: [{ stage: req.body.status || "Inquiry", note: "Enquiry Registered", updatedBy: req.user?.name || "Admin" }]
     });
 
+    // Automatically sync client profile from enquiry
+    await syncClientFromLead(lead);
+
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Created",
@@ -113,6 +174,7 @@ export const bulkUploadLeads = async (req, res) => {
           timeline: [{ stage: item.status || "Inquiry", note: "Bulk CSV Import", updatedBy: req.user?.name || "Admin" }]
         });
         inserted.push(lead);
+        await syncClientFromLead(lead);
         if (existing) {
           duplicates.push(lead);
         }
@@ -161,6 +223,7 @@ export const updateLead = async (req, res) => {
 
     Object.assign(lead, req.body);
     await lead.save();
+    await syncClientFromLead(lead);
 
     await logActivity({
       userName: req.user?.name || "Admin",

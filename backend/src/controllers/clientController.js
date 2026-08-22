@@ -151,10 +151,41 @@ export const getClients = async (req, res) => {
     }
     if (status) query.status = status;
 
-    const clients = await Client.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(parseInt(limit));
+    const clients = await Client.find(query)
+      .populate("boqs")
+      .populate("invoices")
+      .populate("enquiry")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
     const total = await Client.countDocuments(query);
 
     res.json({ success: true, data: clients, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const getClientById = async (req, res) => {
+  try {
+    let client = null;
+    if (req.params.id && req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      client = await Client.findById(req.params.id)
+        .populate("boqs")
+        .populate("invoices")
+        .populate("enquiry");
+    }
+    if (!client) {
+      client = await Client.findOne({
+        $or: [{ clientCode: req.params.id }, { clientId: req.params.id }, { phone: req.params.id }]
+      })
+        .populate("boqs")
+        .populate("invoices")
+        .populate("enquiry");
+    }
+    if (!client) return res.status(404).json({ success: false, message: "Client not found" });
+
+    res.json({ success: true, data: client });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

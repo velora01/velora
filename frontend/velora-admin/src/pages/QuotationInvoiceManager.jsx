@@ -20,7 +20,11 @@ import {
   Building,
   Info,
   Layers,
-  ArrowLeft
+  ArrowLeft,
+  Send,
+  User,
+  ShieldCheck,
+  Check
 } from "lucide-react";
 import { downloadInvoicePdf, downloadBOQPdf } from "../utils/downloadHelper";
 
@@ -58,6 +62,7 @@ export default function QuotationInvoiceManager() {
     invoiceNumber: "NCIA003",
     projectName: "PREM SHUKLA",
     projectNumber: "PRJ-2026-008",
+    clientId: "VLA-CL-1001",
     invoiceType: "Supply",
     clientName: "PREM SHUKLA",
     clientEmail: "PREMSHUKLA@GMAIL.COM",
@@ -81,110 +86,148 @@ export default function QuotationInvoiceManager() {
     items: [
       {
         productName: "Queen Size Bed, With Cush",
+        category: "Bedroom",
+        dimensions: "6.5 × 5.5 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "30",
         rate: 36000,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 36000
       },
       {
         productName: "King Size Bed Hydrolic",
+        category: "Bedroom",
+        dimensions: "6.5 × 6.5 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "45.5",
         rate: 64000,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 64000
       },
       {
         productName: "Openable Wardrobe 1",
+        category: "Storage",
+        dimensions: "7.0 × 6.0 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "42.5",
         rate: 55000,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 55000
       },
       {
         productName: "Openable Wardrobe 2, Study",
+        category: "Storage",
+        dimensions: "8.5 × 7.0 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "59.5",
         rate: 71400,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 71400
       },
       {
         productName: "Openable Wardrobe 3, Study",
+        category: "Storage",
+        dimensions: "5.0 × 7.0 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "34",
         rate: 40800,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 40800
       },
       {
         productName: "Study Table",
+        category: "Furniture",
+        dimensions: "8.0 × 2.5 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "56",
         rate: 67200,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 67200
       },
       {
         productName: "Side Table",
+        category: "Furniture",
+        dimensions: "1.5 × 1.5 ft",
         hsnSac: "HSN/SAC",
         quantity: 4,
         unit: "1.96",
         rate: 5500,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 22000
       },
       {
         productName: "Dressing",
+        category: "Storage",
+        dimensions: "3.0 × 7.0 ft",
         hsnSac: "HSN/SAC",
         quantity: 3,
         unit: "Unit",
         rate: 21000,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 63000
       },
       {
         productName: "Shoe Rack, With Side Sitting",
+        category: "Foyer",
+        dimensions: "4.0 × 3.0 ft",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "12",
         rate: 14400,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
         total: 14400
       }
     ],
     subtotal: 468800,
+    discountTotal: 0,
+    additionalCharges: {
+      installation: 0,
+      transportation: 0,
+      design: 0,
+      labour: 0,
+      other: 0,
+      totalCharges: 0
+    },
     taxPercent: 0,
     gstTotal: 0,
     grandTotal: 468800,
+    paidAmount: 0,
+    balanceDue: 468800,
     issueDate: "2026-08-13",
     dueDate: "",
     termsAndConditions:
       "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% on material delivery or production clearance.\n3. Balance 10% on completion and final snag handover.",
     bankDetails:
-      "Account Holder: NETTLE CREEK INTERIORS\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
+      "Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
   };
 
   const [editingInvoice, setEditingInvoice] = useState(defaultInvoiceForm);
 
-  // Load Invoices
+  // Load Invoices from Backend
   const loadInvoices = async () => {
     setLoadingInvoices(true);
     try {
@@ -338,9 +381,33 @@ export default function QuotationInvoiceManager() {
     loadQuotations();
   }, [invoiceSearch, quotationSearch]);
 
-  // Check if routed from BOQ
+  // Handle incoming routing from Client module or BOQ module
   useEffect(() => {
-    if (location.state?.createFromBOQ && location.state?.boqData) {
+    if (location.state?.createFromClient && location.state?.client) {
+      const c = location.state.client;
+      const invNum = `VLA-INV-2026-${String(Math.floor(100 + Math.random() * 900))}`;
+      setEditingInvoice({
+        ...defaultInvoiceForm,
+        _id: null,
+        invoiceNumber: invNum,
+        clientId: c.clientId || c.clientCode,
+        clientName: c.name,
+        clientEmail: c.email || "",
+        clientPhone: c.phone || "",
+        clientAddress: c.address || "",
+        projectName: c.name,
+        projectNumber: `PRJ-2026-${String(Math.floor(100 + Math.random() * 900))}`,
+        billTo: {
+          name: c.name,
+          email: c.email || "",
+          phone: c.phone || "",
+          gstin: c.gstin || "",
+          address: c.address || "Pune, Maharashtra"
+        }
+      });
+      setInvoiceViewMode("edit");
+      setActiveTab("invoices");
+    } else if (location.state?.createFromBOQ && location.state?.boqData) {
       const bData = location.state.boqData;
       setEditingInvoice({
         ...defaultInvoiceForm,
@@ -364,19 +431,26 @@ export default function QuotationInvoiceManager() {
       });
       setInvoiceViewMode("edit");
       setActiveTab("invoices");
+    } else if (location.state?.openInvoice) {
+      const target = invoices.find((i) => i.invoiceNumber === location.state.openInvoice);
+      if (target) {
+        handleOpenEdit(target);
+      }
     }
-  }, [location.state]);
+  }, [location.state, invoices]);
 
-  // Recalculate invoice totals when items change
-  const recalculateItems = (items) => {
+  // Recalculate invoice totals when items, discounts, or additional charges change
+  const recalculateItems = (items, discountTotal = 0, additionalCharges = {}) => {
     let sub = 0;
     let gst = 0;
     const updatedItems = items.map((it) => {
       const qty = Number(it.quantity) || 1;
       const rate = Number(it.rate) || 0;
+      const disc = Number(it.discount) || 0;
       const gPct = Number(it.gstPercent) || 0;
-      const gAmt = Math.round(rate * qty * (gPct / 100));
-      const tot = rate * qty + gAmt;
+      const taxable = Math.max(0, rate * qty - disc);
+      const gAmt = Math.round(taxable * (gPct / 100));
+      const tot = taxable + gAmt;
       sub += rate * qty;
       gst += gAmt;
       return {
@@ -386,11 +460,27 @@ export default function QuotationInvoiceManager() {
       };
     });
 
+    const chargesTotal =
+      (Number(additionalCharges?.installation) || 0) +
+      (Number(additionalCharges?.transportation) || 0) +
+      (Number(additionalCharges?.design) || 0) +
+      (Number(additionalCharges?.labour) || 0) +
+      (Number(additionalCharges?.other) || 0);
+
+    const netSubtotal = Math.max(0, sub - Number(discountTotal));
+    const grand = netSubtotal + chargesTotal + gst;
+
     return {
       items: updatedItems,
       subtotal: sub,
+      discountTotal: Number(discountTotal),
+      additionalCharges: {
+        ...additionalCharges,
+        totalCharges: chargesTotal
+      },
       gstTotal: gst,
-      grandTotal: sub + gst
+      grandTotal: grand,
+      balanceDue: grand
     };
   };
 
@@ -398,13 +488,14 @@ export default function QuotationInvoiceManager() {
   const handleItemChange = (idx, field, val) => {
     const newItems = [...editingInvoice.items];
     newItems[idx] = { ...newItems[idx], [field]: val };
-    const calced = recalculateItems(newItems);
+    const calced = recalculateItems(newItems, editingInvoice.discountTotal, editingInvoice.additionalCharges);
     setEditingInvoice((prev) => ({
       ...prev,
       items: calced.items,
       subtotal: calced.subtotal,
       gstTotal: calced.gstTotal,
-      grandTotal: calced.grandTotal
+      grandTotal: calced.grandTotal,
+      balanceDue: calced.grandTotal
     }));
   };
 
@@ -413,47 +504,52 @@ export default function QuotationInvoiceManager() {
     const newItems = [
       ...editingInvoice.items,
       {
-        productName: "New Interior Item",
+        productName: "Modular Furniture Component",
+        category: "Interior",
+        dimensions: "Custom",
         hsnSac: "HSN/SAC",
         quantity: 1,
         unit: "Unit",
-        rate: 15000,
+        rate: 25000,
+        discount: 0,
         gstPercent: 0,
         gstAmount: 0,
-        total: 15000
+        total: 25000
       }
     ];
-    const calced = recalculateItems(newItems);
+    const calced = recalculateItems(newItems, editingInvoice.discountTotal, editingInvoice.additionalCharges);
     setEditingInvoice((prev) => ({
       ...prev,
       items: calced.items,
       subtotal: calced.subtotal,
       gstTotal: calced.gstTotal,
-      grandTotal: calced.grandTotal
+      grandTotal: calced.grandTotal,
+      balanceDue: calced.grandTotal
     }));
   };
 
   // Delete item line
   const handleDeleteItem = (idx) => {
     if (editingInvoice.items.length <= 1) {
-      alert("Invoice must have at least one item line.");
+      alert("Invoice must contain at least one item line.");
       return;
     }
     const newItems = editingInvoice.items.filter((_, i) => i !== idx);
-    const calced = recalculateItems(newItems);
+    const calced = recalculateItems(newItems, editingInvoice.discountTotal, editingInvoice.additionalCharges);
     setEditingInvoice((prev) => ({
       ...prev,
       items: calced.items,
       subtotal: calced.subtotal,
       gstTotal: calced.gstTotal,
-      grandTotal: calced.grandTotal
+      grandTotal: calced.grandTotal,
+      balanceDue: calced.grandTotal
     }));
   };
 
   // Open Edit Mode
   const handleOpenEdit = (inv) => {
     const items = inv.items && inv.items.length > 0 ? inv.items : defaultInvoiceForm.items;
-    const calced = recalculateItems(items);
+    const calced = recalculateItems(items, inv.discountTotal || 0, inv.additionalCharges);
     setEditingInvoice({
       ...defaultInvoiceForm,
       ...inv,
@@ -473,15 +569,18 @@ export default function QuotationInvoiceManager() {
       },
       items: calced.items,
       subtotal: calced.subtotal,
+      discountTotal: calced.discountTotal,
+      additionalCharges: calced.additionalCharges,
       gstTotal: calced.gstTotal,
-      grandTotal: calced.grandTotal
+      grandTotal: calced.grandTotal,
+      balanceDue: calced.grandTotal
     });
     setInvoiceViewMode("edit");
   };
 
   // Open New Invoice Mode
   const handleOpenNewInvoice = () => {
-    const invNum = "NCIA" + Math.floor(100 + Math.random() * 900);
+    const invNum = `VLA-INV-2026-${String(Math.floor(1000 + Math.random() * 9000))}`;
     const calced = recalculateItems(defaultInvoiceForm.items);
     setEditingInvoice({
       ...defaultInvoiceForm,
@@ -490,7 +589,8 @@ export default function QuotationInvoiceManager() {
       items: calced.items,
       subtotal: calced.subtotal,
       gstTotal: calced.gstTotal,
-      grandTotal: calced.grandTotal
+      grandTotal: calced.grandTotal,
+      balanceDue: calced.grandTotal
     });
     setInvoiceViewMode("edit");
   };
@@ -510,8 +610,7 @@ export default function QuotationInvoiceManager() {
       setInvoiceViewMode("list");
       setTimeout(() => setToastMsg(""), 3000);
     } catch (err) {
-      console.warn("Backend save failed, saved locally:", err);
-      // Update locally
+      console.warn("Backend save fallback to local state:", err);
       setInvoices((prev) => {
         const idx = prev.findIndex((i) => i.invoiceNumber === editingInvoice.invoiceNumber);
         if (idx >= 0) {
@@ -549,6 +648,11 @@ export default function QuotationInvoiceManager() {
     setIsPdfViewerOpen(true);
   };
 
+  // Native Print
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Filtered invoices for search
   const filteredInvoices = invoices.filter((inv) => {
     if (!invoiceSearch.trim()) return true;
@@ -557,7 +661,9 @@ export default function QuotationInvoiceManager() {
       inv.invoiceNumber?.toLowerCase().includes(term) ||
       inv.clientName?.toLowerCase().includes(term) ||
       inv.clientPhone?.toLowerCase().includes(term) ||
-      inv.clientEmail?.toLowerCase().includes(term)
+      inv.clientEmail?.toLowerCase().includes(term) ||
+      inv.projectName?.toLowerCase().includes(term) ||
+      inv.projectNumber?.toLowerCase().includes(term)
     );
   });
 
@@ -705,7 +811,7 @@ export default function QuotationInvoiceManager() {
                             {/* Dropdown Menu */}
                             {activeDropdownId === inv.invoiceNumber && (
                               <div
-                                className="absolute right-0 top-8 z-30 w-44 bg-white rounded-xl shadow-xl border border-stone-200 py-1 text-left animate-in fade-in zoom-in-95"
+                                className="absolute right-0 top-8 z-30 w-48 bg-white rounded-xl shadow-xl border border-stone-200 py-1 text-left animate-in fade-in zoom-in-95"
                                 onMouseLeave={() => setActiveDropdownId(null)}
                               >
                                 <button
@@ -727,6 +833,16 @@ export default function QuotationInvoiceManager() {
                                 >
                                   <Download size={13} className="text-[#9E7B1D]" />
                                   <span>Download PDF</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
+                                    handlePrint();
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                >
+                                  <Printer size={13} className="text-stone-600" />
+                                  <span>Print Invoice</span>
                                 </button>
                                 <button
                                   onClick={() => {
@@ -797,9 +913,14 @@ export default function QuotationInvoiceManager() {
               >
                 <ArrowLeft size={18} />
               </button>
-              <h2 className="text-lg font-extrabold text-stone-900">
-                {editingInvoice._id ? "Edit Invoice" : "Create Invoice"}
-              </h2>
+              <div>
+                <h2 className="text-lg font-extrabold text-stone-900">
+                  {editingInvoice._id ? "Edit Invoice" : "Create Invoice"}
+                </h2>
+                <span className="text-[11px] text-stone-500">
+                  Single Source of Truth: Linked Client &rarr; BOQ &rarr; Tax Invoice
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -1390,7 +1511,10 @@ export default function QuotationInvoiceManager() {
           <div className="relative w-full max-w-6xl h-[90vh] bg-stone-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-stone-700">
             {/* Modal Header */}
             <div className="px-5 py-3.5 bg-stone-900 border-b border-stone-700 flex items-center justify-between text-white">
-              <h3 className="font-bold text-sm">PDF Viewer</h3>
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-blue-400" />
+                <h3 className="font-bold text-sm">PDF Viewer</h3>
+              </div>
               <button
                 onClick={() => setIsPdfViewerOpen(false)}
                 className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
@@ -1450,7 +1574,7 @@ export default function QuotationInvoiceManager() {
                           NETTLE CREEK INTERIORS
                         </h1>
                         <span className="text-[10px] text-stone-500 font-medium block">
-                          Luxury Turnkey Interior Design & Execution
+                          Velora Antraal Luxury Turnkey Interior Design & Execution
                         </span>
                       </div>
                     </div>
@@ -1560,7 +1684,7 @@ export default function QuotationInvoiceManager() {
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">PLACE OF SUPPLY</span>
-                          <span className="col-span-2">-</span>
+                          <span className="col-span-2">Maharashtra (27)</span>
                         </div>
                       </div>
                     </div>
@@ -1680,7 +1804,7 @@ export default function QuotationInvoiceManager() {
                       <span className="font-bold text-stone-900 block text-[11px]">
                         BANK DETAILS & PAYMENT INSTRUCTIONS
                       </span>
-                      <p>Account Holder: NETTLE CREEK INTERIORS</p>
+                      <p>Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL</p>
                       <p>Account Number: 50200073374185</p>
                       <p>Bank: HDFC Bank, Wakad Branch | IFSC: HDFC0000123</p>
                     </div>
@@ -1724,6 +1848,13 @@ export default function QuotationInvoiceManager() {
                 className="px-5 py-2 rounded-xl bg-stone-700 hover:bg-stone-600 text-white font-bold transition cursor-pointer"
               >
                 Close
+              </button>
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold border border-stone-600 transition cursor-pointer"
+              >
+                <Printer size={14} />
+                <span>Print</span>
               </button>
               <button
                 onClick={() => downloadInvoicePdf(pdfInvoice)}

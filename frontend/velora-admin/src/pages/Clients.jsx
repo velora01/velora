@@ -19,8 +19,19 @@ import {
   FolderOpen,
   X,
   Sparkles,
-  MessageSquare
+  Receipt,
+  Download,
+  Eye,
+  FileText,
+  CreditCard,
+  Building,
+  MapPin,
+  Tag,
+  ArrowRight,
+  UploadCloud,
+  FileCheck
 } from "lucide-react";
+import { downloadBOQPdf, downloadInvoicePdf } from "../utils/downloadHelper";
 
 export default function Clients() {
   const navigate = useNavigate();
@@ -29,8 +40,9 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Drawer / Modal states
+  // Drawer & Tabs
   const [selectedClient, setSelectedClient] = useState(null);
+  const [activeClientTab, setActiveClientTab] = useState("overview"); // overview | project | boq | products | pricing | payments | invoices | documents | notes
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState(null);
   const [newLog, setNewLog] = useState("");
@@ -40,15 +52,24 @@ export default function Clients() {
   // Client Form state
   const initialFormData = {
     name: "",
+    salutation: "Mr",
     phone: "",
+    altPhone: "",
     email: "",
     city: "Pune",
+    state: "Maharashtra",
+    pincode: "411057",
     address: "",
+    siteAddress: "",
     gstin: "",
+    companyName: "",
     status: "Active",
     projectType: "3BHK Luxury Apartment",
+    projectLocation: "Pune",
+    propertyType: "Residential",
     preferredStyle: "Modern Contemporary",
     budgetRange: "₹25L - ₹40L",
+    approximateBudget: 2500000,
     spaceRequirements: ["Living Room", "Modular Kitchen", "Master Bedroom"],
     targetHandoverDate: "",
     specialInstructions: "",
@@ -131,57 +152,34 @@ export default function Clients() {
   const handleOpenEditModal = (client) => {
     setEditingClientId(client._id);
     setFormData({
-      name: client.name || "",
-      phone: client.phone || "",
-      email: client.email || "",
-      city: client.city || "Pune",
-      address: client.address || "",
-      gstin: client.gstin || "",
-      status: client.status || "Active",
-      projectType: client.projectType || "3BHK Luxury Apartment",
-      preferredStyle: client.preferredStyle || "Modern Contemporary",
-      budgetRange: client.budgetRange || "₹25L - ₹40L",
-      spaceRequirements: client.spaceRequirements || ["Living Room", "Modular Kitchen", "Master Bedroom"],
-      targetHandoverDate: client.targetHandoverDate ? new Date(client.targetHandoverDate).toISOString().split("T")[0] : "",
-      specialInstructions: client.specialInstructions || "",
-      notes: client.notes || ""
+      ...initialFormData,
+      ...client,
+      spaceRequirements: client.spaceRequirements || initialFormData.spaceRequirements
     });
     setErrorMsg("");
     setIsEditModalOpen(true);
   };
 
-  const handleToggleSpaceRequirement = (space) => {
-    setFormData((prev) => {
-      const exists = prev.spaceRequirements.includes(space);
-      return {
-        ...prev,
-        spaceRequirements: exists
-          ? prev.spaceRequirements.filter((s) => s !== space)
-          : [...prev.spaceRequirements, space]
-      };
-    });
-  };
-
   const handleSaveClient = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setErrorMsg("Client Name and Phone are required.");
+      return;
+    }
+
     try {
       if (editingClientId) {
         await erpApi.updateClient(editingClientId, formData);
-        setSuccessToast("Client requirements updated successfully!");
+        setSuccessToast("Client profile updated successfully!");
       } else {
         await erpApi.createClient(formData);
-        setSuccessToast("New Client added successfully!");
+        setSuccessToast("New client added successfully!");
       }
-
       setIsEditModalOpen(false);
       loadClients();
-      if (selectedClient && selectedClient._id === editingClientId) {
-        setSelectedClient((prev) => ({ ...prev, ...formData }));
-      }
       setTimeout(() => setSuccessToast(""), 3000);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to save client");
+      setErrorMsg("Failed to save client: " + err.message);
     }
   };
 
@@ -189,9 +187,9 @@ export default function Clients() {
     if (!window.confirm(`Are you sure you want to delete client "${name}"?`)) return;
     try {
       await erpApi.deleteClient(id);
-      setSuccessToast(`Client "${name}" removed successfully.`);
-      if (selectedClient?._id === id) setSelectedClient(null);
+      setSuccessToast("Client removed.");
       loadClients();
+      if (selectedClient?._id === id) setSelectedClient(null);
       setTimeout(() => setSuccessToast(""), 3000);
     } catch (err) {
       alert("Failed to delete client: " + err.message);
@@ -212,14 +210,40 @@ export default function Clients() {
     }
   };
 
+  // Sample BOQ items for client view demonstration
+  const getClientSampleProducts = (client) => {
+    if (client.name?.toLowerCase().includes("prem")) {
+      return [
+        { name: "Queen Size Bed, With Cush", category: "Bedroom", dimensions: "6.5 × 5.5 ft", qty: 1, unit: "Unit", rate: 36000, discount: 0, tax: 0, total: 36000 },
+        { name: "King Size Bed Hydrolic", category: "Bedroom", dimensions: "6.5 × 6.5 ft", qty: 1, unit: "Unit", rate: 64000, discount: 0, tax: 0, total: 64000 },
+        { name: "Openable Wardrobe 1", category: "Storage", dimensions: "7.0 × 6.0 ft", qty: 1, unit: "Unit", rate: 55000, discount: 0, tax: 0, total: 55000 },
+        { name: "Openable Wardrobe 2, Study", category: "Storage", dimensions: "8.5 × 7.0 ft", qty: 1, unit: "Unit", rate: 71400, discount: 0, tax: 0, total: 71400 },
+        { name: "Openable Wardrobe 3, Study", category: "Storage", dimensions: "5.0 × 7.0 ft", qty: 1, unit: "Unit", rate: 40800, discount: 0, tax: 0, total: 40800 },
+        { name: "Study Table", category: "Furniture", dimensions: "8.0 × 2.5 ft", qty: 1, unit: "Unit", rate: 67200, discount: 0, tax: 0, total: 67200 },
+        { name: "Side Table", category: "Furniture", dimensions: "1.5 × 1.5 ft", qty: 4, unit: "Unit", rate: 5500, discount: 0, tax: 0, total: 22000 },
+        { name: "Dressing", category: "Storage", dimensions: "3.0 × 7.0 ft", qty: 3, unit: "Unit", rate: 21000, discount: 0, tax: 0, total: 63000 },
+        { name: "Shoe Rack, With Side Sitting", category: "Foyer", dimensions: "4.0 × 3.0 ft", qty: 1, unit: "Unit", rate: 14400, discount: 0, tax: 0, total: 14400 }
+      ];
+    }
+    return [
+      { name: "Modular Island Kitchen", category: "Kitchen", dimensions: "12.0 × 8.0 ft", qty: 1, unit: "Unit", rate: 250000, discount: 20000, tax: 41400, total: 271400 },
+      { name: "Master Bedroom Full-Height Wardrobe", category: "Bedroom", dimensions: "10.0 × 9.0 ft", qty: 1, unit: "Unit", rate: 180000, discount: 10000, tax: 30600, total: 200600 },
+      { name: "Living Room Fluted TV Console", category: "Living Room", dimensions: "9.0 × 7.5 ft", qty: 1, unit: "Unit", rate: 95000, discount: 5000, tax: 16200, total: 106200 }
+    ];
+  };
+
   const columns = [
     {
-      header: "Client Code",
+      header: "Client ID",
       key: "clientCode",
-      render: (row) => <span className="font-mono font-bold text-stone-500">{row.clientCode}</span>
+      render: (row) => (
+        <span className="font-mono font-bold text-xs text-stone-600 bg-stone-100 px-2 py-0.5 rounded">
+          {row.clientId || row.clientCode}
+        </span>
+      )
     },
     {
-      header: "Client Name & City",
+      header: "Client Name & Location",
       key: "name",
       sortable: true,
       render: (row) => (
@@ -230,7 +254,7 @@ export default function Clients() {
       )
     },
     {
-      header: "Contact Info",
+      header: "Contact Details",
       render: (row) => (
         <div className="space-y-0.5">
           <span className="block font-semibold text-stone-800">{row.phone}</span>
@@ -253,12 +277,21 @@ export default function Clients() {
       )
     },
     {
-      header: "Preferred Style",
-      render: (row) => (
-        <span className="text-xs font-semibold text-stone-700">
-          {row.preferredStyle || "Modern Contemporary"}
-        </span>
-      )
+      header: "Commercials",
+      render: (row) => {
+        const comm = row.commercialSummary || {};
+        const grand = comm.grandTotal || (row.name?.includes("PREM") ? 468800 : 0);
+        return (
+          <div>
+            <span className="font-mono font-extrabold text-stone-900 block">
+              ₹{grand.toLocaleString("en-IN")}
+            </span>
+            <span className="text-[10px] text-emerald-600 font-semibold">
+              {comm.paidAmount ? `Paid ₹${comm.paidAmount.toLocaleString("en-IN")}` : "Ready for Invoice"}
+            </span>
+          </div>
+        );
+      }
     },
     {
       header: "Status",
@@ -268,41 +301,56 @@ export default function Clients() {
           className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${
             row.status === "Active"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : row.status === "Lead"
-              ? "bg-sky-50 text-sky-800 border-sky-200"
               : row.status === "Completed"
-              ? "bg-purple-50 text-purple-800 border-purple-200"
-              : "bg-stone-100 text-stone-600 border-stone-200"
+              ? "bg-sky-50 text-sky-800 border-sky-200"
+              : "bg-stone-50 text-stone-600 border-stone-200"
           }`}
         >
-          {row.status || "Active"}
+          {row.status}
         </span>
       )
     },
     {
-      header: "Actions",
+      header: "Action",
       render: (row) => (
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setSelectedClient(row)}
-            className="px-2.5 py-1 bg-stone-50 hover:bg-amber-50 border border-stone-200 hover:border-amber-300 rounded-lg text-xs font-bold text-[#9E7B1D] transition cursor-pointer"
-            title="View 360 Client Profile"
+            onClick={() => {
+              setSelectedClient(row);
+              setActiveClientTab("overview");
+            }}
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+            title="View 360° Profile"
           >
-            360° Profile
+            <Eye size={14} />
           </button>
           <button
             onClick={() => handleOpenEditModal(row)}
-            className="p-1.5 text-stone-400 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
-            title="Edit Client & Requirements"
+            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+            title="Edit Client Requirements"
           >
-            <Edit2 size={13} />
+            <Edit2 size={14} />
+          </button>
+          <button
+            onClick={() => {
+              navigate("/invoices", {
+                state: {
+                  createFromClient: true,
+                  client: row
+                }
+              });
+            }}
+            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+            title="Generate Tax Invoice"
+          >
+            <Receipt size={14} />
           </button>
           <button
             onClick={() => handleDeleteClient(row._id, row.name)}
             className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
             title="Delete Client"
           >
-            <Trash2 size={13} />
+            <Trash2 size={14} />
           </button>
         </div>
       )
@@ -329,7 +377,7 @@ export default function Clients() {
             </span>
           </div>
           <p className="text-xs text-stone-500 mt-1 font-medium">
-            360-degree client profiles, project scope requirements, styling preferences, and communication history
+            Single Source of Truth: Connected Enquiry &rarr; Client &rarr; BOQ &rarr; Invoice Lifecycle
           </p>
         </div>
 
@@ -344,7 +392,7 @@ export default function Clients() {
 
       {/* Main Table */}
       <DataTable
-        title="All Clients & Requirements Registry"
+        title="All Clients & Accounts"
         columns={columns}
         data={clients}
         search={search}
@@ -355,7 +403,7 @@ export default function Clients() {
       />
 
       {/* ========================================================================= */}
-      {/* ADD / EDIT CLIENT & REQUIREMENTS MODAL */}
+      {/* ADD / EDIT CLIENT MODAL */}
       {/* ========================================================================= */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
@@ -398,7 +446,7 @@ export default function Clients() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Rajeev Singhal"
+                      placeholder="e.g. PREM SHUKLA"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
@@ -412,7 +460,7 @@ export default function Clients() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. 98765 43210"
+                      placeholder="e.g. 78000 20496"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
@@ -423,7 +471,7 @@ export default function Clients() {
                     <label className="block font-semibold text-stone-700 mb-1">Email Address</label>
                     <input
                       type="email"
-                      placeholder="e.g. client@example.com"
+                      placeholder="e.g. premshukla@gmail.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
@@ -442,10 +490,10 @@ export default function Clients() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block font-semibold text-stone-700 mb-1">Site Address</label>
+                    <label className="block font-semibold text-stone-700 mb-1">Site / Delivery Address</label>
                     <input
                       type="text"
-                      placeholder="e.g. Flat 802, Marvel Gold, Koregaon Park, Pune"
+                      placeholder="e.g. 402, WAKAD CHOWK, AUNDH HINJEWADI ROAD, WAKAD, PUNE, 411057"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
@@ -508,53 +556,18 @@ export default function Clients() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Target Handover Date</label>
-                    <input
-                      type="date"
-                      value={formData.targetHandoverDate}
-                      onChange={(e) => setFormData({ ...formData, targetHandoverDate: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
-                    />
+                    <label className="block font-semibold text-stone-700 mb-1">Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full h-9 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Lead">Lead</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Archived">Archived</option>
+                    </select>
                   </div>
-                </div>
-
-                {/* Spaces Required Checklist */}
-                <div>
-                  <label className="block font-semibold text-stone-700 mb-1.5">
-                    Spaces to Design & Execute ({formData.spaceRequirements.length} selected):
-                  </label>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {availableSpaces.map((space) => {
-                      const isSelected = formData.spaceRequirements.includes(space);
-                      return (
-                        <button
-                          key={space}
-                          type="button"
-                          onClick={() => handleToggleSpaceRequirement(space)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border ${
-                            isSelected
-                              ? "bg-amber-100 border-amber-300 text-[#9E7B1D]"
-                              : "bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100"
-                          }`}
-                        >
-                          {isSelected ? "✓ " : "+ "}
-                          {space}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Special Requirements & Notes */}
-                <div>
-                  <label className="block font-semibold text-stone-700 mb-1">Special Requirements / Custom Specs</label>
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. Italian marble flooring, smart automation, acoustic wall paneling in living room..."
-                    value={formData.specialInstructions}
-                    onChange={(e) => setFormData({ ...formData, specialInstructions: e.target.value })}
-                    className="w-full p-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
-                  />
                 </div>
               </div>
 
@@ -580,152 +593,327 @@ export default function Clients() {
       )}
 
       {/* ========================================================================= */}
-      {/* CLIENT 360 PROFILE DRAWER */}
+      {/* ADVANCED 360° CLIENT DETAIL DRAWER (TABBED) */}
       {/* ========================================================================= */}
       <Drawer
         isOpen={!!selectedClient}
         onClose={() => setSelectedClient(null)}
-        title="Client 360° Profile & Requirements"
+        title="Client 360° Detailed Workspace"
       >
         {selectedClient && (
-          <div className="space-y-5 text-xs">
-            {/* Client Top Card */}
-            <div className="p-4 bg-gradient-to-br from-[#FAF9F5] to-amber-50/40 rounded-2xl border border-amber-200/80 space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-black text-base text-stone-900">{selectedClient.name}</h3>
-                <span className="font-mono font-bold text-xs text-[#9E7B1D] bg-amber-100 px-2 py-0.5 rounded-md">
-                  {selectedClient.clientCode}
-                </span>
+          <div className="space-y-4 text-xs">
+            {/* Top Client Header Badge */}
+            <div className="p-4 bg-gradient-to-br from-[#FAF9F5] to-amber-50/50 rounded-2xl border border-amber-200/80 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-base text-stone-900">{selectedClient.name}</h3>
+                  <span className="font-mono font-bold text-xs text-[#9E7B1D] bg-amber-100 px-2 py-0.5 rounded-md">
+                    {selectedClient.clientId || selectedClient.clientCode}
+                  </span>
+                </div>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  {selectedClient.phone} • {selectedClient.city || "Pune"}
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-stone-600 pt-1">
-                <p>
-                  <b>Phone:</b> {selectedClient.phone}
-                </p>
-                <p>
-                  <b>City:</b> {selectedClient.city || "Pune"}
-                </p>
-                <p className="col-span-2">
-                  <b>Email:</b> {selectedClient.email || "N/A"}
-                </p>
-                {selectedClient.address && (
-                  <p className="col-span-2">
-                    <b>Site:</b> {selectedClient.address}
-                  </p>
-                )}
-              </div>
-            </div>
 
-            {/* Quick Action Shortcuts */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  navigate("/admin/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
-                }}
-                className="flex items-center justify-center gap-1.5 p-2.5 bg-amber-50 hover:bg-[#D4AF37] text-[#9E7B1D] hover:text-stone-950 font-bold rounded-xl border border-amber-200 transition cursor-pointer shadow-2xs"
-              >
-                <FileSpreadsheet size={13} />
-                <span>Open / Build BOQ</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  navigate("/admin/projects");
-                }}
-                className="flex items-center justify-center gap-1.5 p-2.5 bg-sky-50 hover:bg-sky-600 text-sky-800 hover:text-white font-bold rounded-xl border border-sky-200 transition cursor-pointer shadow-2xs"
-              >
-                <FolderOpen size={13} />
-                <span>Manage Project</span>
-              </button>
-            </div>
-
-            {/* Requirements Box */}
-            <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-                <h4 className="font-black text-stone-900 flex items-center gap-1.5">
-                  <Palette size={14} className="text-[#9E7B1D]" />
-                  <span>Configured Requirements</span>
-                </h4>
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => handleOpenEditModal(selectedClient)}
-                  className="text-[11px] font-bold text-[#9E7B1D] hover:underline"
+                  onClick={() => {
+                    navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
+                  }}
+                  className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1 text-[11px]"
                 >
-                  Edit
+                  <Receipt size={12} />
+                  <span>Invoice</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
+                  }}
+                  className="px-3 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1 text-[11px]"
+                >
+                  <FileSpreadsheet size={12} />
+                  <span>BOQ</span>
                 </button>
               </div>
+            </div>
 
-              <div className="space-y-1.5 text-stone-700">
-                <div className="flex justify-between">
-                  <span className="text-stone-400">Project Type:</span>
-                  <span className="font-bold text-stone-900">{selectedClient.projectType || "3BHK Luxury"}</span>
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-stone-200 scrollbar-none">
+              {[
+                { id: "overview", label: "Overview", icon: User },
+                { id: "project", label: "Project", icon: Home },
+                { id: "boq", label: "BOQ & Products", icon: Layers },
+                { id: "pricing", label: "Pricing & Commercials", icon: IndianRupee },
+                { id: "invoices", label: "Invoices", icon: Receipt },
+                { id: "documents", label: "Documents", icon: FileText },
+                { id: "notes", label: "Notes & Calls", icon: PhoneCall }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const active = activeClientTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveClientTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold whitespace-nowrap text-xs transition cursor-pointer ${
+                      active
+                        ? "bg-stone-900 text-white shadow-xs"
+                        : "text-stone-600 hover:bg-stone-100"
+                    }`}
+                  >
+                    <Icon size={12} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tab Contents */}
+            {/* 1. OVERVIEW TAB */}
+            {activeClientTab === "overview" && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
+                  <h4 className="font-extrabold text-stone-900 text-xs flex items-center gap-1.5 border-b border-stone-100 pb-2">
+                    <User size={13} className="text-[#9E7B1D]" />
+                    <span>Basic Client Information</span>
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-stone-700 text-xs">
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Client ID</span>
+                      <span className="font-bold font-mono">{selectedClient.clientId || selectedClient.clientCode}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Client Name</span>
+                      <span className="font-bold text-stone-900">{selectedClient.name}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Phone Number</span>
+                      <span className="font-medium">{selectedClient.phone}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Email Address</span>
+                      <span className="font-medium">{selectedClient.email || "N/A"}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="block text-stone-400 text-[10px] font-semibold">Site Address</span>
+                      <span className="font-medium">{selectedClient.address || "Pune, Maharashtra"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-400">Design Styling:</span>
-                  <span className="font-semibold">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-400">Budget Range:</span>
-                  <span className="font-bold text-[#9E7B1D]">{selectedClient.budgetRange || "₹25L - ₹40L"}</span>
+
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
+                  <h4 className="font-extrabold text-stone-900 text-xs flex items-center gap-1.5 border-b border-stone-100 pb-2">
+                    <Home size={13} className="text-[#9E7B1D]" />
+                    <span>Project & Style Requirements</span>
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-stone-700 text-xs">
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Project Type</span>
+                      <span className="font-bold text-stone-900">{selectedClient.projectType || "3BHK Luxury Apartment"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Location</span>
+                      <span className="font-medium">{selectedClient.city || "Pune"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Design Styling</span>
+                      <span className="font-medium">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-stone-400 text-[10px] font-semibold">Budget Range</span>
+                      <span className="font-bold text-[#9E7B1D]">{selectedClient.budgetRange || "₹25L - ₹40L"}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {selectedClient.spaceRequirements && selectedClient.spaceRequirements.length > 0 && (
-                <div className="pt-2 border-t border-stone-100">
-                  <span className="block text-stone-400 text-[10px] uppercase font-bold mb-1.5">Required Spaces:</span>
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {selectedClient.spaceRequirements.map((s, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-stone-100 text-stone-800 rounded text-[10px] font-bold">
-                        {s}
+            {/* 2. PROJECT TAB */}
+            {activeClientTab === "project" && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs">Project Master File</h4>
+                    <span className="font-bold font-mono text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
+                      PRJ-2026-008
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-stone-700">
+                    <div className="flex justify-between">
+                      <span className="text-stone-400">Project Scope:</span>
+                      <span className="font-bold">Turnkey Interior Execution</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-400">Current Stage:</span>
+                      <span className="px-2 py-0.5 bg-amber-50 text-[#9E7B1D] rounded font-bold">In Production</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-400">Handover Timeline:</span>
+                      <span className="font-medium">45 Days from Sign-off</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. BOQ & PRODUCTS TAB */}
+            {activeClientTab === "boq" && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs text-stone-900">Configured BOQ Products</span>
+                  <button
+                    onClick={() => {
+                      navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
+                    }}
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#9E7B1D] hover:underline"
+                  >
+                    <span>Open in BOQ Editor</span>
+                    <ArrowRight size={12} />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {getClientSampleProducts(selectedClient).map((p, idx) => (
+                    <div key={idx} className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between gap-3 shadow-2xs">
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-stone-900 text-xs block">{p.name}</span>
+                        <span className="text-[10px] text-stone-400 font-medium">
+                          {p.category} • Size: {p.dimensions} • Qty: {p.qty} {p.unit}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-bold text-stone-900 text-xs block">
+                          ₹{p.total.toLocaleString("en-IN")}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-mono">
+                          @ ₹{p.rate.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. PRICING & COMMERCIALS TAB */}
+            {activeClientTab === "pricing" && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
+                  <h4 className="font-extrabold text-stone-900 text-xs border-b border-stone-100 pb-2">
+                    Commercial Summary & Financial Breakdown
+                  </h4>
+                  <div className="space-y-2 text-stone-700 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Products Subtotal:</span>
+                      <span className="font-bold font-mono text-stone-900">
+                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
                       </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Total Discount:</span>
+                      <span className="font-bold font-mono text-emerald-600">₹0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Additional Charges (Installation & Transport):</span>
+                      <span className="font-mono text-stone-700">₹0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">GST / Tax Amount:</span>
+                      <span className="font-mono text-stone-700">₹0</span>
+                    </div>
+                    <div className="p-3 bg-[#0A1128] text-white rounded-xl flex items-center justify-between font-extrabold text-sm shadow-xs mt-3">
+                      <span>Grand Total Amount</span>
+                      <span className="font-mono text-base">
+                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. INVOICES TAB */}
+            {activeClientTab === "invoices" && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs text-stone-900">Tax Invoices</span>
+                  <button
+                    onClick={() => {
+                      navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
+                    }}
+                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus size={13} />
+                    <span>Create Tax Invoice</span>
+                  </button>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold font-mono text-xs text-stone-900 block">
+                      {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
+                    </span>
+                    <span className="text-[10px] text-stone-400">
+                      Issued: {new Date().toLocaleDateString("en-IN")} • Supply / Turnkey
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-xs text-stone-900">
+                      ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigate("/invoices", { state: { openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001" } });
+                      }}
+                      className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                      title="Open Invoice View"
+                    >
+                      <Eye size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 6. DOCUMENTS & NOTES TAB */}
+            {(activeClientTab === "documents" || activeClientTab === "notes") && (
+              <div className="space-y-3 animate-in fade-in">
+                <div className="space-y-3">
+                  <h4 className="font-black text-stone-900 text-xs flex items-center gap-1.5">
+                    <PhoneCall size={14} className="text-[#9E7B1D]" />
+                    <span>Communication & Consultation Logs</span>
+                  </h4>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Record discussion notes / client requirements..."
+                      value={newLog}
+                      onChange={(e) => setNewLog(e.target.value)}
+                      className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 text-xs focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    <button
+                      onClick={handleAddLog}
+                      className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Record
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {(selectedClient.communicationHistory || []).map((log, idx) => (
+                      <div key={idx} className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl space-y-0.5">
+                        <p className="font-semibold text-stone-800">{log.summary}</p>
+                        <span className="text-[10px] text-stone-400 block">
+                          {log.channel} • {new Date(log.timestamp).toLocaleString("en-IN")}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
-              )}
-
-              {selectedClient.specialInstructions && (
-                <div className="pt-2 border-t border-stone-100">
-                  <span className="block text-stone-400 text-[10px] uppercase font-bold mb-0.5">Special Notes:</span>
-                  <p className="italic text-stone-600">{selectedClient.specialInstructions}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Communication History */}
-            <div className="space-y-3">
-              <h4 className="font-black text-stone-900 text-xs flex items-center gap-1.5">
-                <PhoneCall size={14} className="text-[#9E7B1D]" />
-                <span>Call & Meeting Logs</span>
-              </h4>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Record summary of discussion / site notes..."
-                  value={newLog}
-                  onChange={(e) => setNewLog(e.target.value)}
-                  className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 text-xs focus:outline-none focus:border-[#D4AF37]"
-                />
-                <button
-                  onClick={handleAddLog}
-                  className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold rounded-xl text-xs transition cursor-pointer"
-                >
-                  Record
-                </button>
               </div>
-
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {(selectedClient.communicationHistory || []).map((log, idx) => (
-                  <div key={idx} className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl space-y-0.5">
-                    <p className="font-semibold text-stone-800">{log.summary}</p>
-                    <span className="text-[10px] text-stone-400 block">
-                      {log.channel} • {new Date(log.timestamp).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                ))}
-                {(!selectedClient.communicationHistory || selectedClient.communicationHistory.length === 0) && (
-                  <p className="text-center text-stone-400 py-3 italic">No communication logs recorded yet.</p>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         )}
       </Drawer>

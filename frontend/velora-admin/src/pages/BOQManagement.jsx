@@ -33,7 +33,8 @@ import {
   Upload,
   Loader2,
   FileText,
-  Printer
+  Printer,
+  Camera
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
@@ -99,6 +100,11 @@ export default function BOQManagement() {
   const [selectedItemPhotos, setSelectedItemPhotos] = useState([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [previewImageModal, setPreviewImageModal] = useState(null);
+  const [syncToLibrary, setSyncToLibrary] = useState(true);
+
+  // Direct upload tracking state
+  const [uploadingRowIdx, setUploadingRowIdx] = useState(null);
+  const [uploadingCompId, setUploadingCompId] = useState(null);
 
   // New Space modal state
   const [isAddSpaceOpen, setIsAddSpaceOpen] = useState(false);
@@ -558,7 +564,7 @@ export default function BOQManagement() {
       grand += spaceSum;
       return { ...sp, roomTotal: spaceSum, items };
     });
-
+    
     return {
       ...updatedBOQ,
       spaces,
@@ -844,10 +850,161 @@ export default function BOQManagement() {
     }
   };
 
+  // Direct upload photo for a specific BOQ table row item
+  const handleDirectUploadItemPhoto = async (itemIdx, file) => {
+    if (!file || !activeBOQ) return;
+    setUploadingRowIdx(itemIdx);
+    try {
+      const res = await erpApi.uploadImage(file);
+      const photoUrl = res.imageUrl || res.url;
+      const caption = res.originalName || file.name;
+      const newPhoto = { url: photoUrl, caption };
+
+      const updated = JSON.parse(JSON.stringify(activeBOQ));
+      const targetSpace = updated.spaces[activeSpaceIdx];
+      if (targetSpace && targetSpace.items[itemIdx]) {
+        const item = targetSpace.items[itemIdx];
+        if (!item.photos) item.photos = [];
+        item.photos.push(newPhoto);
+
+        // Also sync photo to library component if found
+        const matchedComp = libraryComponents.find(
+          (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+        );
+        if (matchedComp) {
+          const pkgKey = (item.packageVariant || selectedPackage || "standard").toLowerCase();
+          const compCopy = JSON.parse(JSON.stringify(matchedComp));
+          if (compCopy[pkgKey]) {
+            if (!compCopy[pkgKey].images) compCopy[pkgKey].images = [];
+            compCopy[pkgKey].images.push({ url: photoUrl, name: caption });
+          }
+          if (!compCopy.images) compCopy.images = [];
+          compCopy.images.push({ url: photoUrl, name: caption });
+
+          if (compCopy._id && !compCopy._id.startsWith("comp")) {
+            try {
+              await erpApi.updateComponent(compCopy._id, compCopy);
+            } catch {
+              // Ignore DB sync error
+            }
+          }
+          setLibraryComponents((prev) =>
+            prev.map((c) => (c.name === compCopy.name ? compCopy : c))
+          );
+        }
+
+        const recalculated = recalculateBOQ(updated);
+        setActiveBOQ(recalculated);
+        setSuccessToast(`Photo uploaded and attached to ${item.name}!`);
+        setTimeout(() => setSuccessToast(""), 2500);
+      }
+    } catch (err) {
+      alert("Failed to upload photo: " + (err.message || "Unknown error"));
+    } finally {
+      setUploadingRowIdx(null);
+    }
+  };
+
+  // Direct upload photo from Palette component card
+  const handleDirectUploadComponentPhoto = async (comp, file) => {
+    if (!file) return;
+    const compId = comp._id || comp.name;
+    setUploadingCompId(compId);
+    try {
+      const res = await erpApi.uploadImage(file);
+      const photoUrl = res.imageUrl || res.url;
+      const caption = res.originalName || file.name;
+      const newImg = { url: photoUrl, name: caption };
+
+      const updatedComp = JSON.parse(JSON.stringify(comp));
+      const pkgKey = selectedPackage.toLowerCase();
+      if (updatedComp[pkgKey]) {
+        if (!updatedComp[pkgKey].images) updatedComp[pkgKey].images = [];
+        updatedComp[pkgKey].images.push(newImg);
+      }
+      if (!updatedComp.images) updatedComp.images = [];
+      updatedComp.images.push(newImg);
+
+      if (updatedComp._id && !updatedComp._id.startsWith("comp")) {
+        try {
+          await erpApi.updateComponent(updatedComp._id, updatedComp);
+        } catch {
+          // Ignore
+        }
+      }
+
+      setLibraryComponents((prev) =>
+        prev.map((c) => (c.name === comp.name || c._id === comp._id ? updatedComp : c))
+      );
+
+      setSuccessToast(`Photo attached to ${comp.name} in library!`);
+      setTimeout(() => setSuccessToast(""), 2500);
+    } catch (err) {
+      alert("Failed to upload photo: " + (err.message || "Unknown error"));
+    } finally {
+      setUploadingCompId(null);
+    }
+  };
+
+  // Upload photo inside Custom Mix modal
+  const handleUploadCustomMixPhoto = async (file) => {
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    try {
+      const res = await erpApi.uploadImage(file);
+      const newPhoto = {
+        url: res.imageUrl || res.url,
+        caption: res.originalName || file.name
+      };
+      setCustomMixState((prev) => ({
+        ...prev,
+        selectedPhotos: [...prev.selectedPhotos, newPhoto]
+      }));
+      setSuccessToast("Photo attached to custom mix!");
+      setTimeout(() => setSuccessToast(""), 2000);
+    } catch (err) {
+      alert("Failed to upload photo: " + (err.message || "Unknown error"));
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   // Save selected photos into line item
-  const handleSaveSelectedPhotos = () => {
+  const handleSaveSelectedPhotos = async () => {
     if (activeItemImageIdx === null || !activeBOQ) return;
+    const item = activeBOQ?.spaces?.[activeSpaceIdx]?.items?.[activeItemImageIdx];
     handleUpdateItemField(activeItemImageIdx, "photos", selectedItemPhotos);
+
+    // Sync to component library if enabled
+    if (syncToLibrary && item && selectedItemPhotos.length > 0) {
+      const matchedComp = libraryComponents.find(
+        (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+      );
+      if (matchedComp) {
+        const compCopy = JSON.parse(JSON.stringify(matchedComp));
+        const pkgKey = (item.packageVariant || selectedPackage || "standard").toLowerCase();
+        if (!compCopy[pkgKey]) compCopy[pkgKey] = {};
+        if (!compCopy[pkgKey].images) compCopy[pkgKey].images = [];
+
+        selectedItemPhotos.forEach((p) => {
+          if (!compCopy[pkgKey].images.some((i) => i.url === p.url)) {
+            compCopy[pkgKey].images.push({ url: p.url, name: p.caption || item.name });
+          }
+        });
+
+        if (compCopy._id && !compCopy._id.startsWith("comp")) {
+          try {
+            await erpApi.updateComponent(compCopy._id, compCopy);
+          } catch {
+            // Ignore
+          }
+        }
+        setLibraryComponents((prev) =>
+          prev.map((c) => (c.name === compCopy.name ? compCopy : c))
+        );
+      }
+    }
+
     setIsImagePickerModalOpen(false);
     setActiveItemImageIdx(null);
     setSuccessToast("Updated item photos!");
@@ -1530,6 +1687,7 @@ export default function BOQManagement() {
                 const availableVariants = comp.selectedVariants?.length
                   ? comp.selectedVariants
                   : ["Elite", "Premium", "Standard"];
+                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
 
                 return (
                   <div
@@ -1537,14 +1695,46 @@ export default function BOQManagement() {
                     className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
-                      <button
-                        onClick={() => handleOpenCustomMix(comp)}
-                        className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                        title={`Custom Mix for ${comp.name}`}
-                      >
-                        <SlidersHorizontal size={12} />
-                      </button>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {imgCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
+                            <Camera size={9} />
+                            <span>{imgCount}</span>
+                          </span>
+                        )}
+                        <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <label
+                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                          title={`Upload image for ${comp.name}`}
+                        >
+                          {uploadingCompId === (comp._id || comp.name) ? (
+                            <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
+                          ) : (
+                            <Upload size={12} />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingCompId === (comp._id || comp.name)}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleDirectUploadComponentPhoto(comp, e.target.files[0]);
+                              e.target.value = null;
+                            }}
+                          />
+                        </label>
+
+                        <button
+                          onClick={() => handleOpenCustomMix(comp)}
+                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                          title={`Custom Mix for ${comp.name}`}
+                        >
+                          <SlidersHorizontal size={12} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Variant Specific Action Buttons based on component configuration */}
@@ -1596,6 +1786,7 @@ export default function BOQManagement() {
                 const availableVariants = comp.selectedVariants?.length
                   ? comp.selectedVariants
                   : ["Elite", "Premium", "Standard"];
+                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
 
                 return (
                   <div
@@ -1603,14 +1794,46 @@ export default function BOQManagement() {
                     className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
-                      <button
-                        onClick={() => handleOpenCustomMix(comp)}
-                        className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                        title={`Custom Mix for ${comp.name}`}
-                      >
-                        <SlidersHorizontal size={12} />
-                      </button>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {imgCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
+                            <Camera size={9} />
+                            <span>{imgCount}</span>
+                          </span>
+                        )}
+                        <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <label
+                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                          title={`Upload image for ${comp.name}`}
+                        >
+                          {uploadingCompId === (comp._id || comp.name) ? (
+                            <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
+                          ) : (
+                            <Upload size={12} />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingCompId === (comp._id || comp.name)}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleDirectUploadComponentPhoto(comp, e.target.files[0]);
+                              e.target.value = null;
+                            }}
+                          />
+                        </label>
+
+                        <button
+                          onClick={() => handleOpenCustomMix(comp)}
+                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                          title={`Custom Mix for ${comp.name}`}
+                        >
+                          <SlidersHorizontal size={12} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Variant Action Buttons */}
@@ -1748,25 +1971,74 @@ export default function BOQManagement() {
                           <GripVertical size={13} className="mx-auto cursor-grab" />
                         </td>
 
-                        {/* Name with Image Thumbnail Preview */}
+                        {/* Name with Image Thumbnail Preview & Direct Upload Option */}
                         <td className="py-2 px-3 font-semibold text-stone-900">
                           <div className="flex items-center gap-2">
-                            {item.photos && item.photos.length > 0 && (
-                              <div
-                                onClick={() => handleOpenImagePicker(idx)}
-                                className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 shrink-0 cursor-pointer hover:opacity-85 shadow-2xs"
-                                title={`${item.photos.length} image(s) attached. Click to select/change.`}
-                              >
-                                <img
-                                  src={item.photos[0]?.url}
-                                  alt="thumb"
-                                  className="w-full h-full object-cover"
-                                />
-                                {item.photos.length > 1 && (
-                                  <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
-                                    {item.photos.length}
-                                  </span>
-                                )}
+                            {item.photos && item.photos.length > 0 ? (
+                              <div className="relative group/photo shrink-0">
+                                <div
+                                  onClick={() => handleOpenImagePicker(idx)}
+                                  className="relative w-8 h-8 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
+                                  title={`${item.photos.length} image(s) attached. Click to select/change.`}
+                                >
+                                  <img
+                                    src={item.photos[0]?.url}
+                                    alt="thumb"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {item.photos.length > 1 && (
+                                    <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                      {item.photos.length}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Hover Quick Add Extra Photo */}
+                                <label
+                                  className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
+                                  title="Upload additional photo for this item"
+                                >
+                                  {uploadingRowIdx === idx ? (
+                                    <Loader2 size={9} className="animate-spin" />
+                                  ) : (
+                                    <Plus size={9} />
+                                  )}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    disabled={uploadingRowIdx === idx}
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
+                                      e.target.value = null;
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 shrink-0">
+                                {/* Direct Instant Upload Button when no image is added */}
+                                <label
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded-lg text-[10px] font-bold cursor-pointer transition shadow-2xs select-none"
+                                  title="Product image not added. Click to directly upload an image from your device."
+                                >
+                                  {uploadingRowIdx === idx ? (
+                                    <Loader2 size={11} className="animate-spin text-[#9E7B1D]" />
+                                  ) : (
+                                    <Upload size={11} />
+                                  )}
+                                  <span>+ Photo</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    disabled={uploadingRowIdx === idx}
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
+                                      e.target.value = null;
+                                    }}
+                                  />
+                                </label>
                               </div>
                             )}
                             <span className="truncate">{item.name}</span>
@@ -2259,9 +2531,27 @@ export default function BOQManagement() {
 
               {/* 5. Select Images for this Mixed Component */}
               <div className="space-y-2 pt-1 border-t border-[#F0EBE0]">
-                <span className="block font-bold text-stone-900 text-xs">
-                  4. Select Images to Attach ({customMixState.selectedPhotos.length} selected)
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="block font-bold text-stone-900 text-xs">
+                    4. Select Images to Attach ({customMixState.selectedPhotos.length} selected)
+                  </span>
+
+                  <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-dashed border-amber-300 rounded-lg cursor-pointer transition">
+                    {isUploadingPhoto ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
+                    <span>{isUploadingPhoto ? "Uploading..." : "+ Upload Custom Photo"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingPhoto}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) handleUploadCustomMixPhoto(e.target.files[0]);
+                        e.target.value = null;
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
                 <div className="grid grid-cols-4 gap-2">
                   {[
                     ...(customMixComponent.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
@@ -2431,10 +2721,24 @@ export default function BOQManagement() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-between">
-              <span className="text-xs font-semibold text-stone-600">
-                {selectedItemPhotos.length} photo(s) selected
-              </span>
+            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-stone-700">
+                  {selectedItemPhotos.length} photo(s) selected
+                </span>
+
+                {/* Sync to Component Library Toggle */}
+                <label className="flex items-center gap-1.5 text-[11px] text-stone-600 font-medium cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={syncToLibrary}
+                    onChange={(e) => setSyncToLibrary(e.target.checked)}
+                    className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+                  />
+                  <span>Save to Component Library</span>
+                </label>
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="button"

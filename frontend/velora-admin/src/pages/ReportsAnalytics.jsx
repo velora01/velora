@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import erpApi from "../services/erpService";
 import { Download, FileSpreadsheet, CheckCircle2 } from "lucide-react";
-import { downloadCsv, triggerBlobDownload } from "../utils/downloadHelper";
+import { downloadCsv, triggerBlobDownload, downloadInvoicePdf } from "../utils/downloadHelper";
 
 export default function ReportsAnalytics() {
   const [downloadingType, setDownloadingType] = useState(null);

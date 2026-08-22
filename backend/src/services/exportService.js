@@ -55,7 +55,30 @@ export const generatePdfDoc = (res, title, dataLines = []) => {
 };
 
 /**
- * High-End Luxury Tax Invoice PDF Generator for Velora Luxury Interiors
+ * Helper to convert number to Indian Rupee Words
+ */
+export const numberToWordsIN = (num) => {
+  if (!num || isNaN(num)) return "Zero Rupees Only";
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  const inWords = (n) => {
+    if ((n = n.toString()).length > 9) return 'overflow';
+    let n_arr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n_arr) return '';
+    let str = '';
+    str += (n_arr[1] != 0) ? (a[Number(n_arr[1])] || b[n_arr[1][0]] + ' ' + a[n_arr[1][1]]) + 'Crore ' : '';
+    str += (n_arr[2] != 0) ? (a[Number(n_arr[2])] || b[n_arr[2][0]] + ' ' + a[n_arr[2][1]]) + 'Lakh ' : '';
+    str += (n_arr[3] != 0) ? (a[Number(n_arr[3])] || b[n_arr[3][0]] + ' ' + a[n_arr[3][1]]) + 'Thousand ' : '';
+    str += (n_arr[4] != 0) ? (a[Number(n_arr[4])] || b[n_arr[4][0]] + ' ' + a[n_arr[4][1]]) + 'Hundred ' : '';
+    str += (n_arr[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n_arr[5])] || b[n_arr[5][0]] + ' ' + a[n_arr[5][1]]) : '';
+    return str;
+  };
+  return `${inWords(Math.round(num)).trim()} Rupees Only`;
+};
+
+/**
+ * High-End Luxury Tax Invoice PDF Generator for Velora Luxury Interiors (Matching images 1-4)
  */
 export const generateInvoicePdfDoc = (res, invoice = {}) => {
   const doc = new PDFDocument({ margin: 40, size: "A4" });
@@ -70,79 +93,78 @@ export const generateInvoicePdfDoc = (res, invoice = {}) => {
 
   // Palette
   const darkNavy = "#0F172A";
+  const headerBlue = "#4378F0";
   const gold = "#D4AF37";
-  const darkGold = "#9E7B1D";
   const charcoal = "#1E293B";
   const slate = "#475569";
   const lightGrey = "#F8FAFC";
   const borderGrey = "#CBD5E1";
 
-  // 1. Top Header Banner
-  doc.rect(40, 35, 515, 52).fill(darkNavy);
+  // --- PAGE 1: Header, Company & Client Info, Items Table ---
+  doc.rect(40, 35, 75, 45).fill(darkNavy);
+  doc.fillColor(gold).fontSize(9).font("Helvetica-Bold").text("VELORA", 52, 53);
 
-  // Brand Name & Subtitle on Top Left Banner
-  doc.fillColor(gold).fontSize(16).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 52, 45);
-  doc.fillColor("#94A3B8").fontSize(7.5).font("Helvetica-Oblique").text("Bespoke Designs • Turnkey Interior Solutions", 52, 65);
+  doc.fillColor(darkNavy).fontSize(16).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 130, 48);
 
-  // TAX INVOICE & Original Badge on Top Right Banner
-  doc.fillColor("#FFFFFF").fontSize(14).font("Helvetica-Bold").text("TAX INVOICE", 410, 43, { align: "right" });
-  doc.fillColor("#F59E0B").fontSize(7.5).font("Helvetica-Bold").text("ORIGINAL FOR RECIPIENT", 410, 63, { align: "right" });
+  doc.fillColor(darkNavy).fontSize(12).font("Helvetica-Bold").text("TAX INVOICE", 410, 38, { align: "right" });
 
-  // Gold Accent Line
-  doc.strokeColor(gold).lineWidth(2).moveTo(40, 87).lineTo(555, 87).stroke();
+  doc.strokeColor(headerBlue).lineWidth(1).rect(370, 48, 185, 45).stroke();
+  doc.rect(370, 48, 185, 14).fill(headerBlue);
+  doc.fillColor("#FFFFFF").fontSize(7.5).font("Helvetica-Bold").text("Original For Recipient", 370, 52, { width: 185, align: "center" });
 
-  let startY = 97;
+  doc.fillColor(charcoal).fontSize(7.5).font("Helvetica").text("E-INVOICE NO:", 376, 68);
+  doc.font("Helvetica-Bold").text(invNum, 470, 68);
 
-  // Helper for drawing boxed sections with headers
+  doc.font("Helvetica").text("INVOICE DATE:", 376, 80);
+  const issueDateStr = new Date(invoice.issueDate || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  doc.font("Helvetica-Bold").text(issueDateStr, 470, 80);
+
+  let startY = 100;
+
   const drawSectionBox = (x, y, w, h, title) => {
-    doc.rect(x, y, w, 18).fill(darkNavy);
-    doc.fillColor("#FFFFFF").fontSize(8).font("Helvetica-Bold").text(title, x + 8, y + 5);
-    doc.strokeColor(borderGrey).lineWidth(0.75).rect(x, y + 18, w, h - 18).stroke();
+    doc.rect(x, y, w, 16).fill(headerBlue);
+    doc.fillColor("#FFFFFF").fontSize(8).font("Helvetica-Bold").text(title, x + 6, y + 4);
+    doc.strokeColor(borderGrey).lineWidth(0.75).rect(x, y + 16, w, h - 16).stroke();
   };
 
-  // 2. Section 1: INVOICE FROM vs INVOICE & PROJECT DETAILS
-  drawSectionBox(40, startY, 252, 85, "INVOICE FROM");
-  drawSectionBox(303, startY, 252, 85, "INVOICE & PROJECT DETAILS");
+  // Section 1: INVOICE FROM vs PROJECT INFORMATION
+  drawSectionBox(40, startY, 252, 80, "INVOICE FROM");
+  drawSectionBox(303, startY, 252, 80, "PROJECT INFORMATION");
 
-  // Invoice From Content
-  doc.fontSize(7.5).font("Helvetica-Bold").fillColor(charcoal);
-  doc.text("LEGAL NAME:", 48, startY + 25);
-  doc.font("Helvetica").text("VELORA LUXURY INTERIORS", 115, startY + 25);
+  doc.fontSize(7).font("Helvetica-Bold").fillColor(charcoal);
+  doc.text("LEGAL NAME:", 46, startY + 23);
+  doc.font("Helvetica").text("VELORA LUXURY INTERIORS", 115, startY + 23);
 
-  doc.font("Helvetica-Bold").text("GST NO:", 48, startY + 36);
-  doc.font("Helvetica").text("27CHCPS9945R1Z4", 115, startY + 36);
+  doc.font("Helvetica-Bold").text("GST NO:", 46, startY + 34);
+  doc.font("Helvetica").text("27CHCPS9945R1Z4", 115, startY + 34);
 
-  doc.font("Helvetica-Bold").text("PAN NO:", 48, startY + 47);
-  doc.font("Helvetica").text("CHCPS9945R", 115, startY + 47);
+  doc.font("Helvetica-Bold").text("PAN NO:", 46, startY + 45);
+  doc.font("Helvetica").text("CHCPS9945R", 115, startY + 45);
 
-  doc.font("Helvetica-Bold").text("EMAIL / PHONE:", 48, startY + 58);
-  doc.font("Helvetica").text("info@veloraluxury.com | 8055526603", 115, startY + 58);
+  doc.font("Helvetica-Bold").text("STATE:", 46, startY + 56);
+  doc.font("Helvetica").text("Maharashtra", 115, startY + 56);
 
-  doc.font("Helvetica-Bold").text("ADDRESS:", 48, startY + 69);
-  doc.font("Helvetica").text("Hinjawadi Wakad Chowk, Pune 411057", 115, startY + 69, { width: 170 });
+  doc.font("Helvetica-Bold").text("EMAIL:", 46, startY + 67);
+  doc.font("Helvetica").text("info@veloraluxury.com", 115, startY + 67);
 
-  // Invoice Details Content
+  doc.font("Helvetica-Bold").text("CONTACT NO:", 46, startY + 78);
+  doc.font("Helvetica").text("8055526603", 115, startY + 78);
+
+  // Project Info
   doc.font("Helvetica-Bold").fillColor(charcoal);
-  doc.text("INVOICE NO:", 311, startY + 25);
-  doc.font("Helvetica-Bold").fillColor(darkGold).text(invNum, 395, startY + 25);
+  doc.text("PROJECT NAME:", 308, startY + 23);
+  doc.font("Helvetica").text((invoice.projectName || invoice.clientName || "PREM SHUKLA").toUpperCase(), 385, startY + 23);
 
-  doc.font("Helvetica-Bold").fillColor(charcoal).text("INVOICE DATE:", 311, startY + 36);
-  const issueDateStr = new Date(invoice.issueDate || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-  doc.font("Helvetica").text(issueDateStr, 395, startY + 36);
+  doc.font("Helvetica-Bold").text("PROJECT (PID):", 308, startY + 34);
+  doc.font("Helvetica").text(invoice.projectNumber || "PRJ-2026-008", 385, startY + 34);
 
-  doc.font("Helvetica-Bold").text("PROJECT NAME:", 311, startY + 47);
-  doc.font("Helvetica").text((invoice.projectName || invoice.clientName || "PREM SHUKLA").toUpperCase(), 395, startY + 47, { width: 155 });
+  doc.font("Helvetica-Bold").text("PLACE OF SUPPLY:", 308, startY + 45);
+  doc.font("Helvetica").text("Maharashtra (27)", 385, startY + 45);
 
-  doc.font("Helvetica-Bold").text("PROJECT (PID):", 311, startY + 58);
-  doc.font("Helvetica").text(invoice.projectNumber || "PRJ-2026-008", 395, startY + 58);
-
-  doc.font("Helvetica-Bold").text("PLACE OF SUPPLY:", 311, startY + 69);
-  doc.font("Helvetica").text("Maharashtra (27)", 395, startY + 69);
-
-  // 3. Section 2: BILL TO vs SHIP TO
-  startY += 93;
-  drawSectionBox(40, startY, 252, 75, "DETAILS OF RECEIVER (BILL TO)");
-  drawSectionBox(303, startY, 252, 75, "DETAILS OF CONSIGNEE (SHIP TO)");
+  // Section 2: Bill To vs Ship To
+  startY += 90;
+  drawSectionBox(40, startY, 252, 75, "Details of Receiver (Bill to)");
+  drawSectionBox(303, startY, 252, 75, "Details of Consignee (Ship to)");
 
   const clientName = invoice.billTo?.name || invoice.clientName || "PREM SHUKLA";
   const clientPhone = invoice.billTo?.phone || invoice.clientPhone || "+91 78000 20496";
@@ -154,75 +176,81 @@ export const generateInvoicePdfDoc = (res, invoice = {}) => {
   const shipEmail = invoice.shipTo?.email || (invoice.sameAsBillTo ? clientEmail : "-");
   const shipAddr = invoice.shipTo?.address || (invoice.sameAsBillTo ? clientAddr : "-");
 
-  // Bill To Content
+  // Bill To
   doc.font("Helvetica-Bold").fillColor(charcoal);
-  doc.text("CLIENT NAME:", 48, startY + 25);
-  doc.font("Helvetica-Bold").text(clientName.toUpperCase(), 115, startY + 25, { width: 170 });
+  doc.text("CLIENT NAME:", 46, startY + 23);
+  doc.font("Helvetica-Bold").text(clientName.toUpperCase(), 115, startY + 23, { width: 170 });
 
-  doc.font("Helvetica-Bold").text("CONTACT NO:", 48, startY + 36);
-  doc.font("Helvetica").text(clientPhone, 115, startY + 36);
+  doc.font("Helvetica-Bold").text("CONTACT NO:", 46, startY + 34);
+  doc.font("Helvetica").text(clientPhone, 115, startY + 34);
 
-  doc.font("Helvetica-Bold").text("EMAIL:", 48, startY + 47);
-  doc.font("Helvetica").text(clientEmail, 115, startY + 47);
+  doc.font("Helvetica-Bold").text("ADDRESS:", 46, startY + 45);
+  doc.font("Helvetica").text(clientAddr, 115, startY + 45, { width: 170 });
 
-  doc.font("Helvetica-Bold").text("ADDRESS:", 48, startY + 58);
-  doc.font("Helvetica").text(clientAddr, 115, startY + 58, { width: 170 });
+  doc.font("Helvetica-Bold").text("EMAIL:", 46, startY + 62);
+  doc.font("Helvetica").text(clientEmail, 115, startY + 62);
 
-  // Ship To Content
+  doc.font("Helvetica-Bold").text("PIN CODE:", 46, startY + 73);
+  doc.font("Helvetica").text("411057", 115, startY + 73);
+
+  // Ship To
   doc.font("Helvetica-Bold").fillColor(charcoal);
-  doc.text("CLIENT NAME:", 311, startY + 25);
-  doc.font("Helvetica-Bold").text(shipName.toUpperCase(), 380, startY + 25, { width: 170 });
+  doc.text("CLIENT NAME:", 308, startY + 23);
+  doc.font("Helvetica-Bold").text(shipName.toUpperCase(), 380, startY + 23, { width: 170 });
 
-  doc.font("Helvetica-Bold").text("CONTACT NO:", 311, startY + 36);
-  doc.font("Helvetica").text(shipPhone, 380, startY + 36);
+  doc.font("Helvetica-Bold").text("CONTACT NO:", 308, startY + 34);
+  doc.font("Helvetica").text(shipPhone, 380, startY + 34);
 
-  doc.font("Helvetica-Bold").text("EMAIL:", 311, startY + 47);
-  doc.font("Helvetica").text(shipEmail, 380, startY + 47);
+  doc.font("Helvetica-Bold").text("ADDRESS:", 308, startY + 45);
+  doc.font("Helvetica").text(shipAddr, 380, startY + 45, { width: 170 });
 
-  doc.font("Helvetica-Bold").text("ADDRESS:", 311, startY + 58);
-  doc.font("Helvetica").text(shipAddr, 380, startY + 58, { width: 170 });
+  doc.font("Helvetica-Bold").text("EMAIL:", 308, startY + 62);
+  doc.font("Helvetica").text(shipEmail, 380, startY + 62);
 
-  // 4. Section 3: BOQ / INVOICE ITEMS TABLE
-  startY += 83;
+  doc.font("Helvetica-Bold").text("PIN CODE:", 308, startY + 73);
+  doc.font("Helvetica").text("411057", 380, startY + 73);
 
-  // Default Items if empty
+  // Items Table matching Image 2
+  startY += 85;
+
   const rawItems = (invoice.items && invoice.items.length > 0)
     ? invoice.items
     : [
-        { productName: "Queen Size Bed, With Cush", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 36000, total: 36000 },
-        { productName: "King Size Bed Hydrolic", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 64000, total: 64000 },
-        { productName: "Openable Wardrobe 1", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 55000, total: 55000 },
-        { productName: "Openable Wardrobe 2, Study", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 71400, total: 71400 },
-        { productName: "Openable Wardrobe 3, Study", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 40800, total: 40800 },
-        { productName: "Study Table", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 67200, total: 67200 },
-        { productName: "Side Table", hsnSac: "995476", quantity: 4, unit: "Unit", rate: 5500, total: 22000 },
-        { productName: "TV Unit & Console", hsnSac: "995476", quantity: 1, unit: "Unit", rate: 112400, total: 112400 }
+        { productName: "Queen Size Bed, With Cushion", uom: "30", quantity: 1, rate: 36000, total: 36000 },
+        { productName: "King Size Bed Hydrolic", uom: "45.5", quantity: 1, rate: 64000, total: 64000 },
+        { productName: "Openable Wardrobe 1", uom: "42.5", quantity: 1, rate: 55000, total: 55000 },
+        { productName: "Openable Wardrobe 2, Study Table", uom: "59.5, 2'", quantity: 1, rate: 71400, total: 71400 },
+        { productName: "Openable Wardrobe 3, Study Table", uom: "34", quantity: 1, rate: 40800, total: 40800 },
+        { productName: "Study Table", uom: "56", quantity: 1, rate: 67200, total: 67200 },
+        { productName: "Side Table", uom: "1.96", quantity: 4, rate: 5500, total: 22000 },
+        { productName: "Dressing", uom: "-", quantity: 3, rate: 21000, total: 63000 },
+        { productName: "Shoe Rack , With Side Sitting", uom: "12", quantity: 1, rate: 14400, total: 14400 },
+        { productName: "Dinning Table", uom: "-", quantity: 1, rate: 35000, total: 35000 }
       ];
 
   const renderTableHeader = (currY) => {
-    doc.rect(40, currY, 515, 18).fill(darkNavy);
-    doc.fillColor("#FFFFFF").fontSize(7.5).font("Helvetica-Bold");
-    doc.text("#", 45, currY + 5, { width: 20, align: "center" });
-    doc.text("Product / Scope Description", 70, currY + 5, { width: 175 });
-    doc.text("HSN/SAC", 250, currY + 5, { width: 45, align: "center" });
-    doc.text("Qty", 300, currY + 5, { width: 25, align: "center" });
-    doc.text("Unit", 330, currY + 5, { width: 30, align: "center" });
-    doc.text("Rate (Rs.)", 365, currY + 5, { width: 55, align: "right" });
-    doc.text("GST %", 425, currY + 5, { width: 35, align: "center" });
-    doc.text("Total (Rs.)", 465, currY + 5, { width: 80, align: "right" });
+    doc.rect(40, currY, 515, 18).fill(headerBlue);
+    doc.fillColor("#FFFFFF").fontSize(7).font("Helvetica-Bold");
+    doc.text("SL.NO", 42, currY + 5, { width: 30, align: "center" });
+    doc.text("PRODUCT/SERVICE NAME", 75, currY + 5, { width: 160 });
+    doc.text("HSN/SAC", 240, currY + 5, { width: 50, align: "center" });
+    doc.text("UOM", 295, currY + 5, { width: 35, align: "center" });
+    doc.text("QTY", 335, currY + 5, { width: 25, align: "center" });
+    doc.text("UNIT RATE", 365, currY + 5, { width: 55, align: "right" });
+    doc.text("TAX RATIO", 425, currY + 5, { width: 50, align: "center" });
+    doc.text("TAXABLE AMOUNT", 480, currY + 5, { width: 70, align: "right" });
   };
 
   renderTableHeader(startY);
   let tableY = startY + 18;
 
   rawItems.forEach((it, idx) => {
-    if (tableY > 710) {
+    if (tableY > 720) {
       doc.addPage();
-      // Re-render header bar on new page
-      doc.rect(40, 35, 515, 30).fill(darkNavy);
-      doc.fillColor(gold).fontSize(12).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 52, 43);
-      doc.fillColor("#FFFFFF").fontSize(10).font("Helvetica-Bold").text(`TAX INVOICE (${invNum}) - Contd.`, 390, 43, { align: "right" });
-      tableY = 75;
+      doc.rect(40, 35, 515, 25).fill(darkNavy);
+      doc.fillColor(gold).fontSize(11).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 50, 42);
+      doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold").text(`TAX INVOICE (${invNum}) - Contd.`, 390, 42, { align: "right" });
+      tableY = 65;
       renderTableHeader(tableY);
       tableY += 18;
     }
@@ -233,95 +261,120 @@ export const generateInvoicePdfDoc = (res, invoice = {}) => {
 
     const name = it.productName || it.description || "Turnkey Interior Component";
     const hsn = it.hsnSac || "995476";
+    const uom = it.uom || it.unit || "-";
     const qty = it.quantity || 1;
-    const unit = it.unit || "Unit";
     const rate = Number(it.rate) || 0;
-    const gstPct = Number(it.gstPercent) || 0;
     const total = Number(it.total) || (rate * qty);
 
-    doc.fillColor(charcoal).fontSize(7.5).font("Helvetica");
-    doc.text(String(idx + 1), 45, tableY + 4, { width: 20, align: "center" });
-    doc.font("Helvetica-Bold").text(name, 70, tableY + 4, { width: 175 });
-    doc.font("Helvetica").fillColor(slate).text(hsn, 250, tableY + 4, { width: 45, align: "center" });
-    doc.fillColor(charcoal).text(String(qty), 300, tableY + 4, { width: 25, align: "center" });
-    doc.text(unit, 330, tableY + 4, { width: 30, align: "center" });
+    doc.fillColor(charcoal).fontSize(7).font("Helvetica");
+    doc.text(String(idx + 1), 42, tableY + 4, { width: 30, align: "center" });
+    doc.font("Helvetica-Bold").text(name, 75, tableY + 4, { width: 160 });
+    doc.font("Helvetica").fillColor(slate).text(hsn, 240, tableY + 4, { width: 50, align: "center" });
+    doc.text(String(uom), 295, tableY + 4, { width: 35, align: "center" });
+    doc.fillColor(charcoal).text(String(qty), 335, tableY + 4, { width: 25, align: "center" });
     doc.text(`Rs. ${Math.round(rate).toLocaleString("en-IN")}`, 365, tableY + 4, { width: 55, align: "right" });
-    doc.text(`${gstPct}%`, 425, tableY + 4, { width: 35, align: "center" });
-    doc.font("Helvetica-Bold").text(`Rs. ${Math.round(total).toLocaleString("en-IN")}`, 465, tableY + 4, { width: 80, align: "right" });
+    doc.text("0%", 425, tableY + 4, { width: 50, align: "center" });
+    doc.font("Helvetica-Bold").text(`Rs. ${Math.round(total).toLocaleString("en-IN")}`, 480, tableY + 4, { width: 70, align: "right" });
 
     tableY += 16;
   });
 
-  // 5. Commercial Summary & Bank Details
-  if (tableY > 640) {
-    doc.addPage();
-    tableY = 50;
-  }
-
-  tableY += 10;
-
-  // Left Side: Bank Details Card
-  const bankCardY = tableY;
-  doc.rect(40, bankCardY, 260, 95).fill(lightGrey);
-  doc.strokeColor(borderGrey).lineWidth(0.75).rect(40, bankCardY, 260, 95).stroke();
-
-  doc.fillColor(darkNavy).fontSize(8.5).font("Helvetica-Bold").text("BANK DETAILS & PAYMENT TERMS", 50, bankCardY + 10);
-  doc.fillColor(charcoal).fontSize(7.5).font("Helvetica");
-  doc.text("Account Holder: VELORA LUXURY INTERIORS", 50, bankCardY + 26);
-  doc.text("Account Number: 50200073374185", 50, bankCardY + 38);
-  doc.text("Bank & Branch: HDFC Bank, Wakad Branch", 50, bankCardY + 50);
-  doc.text("IFSC Code: HDFC0000123", 50, bankCardY + 62);
-  doc.text("UPI ID: velora@hdfcbank", 50, bankCardY + 74);
-
-  // Right Side: Commercial Totals Summary
-  const totalsCardY = tableY;
   const grandTotal = Number(invoice.grandTotal) || rawItems.reduce((acc, i) => acc + (Number(i.total) || 0), 0) || 468800;
   const subtotal = Number(invoice.subtotal) || grandTotal;
-  const gstTotal = Number(invoice.gstTotal) || 0;
-  const paidAmount = Number(invoice.paidAmount) || 0;
-  const balanceDue = Number(invoice.balanceDue) || (grandTotal - paidAmount);
 
-  doc.rect(310, totalsCardY, 245, 95).fill("#F1F5F9");
-  doc.strokeColor(darkGold).lineWidth(1).rect(310, totalsCardY, 245, 95).stroke();
+  // Subtotal & Grand Total rows
+  doc.rect(40, tableY, 515, 16).fill("#FFFFFF");
+  doc.strokeColor(borderGrey).rect(40, tableY, 515, 16).stroke();
+  doc.fillColor(charcoal).fontSize(7.5).font("Helvetica-Bold").text("Sub Total Amount", 350, tableY + 4, { width: 125, align: "right" });
+  doc.text(`Rs. ${Math.round(subtotal).toLocaleString("en-IN")}`, 480, tableY + 4, { width: 70, align: "right" });
+  tableY += 16;
 
-  doc.fillColor(charcoal).fontSize(8).font("Helvetica");
-  doc.text("Sub Total (Excl. Tax):", 320, totalsCardY + 10);
-  doc.font("Helvetica-Bold").text(`Rs. ${Math.round(subtotal).toLocaleString("en-IN")}`, 440, totalsCardY + 10, { align: "right" });
+  doc.rect(40, tableY, 515, 18).fill(headerBlue);
+  doc.fillColor("#FFFFFF").fontSize(8).font("Helvetica-Bold").text("Grand Total Amount", 350, tableY + 5, { width: 125, align: "right" });
+  doc.text(`Rs. ${Math.round(grandTotal).toLocaleString("en-IN")}`, 480, tableY + 5, { width: 70, align: "right" });
+  tableY += 22;
 
-  doc.font("Helvetica").text("CGST (9%):", 320, totalsCardY + 24);
-  doc.font("Helvetica-Bold").text(`Rs. ${Math.round(gstTotal / 2).toLocaleString("en-IN")}`, 440, totalsCardY + 24, { align: "right" });
+  // Amount in Words
+  doc.strokeColor(borderGrey).rect(40, tableY, 515, 20).stroke();
+  doc.rect(40, tableY, 170, 20).fill("#E2E8F0");
+  doc.fillColor(charcoal).fontSize(7.5).font("Helvetica-Bold").text("Total Invoice Amount In Words", 46, tableY + 6);
+  doc.text(numberToWordsIN(grandTotal), 220, tableY + 6);
 
-  doc.font("Helvetica").text("SGST (9%):", 320, totalsCardY + 38);
-  doc.font("Helvetica-Bold").text(`Rs. ${Math.round(gstTotal / 2).toLocaleString("en-IN")}`, 440, totalsCardY + 38, { align: "right" });
+  // --- PAGE 2: Bank Details, Scan to Pay, Notes & Terms & Conditions ---
+  doc.addPage();
+  let p2Y = 40;
 
-  doc.strokeColor(borderGrey).lineWidth(0.5).moveTo(320, totalsCardY + 52).lineTo(545, totalsCardY + 52).stroke();
+  drawSectionBox(40, p2Y, 515, 75, "BANK DETAILS & PAYMENT INSTRUCTIONS");
+  doc.fontSize(7.5).font("Helvetica-Bold").fillColor(charcoal);
+  doc.text("Account Holder: VELORA LUXURY INTERIORS", 48, p2Y + 25);
+  doc.font("Helvetica").text("Account Number: 50200073374185", 48, p2Y + 37);
+  doc.text("IFSC: HDFC0000223 | Branch: WAKAD / PASHAN", 48, p2Y + 49);
+  doc.text("Account Type: Current Account", 48, p2Y + 61);
 
-  doc.rect(310, totalsCardY + 54, 245, 22).fill(darkNavy);
-  doc.fillColor(gold).fontSize(9.5).font("Helvetica-Bold").text("GRAND TOTAL:", 320, totalsCardY + 60);
-  doc.fillColor("#FFFFFF").fontSize(10).font("Helvetica-Bold").text(`Rs. ${Math.round(grandTotal).toLocaleString("en-IN")}`, 440, totalsCardY + 60, { align: "right" });
+  p2Y += 85;
+  doc.setFont("Helvetica-Bold").fontSize(9).text("Scan to pay", 40, p2Y);
+  doc.rect(40, p2Y + 8, 90, 75).stroke();
+  doc.fontSize(6.5).font("Helvetica").text("[ PhonePe / UPI QR Code ]", 45, p2Y + 45);
 
-  doc.fillColor(charcoal).fontSize(7.5).font("Helvetica");
-  doc.text("Amount Paid:", 320, totalsCardY + 80);
-  doc.font("Helvetica-Bold").text(`Rs. ${Math.round(paidAmount).toLocaleString("en-IN")}`, 380, totalsCardY + 80);
+  p2Y += 95;
+  drawSectionBox(40, p2Y, 515, 30, "Notes");
+  doc.fontSize(7).font("Helvetica").fillColor(charcoal).text("Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.", 48, p2Y + 22);
 
-  doc.font("Helvetica").text("Balance Due:", 440, totalsCardY + 80);
-  doc.font("Helvetica-Bold").fillColor(darkGold).text(`Rs. ${Math.round(balanceDue).toLocaleString("en-IN")}`, 485, totalsCardY + 80, { align: "right" });
+  p2Y += 38;
+  drawSectionBox(40, p2Y, 515, 500, "Terms & Conditions");
+  doc.fontSize(7.5).font("Helvetica-Bold").fillColor(charcoal).text("TERMS & CONDITIONS - For Interior Design & Turnkey Execution Services", 48, p2Y + 24);
 
-  // 6. Signatory & Footer
-  const footerY = totalsCardY + 108;
+  doc.fontSize(6.5).font("Helvetica").fillColor(slate);
+  let termY = p2Y + 38;
 
-  doc.fillColor(slate).fontSize(7).font("Helvetica-Bold").text("TERMS & CONDITIONS:", 40, footerY);
-  doc.font("Helvetica").fontSize(6.5).fillColor(slate);
-  doc.text("1. All items are turnkey supply and installation specifications.", 40, footerY + 10);
-  doc.text("2. Payment schedules strictly map to project sign-off milestones.", 40, footerY + 18);
-  doc.text("3. Subject to Pune, Maharashtra jurisdiction only.", 40, footerY + 26);
+  const printTerm = (title, body) => {
+    doc.font("Helvetica-Bold").text(title, 48, termY);
+    termY += 9;
+    doc.font("Helvetica");
+    const lines = doc.splitTextToSize(body, 500);
+    doc.text(lines, 48, termY);
+    termY += (lines.length * 7.5) + 5;
+  };
 
-  // Authorized Signatory Stamp Box Right
-  doc.strokeColor(borderGrey).rect(400, footerY, 155, 38).stroke();
-  doc.fillColor(darkNavy).fontSize(7.5).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 405, footerY + 5, { width: 145, align: "center" });
-  doc.fillColor(slate).fontSize(6.5).font("Helvetica-Oblique").text("Authorized Signatory Stamp", 405, footerY + 24, { width: 145, align: "center" });
+  printTerm("1. Scope of Work", "The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, furniture design, civil work, electrical work, false ceiling, modular furniture, décor assistance, site supervision, and turnkey execution as mutually agreed in the final quotation/work order.");
+  printTerm("2. Design Process", "1. Initial consultation. 2. Concept design and layout planning. 3. Material selection. 4. Final design approval. 5. Execution and site coordination. 6. Project handover.");
+  printTerm("3. Quotation & Pricing", "All quotations are valid for 15 days from issue date. Prices are based on current market rates.");
+  printTerm("4. Payment Terms", "10% Advance (Booking & Design Initiation), 40% (Before Production/Execution), 40% (During Execution Stage), 10% (Before Final Handover).");
+  printTerm("5. Project Timeline", "Timelines are estimated based on project scope & site conditions. Working days exclude Sundays and public holidays.");
+  printTerm("6. Client Responsibilities", "Provide timely approvals, ensure site accessibility, clear all dues as per payment schedule.");
+  printTerm("7. Material & Finishes", "Natural variations in wood, veneer, marble, laminates, fabric, stone are normal and not defects.");
+  printTerm("8. Warranty", "Modular Furniture & Interior Work Warranty - 5 years for manufacturing defects.");
 
-  doc.fontSize(7).fillColor("#94A3B8").font("Helvetica-Oblique").text("This is an electronically generated official Tax Invoice issued by Velora CRM ERP.", 40, footerY + 45, { align: "center" });
+  // --- PAGE 3: Terms Part 2, Signatures & Common Seal ---
+  doc.addPage();
+  doc.rect(40, 40, 515, 620).stroke();
+  termY = 55;
+
+  printTerm("9. Cancellation Policy", "Booking amount/design fees non-refundable. Charges for completed work/materials procured recoverable.");
+  printTerm("10. Ownership of Designs", "All drawings, concepts, renders, and designs remain intellectual property of VELORA LUXURY INTERIORS.");
+  printTerm("11. Photography & Portfolio Rights", "Company reserves right to photograph completed projects for portfolio/social media.");
+  printTerm("12. Limitation of Liability", "Company not liable for structural defects, existing site issues, external agency delays.");
+  printTerm("13. Force Majeure", "Company not responsible for delays caused by natural disasters, strikes, pandemic, supply disruptions.");
+  printTerm("14. Dispute Resolution", "Subject to jurisdiction of Pune, Maharashtra courts only.");
+  printTerm("15. Acceptance", "Approval of quotation/work order and payment of advance shall be considered acceptance of these T&C.");
+
+  termY += 15;
+  doc.fontSize(8).font("Helvetica").fillColor(charcoal);
+  doc.text("Client Signature: _______________________", 48, termY);
+  doc.text("Date: _________________", 260, termY);
+
+  termY += 25;
+  doc.font("Helvetica-Bold").text("Authorized Signatory", 48, termY);
+  doc.font("Helvetica-Bold").fillColor(darkNavy).text("VELORA LUXURY INTERIORS", 48, termY + 12);
+
+  const sealY = 675;
+  doc.rect(40, sealY, 515, 16).fill(headerBlue);
+  doc.fillColor("#FFFFFF").fontSize(8).font("Helvetica-Bold").text("VELORA LUXURY INTERIORS", 48, sealY + 4);
+
+  doc.strokeColor(borderGrey).rect(40, sealY + 16, 515, 60).stroke();
+  doc.fontSize(7.5).font("Helvetica-Bold").fillColor(slate).text("Authorised Common seal", 40, sealY + 62, { width: 515, align: "center" });
+
+  doc.fontSize(7).font("Helvetica").fillColor(slate).text("This is a computer generated invoice, Hence no signature is required.", 40, sealY + 84, { width: 515, align: "center" });
 
   doc.end();
 };

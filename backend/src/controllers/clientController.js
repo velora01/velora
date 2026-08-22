@@ -1,4 +1,5 @@
 import Client from "../models/Client.js";
+import BOQ from "../models/BOQ.js";
 import { logActivity } from "../services/auditService.js";
 
 const SEED_CLIENTS = [
@@ -135,6 +136,58 @@ export const getClients = async (req, res) => {
     const count = await Client.countDocuments();
     if (count === 0) {
       await Client.insertMany(SEED_CLIENTS);
+    }
+
+    // Auto-sync any BOQ clients into the Client collection
+    try {
+      const allBOQs = await BOQ.find();
+      for (const b of allBOQs) {
+        if (b.clientName) {
+          let existing = await Client.findOne({
+            $or: [
+              { name: b.clientName },
+              ...(b.clientPhone ? [{ phone: b.clientPhone }] : []),
+              ...(b.clientEmail ? [{ email: b.clientEmail }] : [])
+            ]
+          });
+
+          if (!existing) {
+            const cCount = await Client.countDocuments();
+            const cCode = `VEL-CL-${String(cCount + 1001)}`;
+            await Client.create({
+              clientId: cCode,
+              clientCode: cCode,
+              name: b.clientName,
+              phone: b.clientPhone || "9876543210",
+              email: b.clientEmail || `${b.clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}@client.velora.com`,
+              enquiryNo: b.enquiryNo || "",
+              status: "Active",
+              boqs: [b._id],
+              commercialSummary: {
+                subtotal: b.subtotal || Math.round((b.grandTotal || 0) / 1.18),
+                taxGst: b.gstTotal || Math.round((b.grandTotal || 0) - (b.grandTotal || 0) / 1.18),
+                grandTotal: b.grandTotal || 0,
+                paidAmount: 0,
+                balanceDue: b.grandTotal || 0
+              }
+            });
+          } else if (!existing.boqs.includes(b._id)) {
+            existing.boqs.push(b._id);
+            if (!existing.commercialSummary || !existing.commercialSummary.grandTotal) {
+              existing.commercialSummary = {
+                subtotal: b.subtotal || Math.round((b.grandTotal || 0) / 1.18),
+                taxGst: b.gstTotal || Math.round((b.grandTotal || 0) - (b.grandTotal || 0) / 1.18),
+                grandTotal: b.grandTotal || 0,
+                paidAmount: existing.commercialSummary?.paidAmount || 0,
+                balanceDue: b.grandTotal || 0
+              };
+            }
+            await existing.save();
+          }
+        }
+      }
+    } catch (syncErr) {
+      console.warn("BOQ client sync warning:", syncErr);
     }
 
     const { search = "", status = "", page = 1, limit = 10 } = req.query;

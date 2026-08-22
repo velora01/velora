@@ -244,34 +244,35 @@ export const generateClientSideInvoicePdf = (invoice) => {
   const subtotal = Number(invoice?.subtotal) || grandTotal;
   const gstTotal = Number(invoice?.gstTotal) || 0;
 
-  // Primary branding blue
-  const brandBlue = [67, 120, 240];
+  // Primary branding dark navy & gold
+  const brandDark = [15, 23, 42];
+  const brandGold = [212, 175, 55];
   const darkText = [30, 41, 59];
   const lightGrey = [248, 250, 252];
 
   // Header Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.setTextColor(30, 41, 59);
-  doc.text("NETTLE CREEK INTERIORS", 150, 45);
+  doc.setTextColor(15, 23, 42);
+  doc.text("VELORA LUXURY INTERIORS", 40, 45);
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100, 116, 139);
-  doc.text("Luxury Interior Design & Turnkey Solutions", 150, 58);
+  doc.text("Bespoke Designs • Turnkey Interior Solutions", 40, 58);
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(212, 175, 55);
   doc.text("TAX INVOICE", 440, 45);
 
   // Top Right Box: Original for Recipient / Invoice No / Date
   doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(67, 120, 240);
+  doc.setDrawColor(15, 23, 42);
   doc.setLineWidth(1);
   doc.rect(370, 55, 185, 45, "S");
 
-  doc.setFillColor(67, 120, 240);
+  doc.setFillColor(15, 23, 42);
   doc.rect(370, 55, 185, 15, "F");
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
@@ -291,7 +292,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
 
   // INVOICE FROM vs PROJECT INFORMATION Table Header
   let startY = 110;
-  doc.setFillColor(...brandBlue);
+  doc.setFillColor(...brandDark);
   doc.rect(40, startY, 255, 18, "F");
   doc.rect(300, startY, 255, 18, "F");
 
@@ -314,17 +315,17 @@ export const generateClientSideInvoicePdf = (invoice) => {
   // Invoice From data
   doc.text("LEGAL NAME:", 46, startY + 30);
   doc.setFont("helvetica", "bold");
-  doc.text("NETTLE CREEK INTERIORS", 115, startY + 30);
+  doc.text("VELORA LUXURY INTERIORS", 115, startY + 30);
 
   doc.setFont("helvetica", "normal");
   doc.text("GST NO:", 46, startY + 42);
   doc.text("27CHCPS9945R1Z4", 115, startY + 42);
 
   doc.text("STATE:", 46, startY + 54);
-  doc.text("Maharashtra", 115, startY + 54);
+  doc.text("Maharashtra (27)", 115, startY + 54);
 
   doc.text("EMAIL:", 46, startY + 66);
-  doc.text("writeous@nettlecreekinteriors.com", 115, startY + 66);
+  doc.text("info@veloraluxury.com", 115, startY + 66);
 
   doc.text("CONTACT NO:", 46, startY + 78);
   doc.text("8055526603", 115, startY + 78);
@@ -483,7 +484,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
   doc.text("BANK DETAILS:", 40, finalY + 14);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text("Account Holder: NETTLE CREEK INTERIORS", 40, finalY + 26);
+  doc.text("Account Holder: VELORA LUXURY INTERIORS", 40, finalY + 26);
   doc.text("Account Number: 50200073374185", 40, finalY + 37);
   doc.text("Bank: HDFC Bank, Wakad Branch | IFSC: HDFC0000123", 40, finalY + 48);
 
@@ -498,7 +499,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
   // Footer note
   doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
-  doc.text("This is an electronically generated Tax Invoice by Nettle Creek Interiors / Velora ERP.", 297.5, 815, { align: "center" });
+  doc.text("This is an electronically generated Tax Invoice by Velora Luxury Interiors ERP.", 297.5, 815, { align: "center" });
 
   doc.save(`${invNum}.pdf`);
 };

@@ -2,7 +2,7 @@ import Invoice from "../models/Invoice.js";
 import Quotation from "../models/Quotation.js";
 import Client from "../models/Client.js";
 import { logActivity } from "../services/auditService.js";
-import { generatePdfDoc } from "../services/exportService.js";
+import { generatePdfDoc, generateInvoicePdfDoc } from "../services/exportService.js";
 
 const SEED_INVOICES = [
   {
@@ -451,21 +451,7 @@ export const exportInvoicePdf = async (req, res) => {
       invoice = SEED_INVOICES.find((inv) => inv.invoiceNumber === req.params.id) || SEED_INVOICES[0];
     }
 
-    const lines = [
-      `Invoice Number: ${invoice.invoiceNumber || "N/A"}`,
-      `Project Name: ${invoice.projectName || invoice.clientName || "N/A"}`,
-      `Client Name: ${invoice.clientName || "N/A"}`,
-      `Status: ${invoice.status || "Pending"}`,
-      `Issue Date: ${new Date(invoice.issueDate || Date.now()).toLocaleDateString("en-IN")}`,
-      `------------------------------------------`,
-      `Subtotal: ₹${(invoice.subtotal || 0).toLocaleString("en-IN")}`,
-      `GST Amount: ₹${(invoice.gstTotal || 0).toLocaleString("en-IN")}`,
-      `Grand Total: ₹${(invoice.grandTotal || 0).toLocaleString("en-IN")}`,
-      `Amount Paid: ₹${(invoice.paidAmount || 0).toLocaleString("en-IN")}`,
-      `Balance Due: ₹${(invoice.balanceDue || 0).toLocaleString("en-IN")}`
-    ];
-
-    generatePdfDoc(res, `Tax Invoice (${invoice.invoiceNumber || "Invoice"})`, lines);
+    generateInvoicePdfDoc(res, invoice);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

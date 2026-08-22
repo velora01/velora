@@ -36,6 +36,7 @@ import { downloadBOQPdf, downloadInvoicePdf } from "../utils/downloadHelper";
 export default function Clients() {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
+  const [allBOQs, setAllBOQs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -127,12 +128,52 @@ export default function Clients() {
   const loadClients = async () => {
     setLoading(true);
     try {
-      const res = await erpApi.getClients({ search, status: statusFilter });
-      if (res?.data) {
-        setClients(res.data);
-      }
+      const [resClients, resBOQs] = await Promise.all([
+        erpApi.getClients({ search, status: statusFilter }),
+        erpApi.getBOQs({ limit: 100 }).catch(() => ({ data: [] }))
+      ]);
+
+      const boqList = resBOQs?.data || [];
+      setAllBOQs(boqList);
+
+      let clientList = resClients?.data || [];
+
+      // Ensure all clients present in BOQs exist in the clients table
+      boqList.forEach((b, idx) => {
+        if (b.clientName) {
+          const match = clientList.find(
+            (c) =>
+              c.name?.toLowerCase() === b.clientName?.toLowerCase() ||
+              (b.clientPhone && c.phone === b.clientPhone)
+          );
+          if (!match) {
+            clientList.push({
+              _id: b._id || `boq-cl-${idx}`,
+              clientCode: `VEL-CL-${1010 + idx}`,
+              name: b.clientName,
+              phone: b.clientPhone || "89482 74553",
+              email: b.clientEmail || `${b.clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}@example.com`,
+              city: "Pune",
+              address: b.clientAddress || "Baner / Koregaon Park, Pune",
+              status: "Active",
+              projectType: `${b.numberOfSpaces || 5}BHK Luxury Residence`,
+              budgetRange: b.grandTotal > 5000000 ? "₹60L - ₹90L" : "₹25L - ₹40L",
+              commercialSummary: {
+                grandTotal: b.grandTotal || 0,
+                subtotal: b.subtotal || Math.round((b.grandTotal || 0) / 1.18),
+                taxGst: b.gstTotal || Math.round((b.grandTotal || 0) * 0.18 / 1.18),
+                paidAmount: 0,
+                balanceDue: b.grandTotal || 0
+              },
+              boqs: [b]
+            });
+          }
+        }
+      });
+
+      setClients(clientList);
     } catch (err) {
-      console.error("Failed to load clients:", err);
+      console.error("Failed to load clients & BOQs:", err);
     } finally {
       setLoading(false);
     }
@@ -757,43 +798,121 @@ export default function Clients() {
             )}
 
             {/* 3. BOQ & PRODUCTS TAB */}
-            {activeClientTab === "boq" && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-xs text-stone-900">Configured BOQ Products</span>
-                  <button
-                    onClick={() => {
-                      navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
-                    }}
-                    className="flex items-center gap-1 text-[11px] font-bold text-[#9E7B1D] hover:underline"
-                  >
-                    <span>Open in BOQ Editor</span>
-                    <ArrowRight size={12} />
-                  </button>
-                </div>
+            {activeClientTab === "boq" && (() => {
+              const clientBOQ = allBOQs.find((b) => b.clientName?.toLowerCase() === selectedClient.name?.toLowerCase()) || (selectedClient.boqs && selectedClient.boqs[0]);
+              const sampleProducts = getClientSampleProducts(selectedClient);
 
-                <div className="space-y-2">
-                  {getClientSampleProducts(selectedClient).map((p, idx) => (
-                    <div key={idx} className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between gap-3 shadow-2xs">
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-stone-900 text-xs block">{p.name}</span>
-                        <span className="text-[10px] text-stone-400 font-medium">
-                          {p.category} • Size: {p.dimensions} • Qty: {p.qty} {p.unit}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-mono font-bold text-stone-900 text-xs block">
-                          ₹{p.total.toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[10px] text-stone-400 font-mono">
-                          @ ₹{p.rate.toLocaleString("en-IN")}
-                        </span>
-                      </div>
+              return (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-[#FAF9F5] p-3 rounded-2xl border border-amber-200">
+                    <div>
+                      <span className="font-extrabold text-xs text-stone-900 block">
+                        {clientBOQ ? `${clientBOQ.boqNumber || "BOQ-2026-018"} • ${clientBOQ.activePackage || "Standard"} Specification` : "Configured BOQ Products"}
+                      </span>
+                      <span className="text-[10px] text-stone-500 font-medium">
+                        Total Estimate: <b className="font-mono text-stone-900">₹{((clientBOQ?.grandTotal) || (selectedClient.name?.includes("PREM") ? 468800 : 525000)).toLocaleString("en-IN")}</b>
+                      </span>
                     </div>
-                  ))}
+
+                    <div className="flex items-center gap-1.5">
+                      {clientBOQ && (
+                        <button
+                          onClick={() => downloadBOQPdf(clientBOQ)}
+                          className="px-2.5 py-1 bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                        >
+                          <Download size={11} />
+                          <span>PDF</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          navigate("/invoices", {
+                            state: {
+                              createFromBOQ: true,
+                              boqData: clientBOQ || {
+                                clientName: selectedClient.name,
+                                clientPhone: selectedClient.phone,
+                                clientEmail: selectedClient.email,
+                                grandTotal: selectedClient.commercialSummary?.grandTotal || 468800
+                              }
+                            }
+                          });
+                        }}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                      >
+                        <Sparkles size={11} className="text-amber-300 fill-amber-300" />
+                        <span>Auto Invoice</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
+                        }}
+                        className="flex items-center gap-1 text-[11px] font-bold text-[#9E7B1D] hover:underline cursor-pointer pl-1"
+                      >
+                        <span>BOQ Editor</span>
+                        <ArrowRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Spaces / Products List */}
+                  {clientBOQ && clientBOQ.spaces && clientBOQ.spaces.length > 0 ? (
+                    <div className="space-y-3">
+                      {clientBOQ.spaces.map((sp, sIdx) => (
+                        <div key={sIdx} className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
+                          <div className="px-3.5 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+                            <span className="font-bold text-stone-900 text-xs">{sp.name}</span>
+                            <span className="font-mono font-bold text-xs text-[#9E7B1D]">
+                              ₹{(sp.roomTotal || 0).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          {sp.items && sp.items.length > 0 ? (
+                            <div className="divide-y divide-stone-100 p-2 space-y-1">
+                              {sp.items.map((it, iIdx) => (
+                                <div key={iIdx} className="flex items-center justify-between p-1.5 text-xs">
+                                  <div>
+                                    <span className="font-bold text-stone-900 block">{it.name}</span>
+                                    <span className="text-[10px] text-stone-400">
+                                      {it.packageVariant || "Standard"} • {it.lengthFt ? `${it.lengthFt}ft × ${it.heightFt || 1}ft` : "Custom"} • Qty: {it.qty || 1}
+                                    </span>
+                                  </div>
+                                  <span className="font-mono font-bold text-stone-900">
+                                    ₹{(it.amount || (it.rate * (it.qty || 1))).toLocaleString("en-IN")}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-2 text-stone-400 text-[11px] italic">Turnkey space fitout included</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {sampleProducts.map((p, idx) => (
+                        <div key={idx} className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between gap-3 shadow-2xs">
+                          <div className="space-y-0.5">
+                            <span className="font-bold text-stone-900 text-xs block">{p.name}</span>
+                            <span className="text-[10px] text-stone-400 font-medium">
+                              {p.category} • Size: {p.dimensions} • Qty: {p.qty} {p.unit}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-mono font-bold text-stone-900 text-xs block">
+                              ₹{p.total.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-[10px] text-stone-400 font-mono">
+                              @ ₹{p.rate.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* 4. PRICING & COMMERCIALS TAB */}
             {activeClientTab === "pricing" && (
@@ -848,28 +967,64 @@ export default function Clients() {
                   </button>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between">
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <span className="font-bold font-mono text-xs text-stone-900 block">
-                      {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
-                    </span>
-                    <span className="text-[10px] text-stone-400">
-                      Issued: {new Date().toLocaleDateString("en-IN")} • Supply / Turnkey
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold font-mono text-xs text-stone-900 block">
+                        {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
+                      </span>
+                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
+                        Issued
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                      Issued: {new Date().toLocaleDateString("en-IN")} • Velora Turnkey Interior Execution
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs text-stone-900">
-                      ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right mr-2">
+                      <span className="text-[10px] text-stone-400 font-medium block">Grand Total</span>
+                      <span className="font-mono font-bold text-sm text-stone-900">
+                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
                     <button
                       onClick={() => {
-                        navigate("/invoices", { state: { openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001" } });
+                        navigate("/invoices", {
+                          state: {
+                            openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"
+                          }
+                        });
                       }}
-                      className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
-                      title="Open Invoice View"
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                      title="Preview Tax Invoice Template"
                     >
                       <Eye size={14} />
+                      <span>Preview</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
+                        const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                        downloadInvoicePdf({
+                          invoiceNumber: invNum,
+                          clientName: selectedClient.name,
+                          clientPhone: selectedClient.phone,
+                          clientEmail: selectedClient.email,
+                          clientAddress: selectedClient.address,
+                          projectName: `${selectedClient.name} Residence`,
+                          grandTotal: totalAmt,
+                          subtotal: totalAmt
+                        });
+                      }}
+                      className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                      title="Download Luxury Tax Invoice PDF"
+                    >
+                      <Download size={14} />
+                      <span>Download PDF</span>
                     </button>
                   </div>
                 </div>

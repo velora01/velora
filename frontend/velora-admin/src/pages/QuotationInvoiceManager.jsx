@@ -24,7 +24,18 @@ import {
   Send,
   User,
   ShieldCheck,
-  Check
+  Check,
+  FileSpreadsheet,
+  Sparkles,
+  Zap,
+  Home,
+  ExternalLink,
+  Copy,
+  MapPin,
+  Phone,
+  Mail,
+  SlidersHorizontal,
+  CheckCircle
 } from "lucide-react";
 import { downloadInvoicePdf, downloadBOQPdf } from "../utils/downloadHelper";
 
@@ -32,7 +43,7 @@ export default function QuotationInvoiceManager() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Primary active tabs: "invoices" | "quotations"
+  // Primary active tabs: "invoices" | "estimates" | "clients"
   const [activeTab, setActiveTab] = useState("invoices");
 
   // Invoice view modes: "list" | "edit"
@@ -43,6 +54,15 @@ export default function QuotationInvoiceManager() {
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
+
+  // BOQ Estimates / Quotations state
+  const [boqEstimates, setBoqEstimates] = useState([]);
+  const [loadingEstimates, setLoadingEstimates] = useState(false);
+  const [estimateSearch, setEstimateSearch] = useState("");
+  const [selectedDetailBOQ, setSelectedDetailBOQ] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [activeDetailSpaceIdx, setActiveDetailSpaceIdx] = useState(0);
+  const [clientsList, setClientsList] = useState([]);
 
   // PDF Viewer Modal State (Screenshot 2)
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
@@ -367,6 +387,159 @@ export default function QuotationInvoiceManager() {
   };
 
   // Load Quotations
+  // Load BOQ Estimates & Quotations
+  const loadBOQEstimates = async () => {
+    setLoadingEstimates(true);
+    try {
+      const res = await erpApi.getBOQs({ limit: 100 });
+      if (res?.data && res.data.length > 0) {
+        setBoqEstimates(res.data);
+      } else {
+        // Fallback standard BOQ list
+        setBoqEstimates([
+          {
+            _id: "boq18",
+            boqNumber: "BOQ-2026-018",
+            enquiryNo: "ENQ-2026-018",
+            enquiryDate: "2026-08-08",
+            clientName: "Rajeev Singhal",
+            clientEmail: "rajeev.s@example.com",
+            clientPhone: "89482 74553",
+            clientAddress: "Koregaon Park, Pune",
+            activePackage: "Standard",
+            numberOfSpaces: 10,
+            grandTotal: 3964567,
+            status: "Draft",
+            spaces: [
+              {
+                name: "Entrance",
+                roomTotal: 75813,
+                items: [
+                  { name: "Shoe Rack", packageVariant: "Standard", typeVariant: "Box Standard", lengthFt: 1, lengthIn: 6, heightFt: 9, heightIn: 3, qty: 1, sqft: 13.875, rate: 1500, amount: 20813, description: "Providing of size (4ft x 3ft) shoe rack" },
+                  { name: "Entrance Safety Door", packageVariant: "Standard", typeVariant: "Frame Standard", lengthFt: 1, lengthIn: 0, heightFt: 1, heightIn: 0, qty: 1, sqft: 1, rate: 40000, amount: 40000, description: "Entrance safety grill door" },
+                  { name: "Smart Lock", packageVariant: "Standard", typeVariant: "Box Standard", lengthFt: 1, lengthIn: 0, heightFt: 1, heightIn: 0, qty: 1, sqft: 1, rate: 15000, amount: 15000, description: "Digital biometric lock" }
+                ]
+              },
+              { name: "PUJA ROOM", roomTotal: 85000, items: [] },
+              { name: "Living Room", roomTotal: 420000, items: [] },
+              { name: "Modular Kitchen", roomTotal: 650000, items: [] },
+              { name: "Dining Area", roomTotal: 120000, items: [] },
+              { name: "Master Bedroom", roomTotal: 580000, items: [] },
+              { name: "Kids Bedroom", roomTotal: 340000, items: [] },
+              { name: "Parents Bedroom", roomTotal: 310000, items: [] },
+              { name: "Guest Bedroom", roomTotal: 250000, items: [] }
+            ]
+          },
+          {
+            _id: "boq17",
+            boqNumber: "BOQ-2026-017",
+            enquiryNo: "ENQ-2026-017",
+            enquiryDate: "2026-07-11",
+            clientName: "Rasid sir",
+            clientEmail: "rasid@example.com",
+            clientPhone: "84128 52592",
+            clientAddress: "Bafana Complex, Wakad, Pune",
+            activePackage: "Standard",
+            numberOfSpaces: 1,
+            grandTotal: 185000,
+            status: "Draft",
+            spaces: [{ name: "Showroom Front", roomTotal: 185000, items: [{ name: "Display Counters", qty: 1, sqft: 1, rate: 185000, amount: 185000 }] }]
+          },
+          {
+            _id: "boq16",
+            boqNumber: "BOQ-2026-016",
+            enquiryNo: "ENQ-2026-016",
+            enquiryDate: "2026-06-21",
+            clientName: "Meenakshi Krishnani",
+            clientEmail: "meenakshi@example.com",
+            clientPhone: "91671 35606",
+            clientAddress: "Bandra West, Mumbai",
+            activePackage: "Premium",
+            numberOfSpaces: 5,
+            grandTotal: 1450000,
+            status: "Approved",
+            spaces: []
+          },
+          {
+            _id: "boq13",
+            boqNumber: "BOQ-2026-013",
+            enquiryNo: "ENQ-2026-013",
+            enquiryDate: "2026-08-13",
+            clientName: "PREM SHUKLA",
+            clientEmail: "PREMSHUKLA@GMAIL.COM",
+            clientPhone: "78000 20496",
+            clientAddress: "Baner, Pune",
+            activePackage: "Elite",
+            numberOfSpaces: 1,
+            grandTotal: 4500000,
+            status: "Invoiced",
+            spaces: []
+          },
+          {
+            _id: "boq14",
+            boqNumber: "BOQ-2026-014",
+            enquiryNo: "ENQ-2026-014",
+            enquiryDate: "2026-05-25",
+            clientName: "Akash Jain",
+            clientEmail: "akash.jain@example.com",
+            clientPhone: "89778 99643",
+            clientAddress: "Kalyani Nagar, Pune",
+            activePackage: "Elite",
+            numberOfSpaces: 8,
+            grandTotal: 2200000,
+            status: "Draft",
+            spaces: []
+          },
+          {
+            _id: "boq12",
+            boqNumber: "BOQ-2026-012",
+            enquiryNo: "ENQ-2026-012",
+            enquiryDate: "2026-05-19",
+            clientName: "Dr Saurabh",
+            clientEmail: "dr.saurabh@example.com",
+            clientPhone: "77090 19535",
+            clientAddress: "Aundh, Pune",
+            activePackage: "Standard",
+            numberOfSpaces: 2,
+            grandTotal: 850000,
+            status: "Draft",
+            spaces: []
+          },
+          {
+            _id: "boq11",
+            boqNumber: "BOQ-2026-011",
+            enquiryNo: "ENQ-2026-011",
+            enquiryDate: "2026-04-28",
+            clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
+            clientEmail: "contact@wiprolincraft.com",
+            clientPhone: "96323 00992",
+            clientAddress: "Electronic City, Bengaluru",
+            activePackage: "Elite",
+            numberOfSpaces: 1,
+            grandTotal: 12000000,
+            status: "Draft",
+            spaces: []
+          }
+        ]);
+      }
+    } catch (err) {
+      console.error("Error loading BOQ estimates:", err);
+    } finally {
+      setLoadingEstimates(false);
+    }
+  };
+
+  // Load Clients
+  const loadClients = async () => {
+    try {
+      const res = await erpApi.getClients({ limit: 100 });
+      if (res?.data) setClientsList(res.data);
+    } catch (err) {
+      console.error("Error loading clients:", err);
+    }
+  };
+
+  // Load Quotations
   const loadQuotations = async () => {
     try {
       const res = await erpApi.getQuotations({ search: quotationSearch });
@@ -378,12 +551,169 @@ export default function QuotationInvoiceManager() {
 
   useEffect(() => {
     loadInvoices();
+    loadBOQEstimates();
+    loadClients();
     loadQuotations();
   }, [invoiceSearch, quotationSearch]);
 
+  // Open PDF Viewer Modal
+  const handleOpenPdfViewer = (inv) => {
+    setPdfInvoice(inv || defaultInvoiceForm);
+    setIsPdfViewerOpen(true);
+  };
+
+  // Open Full Detail Modal for any BOQ / Client estimate
+  const handleOpenEstimateDetail = (boq) => {
+    setSelectedDetailBOQ(boq);
+    setActiveDetailSpaceIdx(0);
+    setIsDetailModalOpen(true);
+  };
+
+  // 1-Click Auto-Create Standard Tax Invoice from BOQ
+  const handleAutoCreateInvoiceFromBOQ = async (boq) => {
+    if (!boq) return;
+
+    // Extract line items from all spaces
+    const invoiceItems = [];
+    if (boq.spaces && boq.spaces.length > 0) {
+      boq.spaces.forEach((sp) => {
+        if (sp.items && sp.items.length > 0) {
+          sp.items.forEach((it) => {
+            const lStr = it.lengthFt ? `${it.lengthFt}ft ${it.lengthIn || 0}in` : "";
+            const hStr = it.heightFt ? `${it.heightFt}ft` : "";
+            const dims = lStr && hStr ? `${lStr} × ${hStr}` : it.customDimensions || "Standard";
+            invoiceItems.push({
+              productName: it.name || "Interior Component",
+              category: sp.name || "Interior",
+              dimensions: dims,
+              hsnSac: "995476",
+              quantity: Number(it.qty) || 1,
+              unit: String(it.sqft || "1"),
+              rate: Number(it.rate) || 0,
+              discount: 0,
+              gstPercent: 0,
+              gstAmount: 0,
+              total: it.amount || (Number(it.rate || 0) * Number(it.qty || 1))
+            });
+          });
+        } else if (sp.roomTotal > 0) {
+          invoiceItems.push({
+            productName: `${sp.name} Turnkey Scope & Fitout`,
+            category: sp.name,
+            dimensions: "Turnkey Scope",
+            hsnSac: "995476",
+            quantity: 1,
+            unit: "1",
+            rate: sp.roomTotal,
+            discount: 0,
+            gstPercent: 0,
+            gstAmount: 0,
+            total: sp.roomTotal
+          });
+        }
+      });
+    }
+
+    if (invoiceItems.length === 0) {
+      invoiceItems.push({
+        productName: `${boq.clientName} Turnkey Interior Execution`,
+        category: "Turnkey",
+        dimensions: "As per BOQ",
+        hsnSac: "995476",
+        quantity: 1,
+        unit: "1",
+        rate: boq.grandTotal || 100000,
+        discount: 0,
+        gstPercent: 0,
+        gstAmount: 0,
+        total: boq.grandTotal || 100000
+      });
+    }
+
+    const sub = boq.subtotal || Math.round((boq.grandTotal || 0) / 1.18);
+    const gst = boq.gstTotal || Math.round((boq.grandTotal || 0) - sub);
+    const grand = boq.grandTotal || 0;
+    const randomSuffix = Math.floor(100 + Math.random() * 900);
+    const invNum = `NCIA${randomSuffix}`;
+
+    const newInvoice = {
+      ...defaultInvoiceForm,
+      _id: null,
+      invoiceNumber: invNum,
+      projectName: `${boq.clientName} Residence`,
+      projectNumber: `PRJ-2026-${randomSuffix}`,
+      clientId: boq.clientId || `VEL-CL-${randomSuffix}`,
+      invoiceType: "Supply & Turnkey",
+      clientName: boq.clientName,
+      clientEmail: boq.clientEmail || "",
+      clientPhone: boq.clientPhone || "",
+      clientAddress: boq.clientAddress || "Baner, Pune, Maharashtra",
+      billTo: {
+        name: boq.clientName,
+        email: boq.clientEmail || "",
+        phone: boq.clientPhone || "",
+        gstin: "",
+        address: boq.clientAddress || "Baner, Pune, Maharashtra"
+      },
+      shipTo: {
+        name: boq.clientName,
+        email: boq.clientEmail || "",
+        phone: boq.clientPhone || "",
+        gstin: "",
+        address: boq.clientAddress || "Baner, Pune, Maharashtra"
+      },
+      sameAsBillTo: true,
+      items: invoiceItems,
+      subtotal: sub,
+      discountTotal: 0,
+      additionalCharges: {
+        installation: 0,
+        transportation: 0,
+        design: 0,
+        labour: 0,
+        other: 0,
+        totalCharges: 0
+      },
+      taxPercent: 0,
+      gstTotal: gst,
+      grandTotal: grand,
+      paidAmount: 0,
+      balanceDue: grand,
+      issueDate: new Date().toISOString().split("T")[0],
+      dueDate: "",
+      termsAndConditions:
+        "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% on material delivery or production clearance.\n3. Balance 10% on completion and final snag handover.",
+      bankDetails:
+        "Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
+    };
+
+    try {
+      const res = await erpApi.createInvoice(newInvoice);
+      if (res?.data) {
+        newInvoice._id = res.data._id;
+      }
+    } catch (err) {
+      console.warn("Backend create invoice fallback:", err);
+    }
+
+    setInvoices((prev) => [newInvoice, ...prev]);
+    setEditingInvoice(newInvoice);
+    setInvoiceViewMode("edit");
+    setActiveTab("invoices");
+    setIsDetailModalOpen(false);
+    setToastMsg(`Standard Tax Invoice ${invNum} automatically created for ${boq.clientName}!`);
+    setTimeout(() => setToastMsg(""), 3500);
+  };
+
   // Handle incoming routing from Client module or BOQ module
   useEffect(() => {
-    if (location.state?.createFromClient && location.state?.client) {
+    if (location.state?.openInvoice) {
+      const invNumStr = String(location.state.openInvoice);
+      const found = invoices.find((inv) => inv.invoiceNumber === invNumStr || inv._id === invNumStr);
+      setPdfInvoice(found || { ...defaultInvoiceForm, invoiceNumber: invNumStr });
+      setIsPdfViewerOpen(true);
+      setActiveTab("invoices");
+    } else if (location.state?.createFromClient && location.state?.client) {
       const c = location.state.client;
       const invNum = `VLA-INV-2026-${String(Math.floor(100 + Math.random() * 900))}`;
       setEditingInvoice({
@@ -667,6 +997,20 @@ export default function QuotationInvoiceManager() {
     );
   });
 
+  // Filtered estimates for search
+  const filteredEstimates = boqEstimates.filter((est) => {
+    if (!estimateSearch.trim()) return true;
+    const term = estimateSearch.toLowerCase();
+    return (
+      est.boqNumber?.toLowerCase().includes(term) ||
+      est.enquiryNo?.toLowerCase().includes(term) ||
+      est.clientName?.toLowerCase().includes(term) ||
+      est.clientPhone?.toLowerCase().includes(term) ||
+      est.clientEmail?.toLowerCase().includes(term) ||
+      est.activePackage?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="space-y-6 select-none">
       {/* Toast Notification */}
@@ -674,6 +1018,79 @@ export default function QuotationInvoiceManager() {
         <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Top Tab Switcher & Navigation Header */}
+      {invoiceViewMode === "list" && (
+        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("invoices")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                activeTab === "invoices"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-stone-600 hover:bg-stone-100"
+              }`}
+            >
+              <Receipt size={14} />
+              <span>Tax Invoices</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === "invoices" ? "bg-blue-800 text-white" : "bg-stone-200 text-stone-700"}`}>
+                {invoices.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("estimates")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                activeTab === "estimates"
+                  ? "bg-[#D4AF37] text-stone-950 shadow-xs"
+                  : "text-stone-600 hover:bg-stone-100"
+              }`}
+            >
+              <FileSpreadsheet size={14} />
+              <span>Client Estimates & Quotations (BOQ)</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === "estimates" ? "bg-amber-800 text-white" : "bg-stone-200 text-stone-700"}`}>
+                {boqEstimates.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("clients")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                activeTab === "clients"
+                  ? "bg-stone-900 text-white shadow-xs"
+                  : "text-stone-600 hover:bg-stone-100"
+              }`}
+            >
+              <User size={14} />
+              <span>All Clients Commercials</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === "clients" ? "bg-stone-700 text-white" : "bg-stone-200 text-stone-700"}`}>
+                {clientsList.length || boqEstimates.length}
+              </span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {activeTab === "estimates" && (
+              <button
+                onClick={() => navigate("/boq")}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF9F5] border border-amber-200 text-[#9E7B1D] hover:bg-amber-50 rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>New BOQ Estimate</span>
+              </button>
+            )}
+            {activeTab === "invoices" && (
+              <button
+                onClick={handleOpenNewInvoice}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <Plus size={13} />
+                <span>New Invoice</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -783,13 +1200,31 @@ export default function QuotationInvoiceManager() {
                           ₹{(inv.grandTotal || inv.balanceDue || 0).toLocaleString("en-IN")}
                         </td>
 
-                        {/* Action Column: Pencil Edit Icon & 3-Dots Menu */}
+                        {/* Action Column: Preview, Download, Edit & 3-Dots Menu */}
                         <td className="py-3 px-4 text-center">
                           <div className="relative inline-flex items-center justify-center gap-1.5">
-                            {/* Blue Pencil Edit Icon */}
+                            {/* Preview Eye Icon */}
+                            <button
+                              onClick={() => handleOpenPdfViewer(inv)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                              title="Preview Tax Invoice"
+                            >
+                              <Eye size={15} />
+                            </button>
+
+                            {/* Download PDF Icon */}
+                            <button
+                              onClick={() => downloadInvoicePdf(inv)}
+                              className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              title="Download Tax Invoice PDF"
+                            >
+                              <Download size={15} />
+                            </button>
+
+                            {/* Pencil Edit Icon */}
                             <button
                               onClick={() => handleOpenEdit(inv)}
-                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 text-stone-500 hover:bg-stone-100 rounded-lg transition cursor-pointer"
                               title="Edit Invoice"
                             >
                               <Edit2 size={15} />
@@ -1566,34 +2001,34 @@ export default function QuotationInvoiceManager() {
                   <div className="flex items-start justify-between gap-6 border-b border-stone-200 pb-4">
                     {/* Left: Brand Name & Logo */}
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-stone-900 rounded-xl flex items-center justify-center text-amber-400 font-black text-xs shadow-xs p-2 text-center leading-tight">
-                        NETTLE CREEK
+                      <div className="w-14 h-14 bg-stone-950 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400 font-black text-xs shadow-xs p-2 text-center leading-tight">
+                        VELORA
                       </div>
                       <div>
-                        <h1 className="text-xl font-black text-stone-900 tracking-tight">
-                          NETTLE CREEK INTERIORS
+                        <h1 className="text-xl font-black text-stone-900 tracking-tight flex items-center gap-2">
+                          <span>VELORA LUXURY INTERIORS</span>
                         </h1>
                         <span className="text-[10px] text-stone-500 font-medium block">
-                          Velora Antraal Luxury Turnkey Interior Design & Execution
+                          Bespoke Designs • Turnkey Interior Solutions
                         </span>
                       </div>
                     </div>
 
                     {/* Right: TAX INVOICE Title & E-Invoice Table */}
                     <div className="text-right space-y-2">
-                      <h2 className="text-lg font-black text-stone-900 tracking-wide">
+                      <h2 className="text-lg font-black text-amber-700 tracking-wide">
                         TAX INVOICE
                       </h2>
 
-                      <div className="border border-blue-600 text-left text-[11px] rounded overflow-hidden">
-                        <div className="bg-blue-600 text-white font-bold text-center py-0.5 text-[10px]">
+                      <div className="border border-stone-900 text-left text-[11px] rounded overflow-hidden">
+                        <div className="bg-stone-900 text-amber-400 font-bold text-center py-0.5 text-[10px]">
                           Original For Recipient
                         </div>
                         <div className="grid grid-cols-2 divide-x divide-stone-200 border-b border-stone-200">
                           <span className="px-2 py-1 text-stone-500 font-medium">
                             E-INVOICE NO
                           </span>
-                          <span className="px-2 py-1 font-bold text-stone-900">
+                          <span className="px-2 py-1 font-bold text-stone-900 font-mono">
                             {pdfInvoice.invoiceNumber || "NCIA003"}
                           </span>
                         </div>
@@ -1616,35 +2051,35 @@ export default function QuotationInvoiceManager() {
                   </div>
 
                   {/* 2-Column Info Table: INVOICE FROM vs PROJECT INFORMATION */}
-                  <div className="grid grid-cols-2 border border-blue-600 rounded overflow-hidden text-[10.5px]">
+                  <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
                     {/* INVOICE FROM */}
-                    <div className="border-r border-blue-600">
-                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                    <div className="border-r border-stone-900">
+                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
                         INVOICE FROM
                       </div>
                       <div className="p-3 space-y-1 text-stone-700">
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">LEGAL NAME</span>
                           <span className="col-span-2 font-bold text-stone-900">
-                            NETTLE CREEK INTERIORS
+                            VELORA LUXURY INTERIORS
                           </span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">GST NO</span>
-                          <span className="col-span-2">27CHCPS9945R1Z4</span>
+                          <span className="col-span-2 font-mono">27CHCPS9945R1Z4</span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">PAN NO</span>
-                          <span className="col-span-2">-</span>
+                          <span className="col-span-2 font-mono">CHCPS9945R</span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">STATE</span>
-                          <span className="col-span-2">Maharashtra</span>
+                          <span className="col-span-2">Maharashtra (27)</span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">EMAIL</span>
-                          <span className="col-span-2 text-blue-600">
-                            writeous@nettlecreekinteriors.com
+                          <span className="col-span-2 text-stone-900 font-medium">
+                            info@veloraluxury.com
                           </span>
                         </div>
                         <div className="grid grid-cols-3">
@@ -1654,7 +2089,7 @@ export default function QuotationInvoiceManager() {
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">ADDRESS</span>
                           <span className="col-span-2">
-                            BAFANA NIWAS, AUNDH HINJEWADI WAKAD CHOWK, WAKAD, PUNE 411057
+                            Hinjawadi Wakad Chowk, Wakad, Pune, Maharashtra 411057
                           </span>
                         </div>
                       </div>
@@ -1662,7 +2097,7 @@ export default function QuotationInvoiceManager() {
 
                     {/* PROJECT INFORMATION */}
                     <div>
-                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
                         PROJECT INFORMATION
                       </div>
                       <div className="p-3 space-y-1 text-stone-700">
@@ -1674,13 +2109,13 @@ export default function QuotationInvoiceManager() {
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">PROJECT (PID)</span>
-                          <span className="col-span-2 font-bold text-stone-900">
+                          <span className="col-span-2 font-bold text-stone-900 font-mono">
                             {pdfInvoice.projectNumber || "PRJ-2026-008"}
                           </span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">INVOICE TYPE</span>
-                          <span className="col-span-2">{pdfInvoice.invoiceType || "Supply"}</span>
+                          <span className="col-span-2">{pdfInvoice.invoiceType || "Supply & Turnkey"}</span>
                         </div>
                         <div className="grid grid-cols-3">
                           <span className="font-semibold text-stone-500">PLACE OF SUPPLY</span>
@@ -1691,10 +2126,10 @@ export default function QuotationInvoiceManager() {
                   </div>
 
                   {/* 2-Column Parties Table: Details of Receiver vs Consignee */}
-                  <div className="grid grid-cols-2 border border-blue-600 rounded overflow-hidden text-[10.5px]">
+                  <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
                     {/* Details of Receiver (Bill to) */}
-                    <div className="border-r border-blue-600">
-                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                    <div className="border-r border-stone-900">
+                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
                         Details of Receiver (Bill to)
                       </div>
                       <div className="p-3 space-y-1 text-stone-700">
@@ -1727,7 +2162,7 @@ export default function QuotationInvoiceManager() {
 
                     {/* Details of Consignee (Ship to) */}
                     <div>
-                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
                         Details of Consignee (Ship to)
                       </div>
                       <div className="p-3 space-y-1 text-stone-700">
@@ -1760,10 +2195,10 @@ export default function QuotationInvoiceManager() {
                   </div>
 
                   {/* Items Table */}
-                  <div className="border border-blue-600 rounded overflow-hidden">
+                  <div className="border border-stone-900 rounded overflow-hidden">
                     <table className="w-full text-left text-[11px] border-collapse">
                       <thead>
-                        <tr className="bg-blue-600 text-white font-bold">
+                        <tr className="bg-stone-900 text-amber-400 font-bold">
                           <th className="py-2 px-3">Product Name</th>
                           <th className="py-2 px-2 text-center">HSN/SAC</th>
                           <th className="py-2 px-2 text-center">Quantity</th>
@@ -1804,7 +2239,7 @@ export default function QuotationInvoiceManager() {
                       <span className="font-bold text-stone-900 block text-[11px]">
                         BANK DETAILS & PAYMENT INSTRUCTIONS
                       </span>
-                      <p>Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL</p>
+                      <p>Account Holder: VELORA LUXURY INTERIORS</p>
                       <p>Account Number: 50200073374185</p>
                       <p>Bank: HDFC Bank, Wakad Branch | IFSC: HDFC0000123</p>
                     </div>
@@ -1863,6 +2298,491 @@ export default function QuotationInvoiceManager() {
                 <Download size={14} />
                 <span>Download PDF</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. CLIENT ESTIMATES & QUOTATIONS (BOQ) VIEW TAB */}
+      {/* ========================================================================= */}
+      {activeTab === "estimates" && invoiceViewMode === "list" && (
+        <div className="space-y-5 animate-in fade-in">
+          {/* Top Control Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+            <div className="relative w-full max-w-sm">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                placeholder="Search estimates by Client, Phone, BOQ No..."
+                value={estimateSearch}
+                onChange={(e) => setEstimateSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-white border border-stone-300 rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-500 transition"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-stone-800">
+                {filteredEstimates.length} BOQ Estimates
+              </span>
+              <button
+                onClick={() => navigate("/boq")}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Create in BOQ Builder</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Estimates Data Table */}
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-stone-50/75 text-stone-600 font-bold border-b border-stone-200">
+                    <th className="py-3 px-4">BOQ / Enquiry No</th>
+                    <th className="py-3 px-4">Client Name & Details</th>
+                    <th className="py-3 px-4">Package Tier</th>
+                    <th className="py-3 px-4">Spaces Scope</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4 text-right">Estimate Total</th>
+                    <th className="py-3 px-4 text-center">Invoice Status</th>
+                    <th className="py-3 px-4 text-center">Quick Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 text-stone-700">
+                  {filteredEstimates.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-stone-400 font-medium">
+                        No estimates found matching "{estimateSearch}"
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredEstimates.map((est) => {
+                      const isElite = est.activePackage === "Elite";
+                      const isPrem = est.activePackage === "Premium";
+                      return (
+                        <tr
+                          key={est._id || est.boqNumber}
+                          className="hover:bg-amber-50/30 transition group"
+                        >
+                          {/* BOQ / Enquiry No */}
+                          <td className="py-3 px-4 font-mono font-bold text-stone-900">
+                            <div>
+                              <span className="block text-[#9E7B1D]">{est.boqNumber}</span>
+                              <span className="text-[10px] text-stone-400 font-normal">{est.enquiryNo}</span>
+                            </div>
+                          </td>
+
+                          {/* Client Name & Contact */}
+                          <td className="py-3 px-4">
+                            <div
+                              onClick={() => handleOpenEstimateDetail(est)}
+                              className="cursor-pointer group-hover:text-blue-600 transition"
+                            >
+                              <span className="font-extrabold text-stone-900 block group-hover:underline flex items-center gap-1.5">
+                                {est.clientName}
+                                <Eye size={12} className="opacity-0 group-hover:opacity-100 text-blue-500 transition" />
+                              </span>
+                              <span className="text-[10px] text-stone-500 font-medium block">
+                                {est.clientPhone} • {est.clientEmail || "Email N/A"}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Package Tier Badge */}
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                                isElite
+                                  ? "bg-amber-100 text-amber-900 border-amber-300"
+                                  : isPrem
+                                  ? "bg-purple-50 text-purple-800 border-purple-200"
+                                  : "bg-blue-50 text-blue-800 border-blue-200"
+                              }`}
+                            >
+                              {est.activePackage || "Standard"}
+                            </span>
+                          </td>
+
+                          {/* Spaces Scope */}
+                          <td className="py-3 px-4 font-medium text-stone-600">
+                            <div className="flex items-center gap-1.5">
+                              <Layers size={13} className="text-stone-400" />
+                              <span>{est.numberOfSpaces || (est.spaces?.length || 1)} Spaces</span>
+                            </div>
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-3 px-4 text-stone-500 text-[11px]">
+                            {est.enquiryDate
+                              ? new Date(est.enquiryDate).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric"
+                                })
+                              : "13 Aug, 2026"}
+                          </td>
+
+                          {/* Grand Total Amount */}
+                          <td className="py-3 px-4 text-right font-mono font-extrabold text-stone-900 text-xs">
+                            ₹{(est.grandTotal || 0).toLocaleString("en-IN")}
+                          </td>
+
+                          {/* Invoice Status */}
+                          <td className="py-3 px-4 text-center">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                est.status === "Invoiced" || est.clientName?.includes("PREM")
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                  : "bg-stone-100 text-stone-600 border border-stone-200"
+                              }`}
+                            >
+                              {est.status === "Invoiced" || est.clientName?.includes("PREM") ? "Invoiced" : "Ready to Invoice"}
+                            </span>
+                          </td>
+
+                          {/* Quick Actions */}
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* Open Details Button */}
+                              <button
+                                onClick={() => handleOpenEstimateDetail(est)}
+                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                                title="Open All Estimate Details"
+                              >
+                                <Eye size={15} />
+                              </button>
+
+                              {/* 1-Click Auto-Create Standard Invoice Button */}
+                              <button
+                                onClick={() => handleAutoCreateInvoiceFromBOQ(est)}
+                                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold text-[10px] rounded-lg shadow-xs transition cursor-pointer"
+                                title="Auto-Generate Standard Tax Invoice"
+                              >
+                                <Zap size={11} className="fill-amber-300 text-amber-300" />
+                                <span>Invoice</span>
+                              </button>
+
+                              {/* Download PDF Quotation */}
+                              <button
+                                onClick={() => downloadBOQPdf(est)}
+                                className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                                title="Download Official BOQ PDF"
+                              >
+                                <Download size={14} />
+                              </button>
+
+                              {/* Edit in BOQ Builder */}
+                              <button
+                                onClick={() => navigate("/boq", { state: { clientName: est.clientName, clientPhone: est.clientPhone } })}
+                                className="p-1.5 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                                title="Open in BOQ Editor"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. ALL CLIENTS DIRECTORY VIEW TAB */}
+      {/* ========================================================================= */}
+      {activeTab === "clients" && invoiceViewMode === "list" && (
+        <div className="space-y-5 animate-in fade-in">
+          {/* Header Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+            <div>
+              <h3 className="font-extrabold text-sm text-stone-900">Clients & Commercial Lifecycle</h3>
+              <p className="text-xs text-stone-500">Connected Enquiry &rarr; Client &rarr; BOQ Estimates &rarr; Tax Invoices</p>
+            </div>
+            <button
+              onClick={() => navigate("/clients")}
+              className="flex items-center gap-1.5 px-4 py-2 bg-stone-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-stone-800 transition cursor-pointer"
+            >
+              <User size={14} />
+              <span>Open Clients Management</span>
+            </button>
+          </div>
+
+          {/* Client Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(clientsList.length > 0 ? clientsList : boqEstimates).map((cl, idx) => {
+              const matchedBOQ = boqEstimates.find((b) => b.clientName === cl.name) || cl;
+              return (
+                <div key={cl._id || idx} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs space-y-4 hover:border-amber-300 transition">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-black text-sm text-stone-900">{cl.name || cl.clientName}</h4>
+                      <span className="text-[11px] text-stone-400 font-medium">
+                        {cl.phone || cl.clientPhone} • {cl.city || "Pune"}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                      {cl.clientCode || cl.boqNumber || `CL-100${idx + 1}`}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-stone-50 rounded-xl space-y-1.5 text-xs text-stone-600">
+                    <div className="flex justify-between">
+                      <span className="text-stone-400 font-medium">Project Scope:</span>
+                      <span className="font-bold text-stone-800">{cl.projectType || `${matchedBOQ.numberOfSpaces || 5} Spaces Fitout`}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-400 font-medium">Active BOQ Estimate:</span>
+                      <span className="font-mono font-bold text-[#9E7B1D]">
+                        ₹{(matchedBOQ.grandTotal || 468800).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+                    <button
+                      onClick={() => handleOpenEstimateDetail(matchedBOQ)}
+                      className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye size={13} />
+                      <span>View All Details</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleAutoCreateInvoiceFromBOQ(matchedBOQ)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                    >
+                      <Zap size={12} className="fill-amber-300 text-amber-300" />
+                      <span>Auto Invoice</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. ADVANCED ALL DETAILS MODAL FOR CLIENT & BOQ ESTIMATES */}
+      {/* ========================================================================= */}
+      {isDetailModalOpen && selectedDetailBOQ && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-amber-200/80 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-[#FAF9F5] border-b border-stone-200 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-[#9E7B1D]">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-base text-stone-900">
+                      {selectedDetailBOQ.clientName}
+                    </h3>
+                    <span className="font-mono text-xs font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                      {selectedDetailBOQ.boqNumber || "BOQ-2026-018"}
+                    </span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                      {selectedDetailBOQ.activePackage || "Standard"} Specification
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 font-medium mt-0.5">
+                    {selectedDetailBOQ.clientPhone} • {selectedDetailBOQ.clientEmail || "email@example.com"} • {selectedDetailBOQ.clientAddress || "Pune, Maharashtra"}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="p-2 text-stone-400 hover:text-stone-800 rounded-xl hover:bg-stone-100 transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-stone-800">
+              {/* Financial Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Specification Package</span>
+                  <span className="font-extrabold text-sm text-stone-900 block mt-0.5">
+                    {selectedDetailBOQ.activePackage || "Standard"} Tier
+                  </span>
+                </div>
+                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Number of Spaces</span>
+                  <span className="font-extrabold text-sm text-stone-900 block mt-0.5">
+                    {selectedDetailBOQ.spaces?.length || selectedDetailBOQ.numberOfSpaces || 1} Rooms
+                  </span>
+                </div>
+                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Applicable GST (18%)</span>
+                  <span className="font-mono font-extrabold text-sm text-stone-900 block mt-0.5">
+                    ₹{Math.round((selectedDetailBOQ.grandTotal || 0) * 0.18 / 1.18).toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="p-3 bg-[#0A1128] text-white rounded-xl shadow-xs">
+                  <span className="text-[10px] text-amber-300 font-bold uppercase block">Grand Total Estimate</span>
+                  <span className="font-mono font-black text-base block mt-0.5">
+                    ₹{(selectedDetailBOQ.grandTotal || 0).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Spaces Breakdown & Line Items */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                  <h4 className="font-extrabold text-sm text-stone-900 flex items-center gap-1.5">
+                    <Layers size={15} className="text-[#9E7B1D]" />
+                    <span>Space-by-Space Detailed Component Breakdown</span>
+                  </h4>
+                  <span className="text-xs text-stone-500 font-medium">
+                    Itemized bill of quantities with finishes & rates
+                  </span>
+                </div>
+
+                {/* Space Selector Tabs */}
+                {selectedDetailBOQ.spaces && selectedDetailBOQ.spaces.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
+                      {selectedDetailBOQ.spaces.map((sp, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setActiveDetailSpaceIdx(idx)}
+                          className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap text-xs transition cursor-pointer ${
+                            activeDetailSpaceIdx === idx
+                              ? "bg-stone-900 text-white shadow-xs"
+                              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                          }`}
+                        >
+                          <span>{sp.name}</span>
+                          <span className="ml-1.5 opacity-70 font-mono text-[10px]">
+                            ₹{(sp.roomTotal || 0).toLocaleString("en-IN")}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Active Space Table */}
+                    {(() => {
+                      const sp = selectedDetailBOQ.spaces[activeDetailSpaceIdx] || selectedDetailBOQ.spaces[0];
+                      const items = sp?.items && sp.items.length > 0 ? sp.items : [
+                        { name: `${sp?.name || "Room"} Full Scope Execution`, packageVariant: selectedDetailBOQ.activePackage, lengthFt: 1, heightFt: 1, qty: 1, sqft: 1, rate: sp?.roomTotal || 150000, amount: sp?.roomTotal || 150000, description: "Full turnkey woodwork, finishes and installation" }
+                      ];
+
+                      return (
+                        <div className="border border-stone-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                          <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+                            <span className="font-extrabold text-stone-900">{sp?.name} Components</span>
+                            <span className="font-mono font-bold text-[#9E7B1D]">Room Total: ₹{(sp?.roomTotal || 0).toLocaleString("en-IN")}</span>
+                          </div>
+
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-stone-50/50 text-stone-600 font-bold border-b border-stone-200">
+                                <th className="py-2.5 px-3">Item / Component</th>
+                                <th className="py-2.5 px-2">Type / Package</th>
+                                <th className="py-2.5 px-2 text-center">Dimensions</th>
+                                <th className="py-2.5 px-2 text-center">Qty</th>
+                                <th className="py-2.5 px-2 text-center">Sq.Ft</th>
+                                <th className="py-2.5 px-2 text-right">Rate (₹)</th>
+                                <th className="py-2.5 px-3 text-right">Amount (₹)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-stone-100 text-stone-700">
+                              {items.map((it, iIdx) => (
+                                <tr key={iIdx} className="hover:bg-stone-50/60">
+                                  <td className="py-2.5 px-3 font-semibold text-stone-900">
+                                    {it.name}
+                                    {it.description && <span className="block text-[10px] text-stone-400 font-normal">{it.description}</span>}
+                                  </td>
+                                  <td className="py-2.5 px-2 text-stone-600">{it.typeVariant || it.packageVariant || "Standard"}</td>
+                                  <td className="py-2.5 px-2 text-center font-mono text-[11px]">
+                                    {it.lengthFt ? `${it.lengthFt}ft × ${it.heightFt || 1}ft` : "Custom"}
+                                  </td>
+                                  <td className="py-2.5 px-2 text-center font-bold">{it.qty || 1}</td>
+                                  <td className="py-2.5 px-2 text-center font-mono">{it.sqft || 1}</td>
+                                  <td className="py-2.5 px-2 text-right font-mono font-medium">₹{(it.rate || 0).toLocaleString("en-IN")}</td>
+                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-stone-900">₹{(it.amount || 0).toLocaleString("en-IN")}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-stone-50 rounded-xl text-center text-stone-500">
+                    Turnkey execution scope configured for {selectedDetailBOQ.clientName}
+                  </div>
+                )}
+              </div>
+
+              {/* Milestone Terms */}
+              <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-2">
+                <span className="font-extrabold text-xs text-[#9E7B1D] block">Standard Turnkey Milestone Schedule</span>
+                <div className="grid grid-cols-3 gap-3 text-stone-700">
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-200">
+                    <span className="text-[10px] text-stone-400 font-bold block">1. BOOKING ADVANCE (50%)</span>
+                    <span className="font-mono font-bold text-stone-900 block mt-0.5">
+                      ₹{Math.round((selectedDetailBOQ.grandTotal || 0) * 0.5).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-200">
+                    <span className="text-[10px] text-stone-400 font-bold block">2. PRODUCTION CLEARANCE (40%)</span>
+                    <span className="font-mono font-bold text-stone-900 block mt-0.5">
+                      ₹{Math.round((selectedDetailBOQ.grandTotal || 0) * 0.4).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="p-2.5 bg-white rounded-xl border border-amber-200">
+                    <span className="text-[10px] text-stone-400 font-bold block">3. FINAL HANDOVER (10%)</span>
+                    <span className="font-mono font-bold text-stone-900 block mt-0.5">
+                      ₹{Math.round((selectedDetailBOQ.grandTotal || 0) * 0.1).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="px-6 py-4 bg-[#FAF9F5] border-t border-stone-200 flex items-center justify-between gap-3">
+              <button
+                onClick={() => downloadBOQPdf(selectedDetailBOQ)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-stone-300 text-stone-700 hover:bg-stone-100 rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                <Download size={14} />
+                <span>Download BOQ PDF</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    navigate("/boq", { state: { clientName: selectedDetailBOQ.clientName, clientPhone: selectedDetailBOQ.clientPhone } });
+                  }}
+                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  Edit in BOQ Builder
+                </button>
+
+                <button
+                  onClick={() => handleAutoCreateInvoiceFromBOQ(selectedDetailBOQ)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:opacity-95 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer"
+                >
+                  <Zap size={14} className="fill-amber-300 text-amber-300" />
+                  <span>⚡ Auto-Generate Standard Tax Invoice</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

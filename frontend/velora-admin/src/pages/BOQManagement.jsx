@@ -564,7 +564,7 @@ export default function BOQManagement() {
       grand += spaceSum;
       return { ...sp, roomTotal: spaceSum, items };
     });
-    
+
     return {
       ...updatedBOQ,
       spaces,
@@ -591,9 +591,6 @@ export default function BOQManagement() {
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     const targetSpace = updated.spaces[activeSpaceIdx];
     if (!targetSpace) return;
-
-    // if(targetSpace)return;
-
 
     if (customConfig) {
       targetSpace.items.push(customConfig);
@@ -647,7 +644,6 @@ export default function BOQManagement() {
         amount: rate,
         photos
       };
-
       targetSpace.items.push(newItem);
     }
 
@@ -655,7 +651,7 @@ export default function BOQManagement() {
     setActiveBOQ(recalculated);
     setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}`);
     setTimeout(() => setSuccessToast(""), 2000);
-    
+
   };
 
   // Change Item Package Variant dynamically (e.g. Standard -> Elite)
@@ -1543,8 +1539,8 @@ export default function BOQManagement() {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeCategory === cat
-                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                    : "text-stone-600 hover:text-stone-950"
+                  ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
+                  : "text-stone-600 hover:text-stone-950"
                   }`}
               >
                 {cat}
@@ -1644,8 +1640,8 @@ export default function BOQManagement() {
                 key={sIdx}
                 onClick={() => setActiveSpaceIdx(sIdx)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${isActive
-                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                    : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
+                  ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
+                  : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
                   }`}
               >
                 <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
@@ -2051,12 +2047,12 @@ export default function BOQManagement() {
                             value={item.packageVariant || "Standard"}
                             onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
                             className={`w-full h-7 px-1.5 border rounded text-[11px] font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
-                                ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
-                                : item.packageVariant === "Premium"
-                                  ? "bg-sky-50 text-sky-800 border-sky-300"
-                                  : item.packageVariant === "Custom"
-                                    ? "bg-purple-50 text-purple-800 border-purple-300"
-                                    : "bg-stone-50 text-stone-800 border-stone-300"
+                              ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
+                              : item.packageVariant === "Premium"
+                                ? "bg-sky-50 text-sky-800 border-sky-300"
+                                : item.packageVariant === "Custom"
+                                  ? "bg-purple-50 text-purple-800 border-purple-300"
+                                  : "bg-stone-50 text-stone-800 border-stone-300"
                               }`}
                           >
                             {itemVariants.map((v) => (
@@ -2191,8 +2187,8 @@ export default function BOQManagement() {
                                   : "Select/Upload Component Images"
                               }
                               className={`p-1 rounded-lg transition cursor-pointer relative ${item.photos?.length
-                                  ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
-                                  : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
+                                ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
+                                : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
                                 }`}
                             >
                               <ImageIcon size={14} />
@@ -2341,8 +2337,8 @@ export default function BOQManagement() {
                           }));
                         }}
                         className={`px-2 py-0.5 rounded-md font-semibold ${customMixState.dimSource === v
-                            ? "bg-[#D4AF37] text-stone-950"
-                            : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                          ? "bg-[#D4AF37] text-stone-950"
+                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                           }`}
                       >
                         {v}
@@ -2685,8 +2681,8 @@ export default function BOQManagement() {
                         key={idx}
                         onClick={() => handleToggleSelectPhoto(img)}
                         className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition shadow-2xs ${isSelected
-                            ? "border-[#D4AF37] ring-3 ring-amber-200"
-                            : "border-stone-200 hover:border-amber-300"
+                          ? "border-[#D4AF37] ring-3 ring-amber-200"
+                          : "border-stone-200 hover:border-amber-300"
                           }`}
                       >
                         <img src={img.url} alt={img.name || "Preview"} className="w-full h-full object-cover" />

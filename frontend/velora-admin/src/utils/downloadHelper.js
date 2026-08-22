@@ -197,9 +197,19 @@ export const downloadBOQPdf = async (boqOrId, customFilename) => {
   const id = typeof boqOrId === "object" ? (boqOrId?._id || boqOrId?.boqNumber) : boqOrId;
   const filename = customFilename || (typeof boqOrId === "object" ? `${boqOrId?.boqNumber || "Quotation"}.pdf` : `Quotation_${id}.pdf`);
 
+  // Instant client-side generation if full BOQ object is passed
+  if (typeof boqOrId === "object" && (boqOrId.clientName || boqOrId.spaces || boqOrId.boqNumber)) {
+    try {
+      generateClientSideBOQPdf(boqOrId);
+      return;
+    } catch (err) {
+      console.warn("Client side BOQ PDF error, trying backend:", err);
+    }
+  }
+
   // Try backend PDF endpoint with Blob
   try {
-    const token = localStorage.getItem("velora_token") || "";
+    const token = localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token") || "";
     const backendUrl = erpApi.exportBOQPdfUrl(id);
 
     const res = await fetch(backendUrl + (token ? `?token=${encodeURIComponent(token)}` : ""), {
@@ -352,7 +362,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
 
   // Details of Receiver (Bill to) vs Details of Consignee (Ship to)
   startY = startY + 105;
-  doc.setFillColor(...brandBlue);
+  doc.setFillColor(...brandDark);
   doc.rect(40, startY, 255, 18, "F");
   doc.rect(300, startY, 255, 18, "F");
 
@@ -424,7 +434,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
     body: tableRows,
     theme: "grid",
     headStyles: {
-      fillColor: [67, 120, 240],
+      fillColor: [15, 23, 42],
       textColor: [255, 255, 255],
       fontSize: 7.5,
       fontStyle: "bold"
@@ -446,7 +456,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
     }
   });
 
-  let finalY = doc.lastAutoTable.finalY + 15;
+  let finalY = (doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 15 : startY + 200);
   if (finalY > 670) {
     doc.addPage();
     finalY = 50;
@@ -455,7 +465,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
   // Commercial Summary block
   doc.setFillColor(248, 250, 252);
   doc.roundedRect(320, finalY, 235, 75, 4, 4, "F");
-  doc.setDrawColor(67, 120, 240);
+  doc.setDrawColor(15, 23, 42);
   doc.roundedRect(320, finalY, 235, 75, 4, 4, "S");
 
   doc.setFontSize(8);
@@ -466,8 +476,9 @@ export const generateClientSideInvoicePdf = (invoice) => {
   doc.text(`Rs. ${subtotal.toLocaleString("en-IN")}`, 540, finalY + 18, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.text("GST Total:", 330, finalY + 34);
-  doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, 540, finalY + 34, { align: "right" });
+  doc.text("GST Amount:", 330, finalY + 32);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, 540, finalY + 32, { align: "right" });
 
   doc.setFillColor(15, 23, 42);
   doc.rect(320, finalY + 46, 235, 29, "F");
@@ -511,8 +522,18 @@ export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
   const id = typeof invoiceOrId === "object" ? (invoiceOrId?._id || invoiceOrId?.invoiceNumber) : invoiceOrId;
   const filename = customFilename || (typeof invoiceOrId === "object" ? `${invoiceOrId?.invoiceNumber || "Invoice"}.pdf` : `Invoice_${id}.pdf`);
 
+  // Instant client-side download if full object is passed
+  if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber)) {
+    try {
+      generateClientSideInvoicePdf(invoiceOrId);
+      return;
+    } catch (err) {
+      console.warn("Client-side PDF generation fallback attempt:", err);
+    }
+  }
+
   try {
-    const token = localStorage.getItem("velora_token") || "";
+    const token = localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token") || "";
     const backendUrl = erpApi.exportInvoicePdfUrl(id);
 
     const res = await fetch(backendUrl + (token ? `?token=${encodeURIComponent(token)}` : ""), {
@@ -529,7 +550,7 @@ export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
     console.warn("Backend Invoice download failed, using client fallback:", err);
   }
 
-  const invData = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(id), clientName: "Valued Client", grandTotal: 1180000 };
+  const invData = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(id), clientName: "Valued Client", grandTotal: 468800 };
   generateClientSideInvoicePdf(invData);
 };
 

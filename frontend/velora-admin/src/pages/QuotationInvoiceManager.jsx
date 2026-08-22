@@ -762,10 +762,11 @@ export default function QuotationInvoiceManager() {
       setInvoiceViewMode("edit");
       setActiveTab("invoices");
     } else if (location.state?.openInvoice) {
-      const target = invoices.find((i) => i.invoiceNumber === location.state.openInvoice);
-      if (target) {
-        handleOpenEdit(target);
-      }
+      const invNumStr = String(location.state.openInvoice);
+      const target = invoices.find((i) => i.invoiceNumber === invNumStr || i._id === invNumStr) || defaultInvoiceForm;
+      setPdfInvoice(target);
+      setIsPdfViewerOpen(true);
+      setActiveTab("invoices");
     }
   }, [location.state, invoices]);
 

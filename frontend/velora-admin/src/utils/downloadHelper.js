@@ -142,6 +142,8 @@ export const generateClientSideBOQPdf = (boq) => {
     currentY = 50;
   }
 
+ 
+
   // Commercial Summary Card
   doc.setFillColor(250, 246, 237);
   doc.roundedRect(40, currentY, 515, 70, 6, 6, "F");

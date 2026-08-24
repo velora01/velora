@@ -733,7 +733,6 @@ export default function BOQManagement() {
       description: eliteDesc,
       selectedPhotos: candidatePhotos.slice(0, 1).map((p) => ({ url: p.url, caption: p.name || comp.name }))
     });
-
     setIsCustomMixModalOpen(true);
   };
 
@@ -746,6 +745,8 @@ export default function BOQManagement() {
         (customMixState.heightFt + customMixState.heightIn / 12) || 1
       ).toFixed(3)
     );
+
+
     const amount = Math.round(sqft * customMixState.rate * (customMixState.qty || 1));
 
     const mixedItem = {
@@ -767,6 +768,7 @@ export default function BOQManagement() {
 
     handleAddComponentToSpace(customMixComponent, mixedItem);
     setIsCustomMixModalOpen(false);
+    
   };
 
   // Open Image Picker Modal for an existing line item in active space

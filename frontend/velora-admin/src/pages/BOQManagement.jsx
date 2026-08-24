@@ -34,7 +34,8 @@ import {
   Loader2,
   FileText,
   Printer,
-  Camera
+  Camera,
+  Zap
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";

@@ -67,11 +67,13 @@ export default function QuotationInvoiceManager() {
   // PDF Viewer Modal State (Screenshot 2)
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
   const [pdfInvoice, setPdfInvoice] = useState(null);
+  const [pdfDocumentMode, setPdfDocumentMode] = useState("tax"); // "tax" | "boq"
   const [activePdfPage, setActivePdfPage] = useState(1);
 
   // Quotations state
   const [quotations, setQuotations] = useState([]);
   const [quotationSearch, setQuotationSearch] = useState("");
+
 
   // Toast Notification
   const [toastMsg, setToastMsg] = useState("");
@@ -1178,9 +1180,10 @@ export default function QuotationInvoiceManager() {
     }
   };
 
-  // Open PDF Viewer Modal (Screenshot 2)
-  const handleOpenPdfViewer = (inv) => {
+  // Open PDF Viewer Modal with explicit Mode ("tax" | "boq")
+  const handleOpenPdfViewer = (inv, mode = "tax") => {
     setPdfInvoice(inv || editingInvoice);
+    setPdfDocumentMode(mode);
     setActivePdfPage(1);
     setIsPdfViewerOpen(true);
   };
@@ -1416,34 +1419,45 @@ export default function QuotationInvoiceManager() {
                           ₹{(inv.grandTotal || inv.balanceDue || 0).toLocaleString("en-IN")}
                         </td>
 
-                        {/* Action Column: Preview, Download, Edit & 3-Dots Menu */}
+                        {/* Action Column: High Visibility Prominent Buttons for Tax & BOQ Options */}
                         <td className="py-3 px-4 text-center">
-                          <div className="relative inline-flex items-center justify-center gap-1.5">
-                            {/* Preview Eye Icon */}
+                          <div className="relative inline-flex items-center justify-center gap-1.5 flex-wrap">
+                            {/* Preview Tax Invoice Button */}
                             <button
-                              onClick={() => handleOpenPdfViewer(inv)}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                              title="Preview Tax Invoice"
+                              onClick={() => handleOpenPdfViewer(inv, "tax")}
+                              className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10.5px] rounded-lg border border-blue-200 transition cursor-pointer"
+                              title="Preview Official Tax Invoice Layout"
                             >
-                              <Eye size={15} />
+                              <Eye size={12} className="text-blue-600" />
+                              <span>Tax View</span>
                             </button>
 
-                            {/* Download PDF Icon */}
+                            {/* Preview BOQ Estimate Button */}
+                            <button
+                              onClick={() => handleOpenPdfViewer(inv, "boq")}
+                              className="flex items-center gap-1 px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[10.5px] rounded-lg border border-amber-300 transition cursor-pointer"
+                              title="Preview BOQ Estimate & Scope Breakdown"
+                            >
+                              <FileSpreadsheet size={12} className="text-[#9E7B1D]" />
+                              <span>BOQ View</span>
+                            </button>
+
+                            {/* Download PDF Button */}
                             <button
                               onClick={() => downloadInvoicePdf(inv)}
-                              className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              className="p-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg border border-stone-300 transition cursor-pointer"
                               title="Download Tax Invoice PDF"
                             >
-                              <Download size={15} />
+                              <Download size={13} />
                             </button>
 
                             {/* Pencil Edit Icon */}
                             <button
                               onClick={() => handleOpenEdit(inv)}
-                              className="p-1.5 text-stone-500 hover:bg-stone-100 rounded-lg transition cursor-pointer"
-                              title="Edit Invoice"
+                              className="p-1 text-stone-500 hover:bg-stone-100 rounded-lg border border-stone-200 transition cursor-pointer"
+                              title="Edit Invoice Details"
                             >
-                              <Edit2 size={15} />
+                              <Edit2 size={13} />
                             </button>
 
                             {/* 3-dots Menu Button */}
@@ -1453,44 +1467,80 @@ export default function QuotationInvoiceManager() {
                                   activeDropdownId === inv.invoiceNumber ? null : inv.invoiceNumber
                                 )
                               }
-                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                              title="More Options"
+                              className="p-1 text-stone-600 hover:bg-stone-100 rounded-lg border border-stone-200 transition cursor-pointer"
+                              title="All Commercial Options"
                             >
-                              <MoreVertical size={15} />
+                              <MoreVertical size={13} />
                             </button>
 
-                            {/* Dropdown Menu */}
+                            {/* Rich Dropdown Menu */}
                             {activeDropdownId === inv.invoiceNumber && (
                               <div
-                                className="absolute right-0 top-8 z-30 w-48 bg-white rounded-xl shadow-xl border border-stone-200 py-1 text-left animate-in fade-in zoom-in-95"
+                                className="absolute right-0 top-9 z-30 w-56 bg-white rounded-xl shadow-2xl border border-stone-200 py-1.5 text-left animate-in fade-in zoom-in-95"
                                 onMouseLeave={() => setActiveDropdownId(null)}
                               >
+                                <div className="px-3 py-1 bg-stone-50 border-b border-stone-100 text-[10px] font-black text-stone-400 uppercase tracking-wider">
+                                  Format & Viewing Options
+                                </div>
                                 <button
                                   onClick={() => {
                                     setActiveDropdownId(null);
-                                    handleOpenPdfViewer(inv);
+                                    handleOpenPdfViewer(inv, "tax");
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-50 transition cursor-pointer"
                                 >
-                                  <Eye size={13} className="text-blue-500" />
-                                  <span>Preview Invoice</span>
+                                  <div className="flex items-center gap-2">
+                                    <Receipt size={13} className="text-blue-600" />
+                                    <span>Preview Tax Invoice</span>
+                                  </div>
+                                  <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-mono">GST</span>
                                 </button>
+
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
+                                    handleOpenPdfViewer(inv, "boq");
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-50 transition cursor-pointer"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <FileSpreadsheet size={13} className="text-[#9E7B1D]" />
+                                    <span>Preview BOQ Estimate</span>
+                                  </div>
+                                  <span className="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-mono">SCOPE</span>
+                                </button>
+
+                                <div className="my-1 border-t border-stone-100" />
+
+                                <div className="px-3 py-1 bg-stone-50 border-b border-stone-100 text-[10px] font-black text-stone-400 uppercase tracking-wider">
+                                  Export & Downloads
+                                </div>
                                 <button
                                   onClick={() => {
                                     setActiveDropdownId(null);
                                     downloadInvoicePdf(inv);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                >
+                                  <Download size={13} className="text-blue-600" />
+                                  <span>Download Tax Invoice PDF</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
+                                    downloadBOQPdf(inv);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
                                 >
                                   <Download size={13} className="text-[#9E7B1D]" />
-                                  <span>Download PDF</span>
+                                  <span>Download BOQ Estimate PDF</span>
                                 </button>
                                 <button
                                   onClick={() => {
                                     setActiveDropdownId(null);
                                     exportInvoiceCsv(inv);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
                                 >
                                   <FileSpreadsheet size={13} className="text-emerald-600" />
                                   <span>Export Data (CSV)</span>
@@ -1500,17 +1550,30 @@ export default function QuotationInvoiceManager() {
                                     setActiveDropdownId(null);
                                     handlePrint();
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
                                 >
                                   <Printer size={13} className="text-stone-600" />
-                                  <span>Print Invoice</span>
+                                  <span>Print Document</span>
+                                </button>
+
+                                <div className="my-1 border-t border-stone-100" />
+
+                                <button
+                                  onClick={() => {
+                                    setActiveDropdownId(null);
+                                    handleOpenEdit(inv);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                                >
+                                  <Edit2 size={13} className="text-stone-500" />
+                                  <span>Edit Invoice Details</span>
                                 </button>
                                 <button
                                   onClick={() => {
                                     setActiveDropdownId(null);
                                     handleDeleteInvoice(inv._id, inv.invoiceNumber);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer"
                                 >
                                   <Trash2 size={13} />
                                   <span>Delete Invoice</span>
@@ -1587,10 +1650,21 @@ export default function QuotationInvoiceManager() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleOpenPdfViewer(editingInvoice)}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                onClick={() => handleOpenPdfViewer(editingInvoice, "tax")}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                title="Preview Official Tax Invoice PDF Format"
               >
-                Preview
+                <Receipt size={14} />
+                <span>Tax Invoice Preview</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenPdfViewer(editingInvoice, "boq")}
+                className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                title="Preview BOQ Estimate Scope PDF Format"
+              >
+                <FileSpreadsheet size={14} />
+                <span>BOQ Scope Preview</span>
               </button>
             </div>
           </div>
@@ -2181,27 +2255,37 @@ export default function QuotationInvoiceManager() {
                 />
               </div>
 
-              {/* Bottom Actions Card matching Screenshot 3 */}
-              <div className="flex items-center justify-end gap-3 pt-2">
+              {/* Bottom Actions Card */}
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setInvoiceViewMode("list")}
-                  className="px-6 py-2.5 bg-white border border-stone-300 text-stone-700 font-bold text-xs rounded-xl hover:bg-stone-50 transition cursor-pointer"
+                  className="px-5 py-2.5 bg-white border border-stone-300 text-stone-700 font-bold text-xs rounded-xl hover:bg-stone-50 transition cursor-pointer"
                 >
-                  Back
+                  Back to Invoices
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => handleOpenPdfViewer(editingInvoice)}
-                  className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                  onClick={() => handleOpenPdfViewer(editingInvoice, "tax")}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
                 >
-                  Preview
+                  <Receipt size={14} />
+                  <span>Tax Invoice Preview</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenPdfViewer(editingInvoice, "boq")}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  <FileSpreadsheet size={14} />
+                  <span>BOQ Scope Preview</span>
                 </button>
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 font-black text-xs rounded-xl shadow-xs hover:opacity-95 transition cursor-pointer"
+                  className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
                 >
                   Save Invoice
                 </button>
@@ -2212,47 +2296,91 @@ export default function QuotationInvoiceManager() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. PDF VIEWER MODAL (SCREENSHOT 2) */}
+      {/* 3. PDF VIEWER MODAL WITH PROMINENT TAX VS BOQ OPTIONS */}
       {/* ========================================================================= */}
       {isPdfViewerOpen && pdfInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="relative w-full max-w-6xl h-[90vh] bg-stone-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-stone-700">
-            {/* Modal Header */}
-            <div className="px-5 py-3.5 bg-stone-900 border-b border-stone-700 flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-blue-400" />
-                <h3 className="font-bold text-sm">PDF Viewer</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-xs p-4 animate-in fade-in select-none">
+          <div className="relative w-full max-w-6xl h-[92vh] bg-stone-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-stone-700">
+            {/* Modal Header with High Visibility Format Selector Bar */}
+            <div className="px-5 py-3.5 bg-stone-900 border-b border-stone-700 flex items-center justify-between text-white flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={18} className="text-blue-400" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-sm tracking-wide">Document PDF Viewer</h3>
+                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-stone-800 border border-stone-700 text-amber-400 font-mono font-bold">
+                      {pdfInvoice.invoiceNumber || pdfInvoice.boqNumber || "NCIA003"}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-stone-400 font-medium block">
+                    {pdfInvoice.clientName} • {pdfInvoice.projectName || "Residence Project"}
+                  </span>
+                </div>
               </div>
+
+              {/* HIGHLY VISIBLE DUAL FORMAT SWITCHER BAR */}
+              <div className="flex items-center gap-1.5 bg-stone-950 p-1.5 rounded-xl border border-stone-800 shadow-inner">
+                <span className="text-[10px] text-stone-400 font-bold px-2 uppercase tracking-wider hidden md:inline">Format Mode:</span>
+                <button
+                  type="button"
+                  onClick={() => setPdfDocumentMode("tax")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                    pdfDocumentMode === "tax"
+                      ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
+                      : "text-stone-400 hover:text-white hover:bg-stone-800"
+                  }`}
+                >
+                  <Receipt size={15} />
+                  <span>📜 Tax Invoice (GST)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPdfDocumentMode("boq")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                    pdfDocumentMode === "boq"
+                      ? "bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 shadow-lg ring-2 ring-amber-300"
+                      : "text-stone-400 hover:text-white hover:bg-stone-800"
+                  }`}
+                >
+                  <FileSpreadsheet size={15} />
+                  <span>📋 BOQ Estimate Scope</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => setIsPdfViewerOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
             {/* Modal Body: Left Thumbnail Bar + Center Document Canvas */}
             <div className="flex-1 overflow-hidden flex bg-stone-900">
-              {/* Left Sidebar Thumbnail Pane matching Screenshot 2 */}
+              {/* Left Sidebar Thumbnail Pane */}
               <div className="w-48 bg-stone-950 border-r border-stone-800 p-4 space-y-4 overflow-y-auto hidden sm:block select-none">
+                <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                  Document Preview ({pdfDocumentMode === "tax" ? "Tax Invoice" : "BOQ Scope"})
+                </div>
                 {[1, 2, 3].map((pageNum) => (
                   <div
                     key={pageNum}
                     onClick={() => setActivePdfPage(pageNum)}
-                    className={`cursor-pointer transition rounded-lg p-1 text-center ${
+                    className={`cursor-pointer transition rounded-xl p-1 text-center ${
                       activePdfPage === pageNum
-                        ? "ring-2 ring-blue-500 bg-stone-800/80"
+                        ? "ring-2 ring-amber-500 bg-stone-800/80"
                         : "opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <div className="w-full h-44 bg-white rounded shadow-inner p-2 overflow-hidden text-[5px] text-stone-600 leading-tight">
-                      <div className="border-b border-blue-500 pb-1 mb-1 font-bold text-[6px] text-blue-600">
-                        NETTLE CREEK INTERIORS
+                    <div className="w-full h-44 bg-white rounded-lg shadow-inner p-2.5 overflow-hidden text-[5px] text-stone-600 leading-tight">
+                      <div className="border-b border-amber-500 pb-1 mb-1 font-bold text-[6px] text-amber-700">
+                        {pdfDocumentMode === "tax" ? "TAX INVOICE - VELORA" : "BOQ ESTIMATE - VELORA"}
                       </div>
                       <div className="space-y-1">
-                        <div className="h-1 bg-stone-200 rounded w-3/4" />
+                        <div className="h-1 bg-stone-300 rounded w-3/4" />
                         <div className="h-1 bg-stone-200 rounded w-1/2" />
-                        <div className="h-4 bg-blue-50 border border-blue-200 rounded" />
+                        <div className={`h-4 border rounded ${pdfDocumentMode === "tax" ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"}`} />
                         <div className="space-y-0.5 pt-2">
                           <div className="h-1 bg-stone-200 rounded" />
                           <div className="h-1 bg-stone-200 rounded" />
@@ -2261,388 +2389,545 @@ export default function QuotationInvoiceManager() {
                       </div>
                     </div>
                     <span className="text-xs text-stone-400 font-bold block mt-1.5">
-                      {pageNum}
+                      Page {pageNum}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* Main Document Viewer Canvas matching Screenshot 2 */}
+              {/* Main Document Canvas */}
               <div className="flex-1 p-6 overflow-y-auto flex justify-center bg-stone-800">
-                <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl p-8 space-y-6 text-stone-800 font-sans">
-                  {/* Document Header */}
-                  <div className="flex items-start justify-between gap-6 border-b border-stone-200 pb-4">
-                    {/* Left: Brand Name & Logo */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-stone-950 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400 font-black text-xs shadow-xs p-2 text-center leading-tight">
-                        VELORA
+                {pdfDocumentMode === "tax" ? (
+                  /* ========================================================================= */
+                  /* A. TAX INVOICE CANVAS LAYOUT (Composition Scheme / GST / Legal) */
+                  /* ========================================================================= */
+                  <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl p-8 space-y-6 text-stone-800 font-sans animate-in fade-in">
+                    {/* Document Header */}
+                    <div className="flex items-start justify-between gap-6 border-b border-stone-200 pb-4">
+                      {/* Left: Brand Name & Logo */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-stone-950 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400 font-black text-xs shadow-xs p-2 text-center leading-tight">
+                          VELORA
+                        </div>
+                        <div>
+                          <h1 className="text-xl font-black text-stone-900 tracking-tight flex items-center gap-2">
+                            <span>VELORA LUXURY INTERIORS</span>
+                          </h1>
+                          <span className="text-[10px] text-stone-500 font-medium block">
+                            Bespoke Designs • Turnkey Interior Solutions
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Right: TAX INVOICE Title & E-Invoice Table */}
+                      <div className="text-right space-y-2">
+                        <h2 className="text-lg font-black text-amber-700 tracking-wide">
+                          TAX INVOICE
+                        </h2>
+
+                        <div className="border border-stone-900 text-left text-[11px] rounded overflow-hidden">
+                          <div className="bg-stone-900 text-amber-400 font-bold text-center py-0.5 text-[10px]">
+                            Original For Recipient
+                          </div>
+                          <div className="grid grid-cols-2 divide-x divide-stone-200 border-b border-stone-200">
+                            <span className="px-2 py-1 text-stone-500 font-medium">
+                              E-INVOICE NO
+                            </span>
+                            <span className="px-2 py-1 font-bold text-stone-900 font-mono">
+                              {pdfInvoice.invoiceNumber || "NCIA003"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 divide-x divide-stone-200">
+                            <span className="px-2 py-1 text-stone-500 font-medium">
+                              INVOICE DATE
+                            </span>
+                            <span className="px-2 py-1 font-bold text-stone-900">
+                              {pdfInvoice.issueDate
+                                ? new Date(pdfInvoice.issueDate).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric"
+                                  })
+                                : "13 Aug, 2026"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2-Column Info Table: INVOICE FROM vs PROJECT INFORMATION */}
+                    <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
+                      {/* INVOICE FROM */}
+                      <div className="border-r border-stone-900">
+                        <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
+                          INVOICE FROM
+                        </div>
+                        <div className="p-3 space-y-1 text-stone-700">
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">LEGAL NAME</span>
+                            <span className="col-span-2 font-bold text-stone-900">
+                              VELORA LUXURY INTERIORS
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">GST NO</span>
+                            <span className="col-span-2 font-mono">27CHCPS9945R1Z4</span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">PAN NO</span>
+                            <span className="col-span-2 font-mono">CHCPS9945R</span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">STATE</span>
+                            <span className="col-span-2">Maharashtra (27)</span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">EMAIL</span>
+                            <span className="col-span-2 text-stone-900 font-medium">
+                              info@veloraluxury.com
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">CONTACT NO</span>
+                            <span className="col-span-2">8055526603</span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">ADDRESS</span>
+                            <span className="col-span-2">
+                              Hinjawadi Wakad Chowk, Wakad, Pune, Maharashtra 411057
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PROJECT INFORMATION */}
                       <div>
-                        <h1 className="text-xl font-black text-stone-900 tracking-tight flex items-center gap-2">
-                          <span>VELORA LUXURY INTERIORS</span>
-                        </h1>
-                        <span className="text-[10px] text-stone-500 font-medium block">
-                          Bespoke Designs • Turnkey Interior Solutions
+                        <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
+                          PROJECT INFORMATION
+                        </div>
+                        <div className="p-3 space-y-1 text-stone-700">
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">PROJECT NAME</span>
+                            <span className="col-span-2 font-bold text-stone-900">
+                              {pdfInvoice.projectName || pdfInvoice.clientName || "PREM SHUKLA"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">PROJECT (PID)</span>
+                            <span className="col-span-2 font-bold text-stone-900 font-mono">
+                              {pdfInvoice.projectNumber || "PRJ-2026-008"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">INVOICE TYPE</span>
+                            <span className="col-span-2">{pdfInvoice.invoiceType || "Supply & Turnkey"}</span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">PLACE OF SUPPLY</span>
+                            <span className="col-span-2">Maharashtra (27)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2-Column Parties Table: Details of Receiver vs Consignee */}
+                    <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
+                      {/* Details of Receiver (Bill to) */}
+                      <div className="border-r border-stone-900">
+                        <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
+                          Details of Receiver (Bill to)
+                        </div>
+                        <div className="p-3 space-y-1 text-stone-700">
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">CLIENT NAME</span>
+                            <span className="col-span-2 font-bold text-stone-900">
+                              {pdfInvoice.billTo?.name || pdfInvoice.clientName || "PREM SHUKLA"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">CONTACT NO</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.billTo?.phone || pdfInvoice.clientPhone || "+91 78000 20496"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">ADDRESS</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.billTo?.address || pdfInvoice.clientAddress || "402, WAKAD CHOWK, PUNE"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">EMAIL</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.billTo?.email || pdfInvoice.clientEmail || "PREMSHUKLA@GMAIL.COM"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Details of Consignee (Ship to) */}
+                      <div>
+                        <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
+                          Details of Consignee (Ship to)
+                        </div>
+                        <div className="p-3 space-y-1 text-stone-700">
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">CLIENT NAME</span>
+                            <span className="col-span-2 font-bold text-stone-900">
+                              {pdfInvoice.shipTo?.name || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientName : "-")}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">CONTACT NO</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.shipTo?.phone || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientPhone : "-")}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">ADDRESS</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.shipTo?.address || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientAddress : "-")}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3">
+                            <span className="font-semibold text-stone-500">EMAIL</span>
+                            <span className="col-span-2">
+                              {pdfInvoice.shipTo?.email || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientEmail : "-")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Items Table matching Tax Layout */}
+                    <div className="border border-stone-900 rounded overflow-hidden">
+                      <table className="w-full text-left text-[10.5px] border-collapse">
+                        <thead>
+                          <tr className="bg-blue-600 text-white font-bold">
+                            <th className="py-1.5 px-2 text-center">SL.NO</th>
+                            <th className="py-1.5 px-3">PRODUCT/SERVICE NAME</th>
+                            <th className="py-1.5 px-2 text-center">HSN/SAC</th>
+                            <th className="py-1.5 px-2 text-center">UOM</th>
+                            <th className="py-1.5 px-2 text-center">QTY</th>
+                            <th className="py-1.5 px-2 text-right">UNIT RATE</th>
+                            <th className="py-1.5 px-2 text-center">TAX RATIO (%)</th>
+                            <th className="py-1.5 px-3 text-right">TAXABLE AMOUNT</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-200 text-stone-800">
+                          {((pdfInvoice.items && pdfInvoice.items.length > 0) ? pdfInvoice.items : [
+                            { productName: "Queen Size Bed, With Cushion", hsnSac: "995476", uom: "30", quantity: 1, rate: 36000, total: 36000 },
+                            { productName: "King Size Bed Hydrolic", hsnSac: "995476", uom: "45.5", quantity: 1, rate: 64000, total: 64000 },
+                            { productName: "Openable Wardrobe 1", hsnSac: "995476", uom: "42.5", quantity: 1, rate: 55000, total: 55000 },
+                            { productName: "Openable Wardrobe 2, Study Table", hsnSac: "995476", uom: "59.5, 2'", quantity: 1, rate: 71400, total: 71400 },
+                            { productName: "Openable Wardrobe 3, Study Table", hsnSac: "995476", uom: "34", quantity: 1, rate: 40800, total: 40800 },
+                            { productName: "Study Table", hsnSac: "995476", uom: "56", quantity: 1, rate: 67200, total: 67200 },
+                            { productName: "Side Table", hsnSac: "995476", uom: "1.96", quantity: 4, rate: 5500, total: 22000 },
+                            { productName: "Dressing", hsnSac: "995476", uom: "-", quantity: 3, rate: 21000, total: 63000 },
+                            { productName: "Shoe Rack , With Side Sitting", hsnSac: "995476", uom: "12", quantity: 1, rate: 14400, total: 14400 },
+                            { productName: "Dinning Table", hsnSac: "995476", uom: "-", quantity: 1, rate: 35000, total: 35000 }
+                          ]).map((it, idx) => (
+                            <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50/50"}>
+                              <td className="py-1.5 px-2 text-center text-stone-500 font-bold">{idx + 1}</td>
+                              <td className="py-1.5 px-3 font-semibold">{it.productName || it.description}</td>
+                              <td className="py-1.5 px-2 text-center text-stone-500">{it.hsnSac || "995476"}</td>
+                              <td className="py-1.5 px-2 text-center">{it.uom || it.unit || "-"}</td>
+                              <td className="py-1.5 px-2 text-center font-bold">{it.quantity || 1}</td>
+                              <td className="py-1.5 px-2 text-right font-mono">
+                                ₹{(it.rate || 0).toLocaleString("en-IN")}
+                              </td>
+                              <td className="py-1.5 px-2 text-center">{it.gstPercent || 0}%</td>
+                              <td className="py-1.5 px-3 text-right font-bold font-mono">
+                                ₹{(it.total || (it.rate * (it.quantity || 1))).toLocaleString("en-IN")}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="border-t border-stone-300 font-bold">
+                            <td colSpan={7} className="py-1.5 px-3 text-right">Sub Total Amount</td>
+                            <td className="py-1.5 px-3 text-right font-mono">
+                              ₹{(pdfInvoice.subtotal || pdfInvoice.grandTotal || 468800).toLocaleString("en-IN")}
+                            </td>
+                          </tr>
+                          <tr className="font-bold">
+                            <td colSpan={7} className="py-1.5 px-3 text-right">Total Tax</td>
+                            <td className="py-1.5 px-3 text-right font-mono">
+                              ₹{(pdfInvoice.gstTotal || 0).toLocaleString("en-IN")}
+                            </td>
+                          </tr>
+                          <tr className="bg-blue-600 text-white font-extrabold">
+                            <td colSpan={7} className="py-2 px-3 text-right">Grand Total Amount</td>
+                            <td className="py-2 px-3 text-right font-mono text-xs">
+                              ₹{(pdfInvoice.grandTotal || 468800).toLocaleString("en-IN")}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Total Invoice Amount In Words Row */}
+                    <div className="grid grid-cols-3 border border-stone-300 text-[10.5px] rounded overflow-hidden">
+                      <div className="bg-stone-200 text-stone-900 font-bold px-3 py-1.5">
+                        Total Invoice Amount In Words
+                      </div>
+                      <div className="col-span-2 px-3 py-1.5 font-bold text-stone-900">
+                        Four Lakh Sixty Eight Thousand Eight Hundred Rupees Only
+                      </div>
+                    </div>
+
+                    {/* BANK DETAILS & PAYMENT INSTRUCTIONS */}
+                    <div className="border border-stone-900 rounded overflow-hidden text-[10.5px]">
+                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                        BANK DETAILS & PAYMENT INSTRUCTIONS
+                      </div>
+                      <div className="p-3 space-y-1 text-stone-800">
+                        <p><strong>Account Holder:</strong> VELORA LUXURY INTERIORS</p>
+                        <p><strong>Account Number:</strong> 50200073374185</p>
+                        <p><strong>IFSC:</strong> HDFC0000223 | <strong>Branch:</strong> WAKAD / PASHAN</p>
+                        <p><strong>Account Type:</strong> Current Account</p>
+                      </div>
+                    </div>
+
+                    {/* Notes Box */}
+                    <div className="border border-stone-900 rounded overflow-hidden text-[10.5px]">
+                      <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
+                        Notes
+                      </div>
+                      <div className="p-2 text-stone-800 font-medium">
+                        Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.
+                      </div>
+                    </div>
+
+                    {/* Terms & Conditions */}
+                    <div className="border border-stone-900 rounded overflow-hidden text-[10px] space-y-2 p-3 text-stone-700 leading-relaxed">
+                      <div className="bg-blue-600 text-white font-bold -mx-3 -mt-3 p-2 text-[11px]">
+                        Terms & Conditions - For Interior Design & Turnkey Execution Services
+                      </div>
+                      <p><strong>1. Scope of Work:</strong> The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, furniture design, civil work, electrical work, false ceiling, modular furniture, décor assistance, site supervision, and turnkey execution as mutually agreed in the final quotation/work order. Any work outside the approved quotation shall be treated as additional work and billed separately.</p>
+                      <p><strong>2. Design Process:</strong> 1. Initial consultation & requirement discussion. 2. Concept design and layout planning. 3. Material and finish selection. 4. Final design approval. 5. Execution and site coordination. 6. Project handover. Design revisions beyond agreed number may attract additional charges.</p>
+                      <p><strong>3. Quotation & Pricing:</strong> All quotations are valid for 15 days from issue date. Prices based on current market rates. Any increase in material cost, taxes, transport or vendor pricing after quotation approval may lead to revised costing.</p>
+                      <p><strong>4. Payment Terms:</strong> 10% Advance – Booking & Design Initiation; 40% – Before Production/Execution; 40% – During Execution Stage; 10% – Before Final Handover. All payments must be made as per agreed timelines.</p>
+                    </div>
+
+                    {/* Signatures & Seal Box */}
+                    <div className="pt-4 space-y-4">
+                      <div className="flex justify-between text-xs text-stone-900 font-medium">
+                        <span>Client Signature: _______________________</span>
+                        <span>Date: _________________</span>
+                      </div>
+
+                      <div className="border border-stone-300 rounded-xl p-3 flex justify-between items-center bg-stone-50">
+                        <div>
+                          <span className="font-bold text-stone-900 text-xs block">Authorized Signatory</span>
+                          <span className="font-black text-blue-900 text-sm block">VELORA LUXURY INTERIORS</span>
+                          <span className="text-[10px] text-stone-500 italic block">Bespoke Designs • Turnkey Execution</span>
+                        </div>
+                        <div className="w-36 h-16 border-2 border-dashed border-stone-300 rounded-lg flex items-center justify-center text-[10px] text-stone-400 font-bold text-center px-2">
+                          Authorised Common seal
+                        </div>
+                      </div>
+
+                      <div className="text-center text-[10px] text-stone-400 border-t border-stone-200 pt-2 font-medium">
+                        This is a computer generated invoice, Hence no signature is required.
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* ========================================================================= */
+                  /* B. BOQ ESTIMATE CANVAS LAYOUT (Space-by-Space / Scope Breakdown) */
+                  /* ========================================================================= */
+                  <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl p-8 space-y-6 text-stone-800 font-sans animate-in fade-in">
+                    {/* BOQ Header */}
+                    <div className="flex items-start justify-between gap-6 border-b border-amber-400 pb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-stone-950 border border-amber-500 rounded-xl flex items-center justify-center text-amber-400 font-black text-xs shadow-xs p-2 text-center leading-tight">
+                          VELORA
+                        </div>
+                        <div>
+                          <h1 className="text-xl font-black text-amber-900 tracking-tight flex items-center gap-2">
+                            <span>VELORA LUXURY INTERIORS</span>
+                          </h1>
+                          <span className="text-[10px] text-stone-500 font-medium block">
+                            Bespoke Designs • Premium Materials • Flawless Execution
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right space-y-1">
+                        <h2 className="text-lg font-black text-[#9E7B1D] tracking-wide uppercase">
+                          PROJECT ESTIMATE & QUOTATION
+                        </h2>
+                        <span className="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-[11px] font-bold">
+                          Ref: {pdfInvoice.boqNumber || pdfInvoice.invoiceNumber || "BOQ-2026-018"}
                         </span>
                       </div>
                     </div>
 
-                    {/* Right: TAX INVOICE Title & E-Invoice Table */}
-                    <div className="text-right space-y-2">
-                      <h2 className="text-lg font-black text-amber-700 tracking-wide">
-                        TAX INVOICE
-                      </h2>
-
-                      <div className="border border-stone-900 text-left text-[11px] rounded overflow-hidden">
-                        <div className="bg-stone-900 text-amber-400 font-bold text-center py-0.5 text-[10px]">
-                          Original For Recipient
-                        </div>
-                        <div className="grid grid-cols-2 divide-x divide-stone-200 border-b border-stone-200">
-                          <span className="px-2 py-1 text-stone-500 font-medium">
-                            E-INVOICE NO
-                          </span>
-                          <span className="px-2 py-1 font-bold text-stone-900 font-mono">
-                            {pdfInvoice.invoiceNumber || "NCIA003"}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 divide-x divide-stone-200">
-                          <span className="px-2 py-1 text-stone-500 font-medium">
-                            INVOICE DATE
-                          </span>
-                          <span className="px-2 py-1 font-bold text-stone-900">
-                            {pdfInvoice.issueDate
-                              ? new Date(pdfInvoice.issueDate).toLocaleDateString("en-IN", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric"
-                                })
-                              : "13 Aug, 2026"}
-                          </span>
-                        </div>
+                    {/* Metadata Card */}
+                    <div className="grid grid-cols-2 bg-stone-50 border border-amber-200 rounded-xl p-4 text-[11px] gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block">Client Details</span>
+                        <p className="font-bold text-stone-900 text-xs">{pdfInvoice.clientName || "VALUED CLIENT"}</p>
+                        <p className="text-stone-600">{pdfInvoice.clientPhone || "+91 78000 20496"}</p>
+                        <p className="text-stone-600">{pdfInvoice.clientEmail || "client@example.com"}</p>
+                        <p className="text-stone-500 text-[10px]">{pdfInvoice.clientAddress || "Pune, Maharashtra"}</p>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* 2-Column Info Table: INVOICE FROM vs PROJECT INFORMATION */}
-                  <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
-                    {/* INVOICE FROM */}
-                    <div className="border-r border-stone-900">
-                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
-                        INVOICE FROM
-                      </div>
-                      <div className="p-3 space-y-1 text-stone-700">
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">LEGAL NAME</span>
-                          <span className="col-span-2 font-bold text-stone-900">
-                            VELORA LUXURY INTERIORS
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">GST NO</span>
-                          <span className="col-span-2 font-mono">27CHCPS9945R1Z4</span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">PAN NO</span>
-                          <span className="col-span-2 font-mono">CHCPS9945R</span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">STATE</span>
-                          <span className="col-span-2">Maharashtra (27)</span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">EMAIL</span>
-                          <span className="col-span-2 text-stone-900 font-medium">
-                            info@veloraluxury.com
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">CONTACT NO</span>
-                          <span className="col-span-2">8055526603</span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">ADDRESS</span>
-                          <span className="col-span-2">
-                            Hinjawadi Wakad Chowk, Wakad, Pune, Maharashtra 411057
-                          </span>
-                        </div>
+                      <div className="space-y-1 text-right">
+                        <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block">Commercial Scope Details</span>
+                        <p><strong>Package Specification:</strong> <span className="font-bold text-amber-900">{pdfInvoice.activePackage || "Standard"} Tier</span></p>
+                        <p><strong>Date of Issue:</strong> {new Date().toLocaleDateString("en-IN")}</p>
+                        <p><strong>Prepared By:</strong> Senior Interior Architect</p>
+                        <p><strong>Turnkey Status:</strong> Approved BOQ Estimate</p>
                       </div>
                     </div>
 
-                    {/* PROJECT INFORMATION */}
-                    <div>
-                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
-                        PROJECT INFORMATION
+                    {/* Spaces & Items Scope Breakdown Table */}
+                    <div className="space-y-4">
+                      <div className="border-b border-stone-300 pb-1">
+                        <h3 className="font-extrabold text-xs text-stone-900 uppercase tracking-wide">
+                          Space-by-Space Itemized Component Scope
+                        </h3>
                       </div>
-                      <div className="p-3 space-y-1 text-stone-700">
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">PROJECT NAME</span>
-                          <span className="col-span-2 font-bold text-stone-900">
-                            {pdfInvoice.projectName || pdfInvoice.clientName || "PREM SHUKLA"}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">PROJECT (PID)</span>
-                          <span className="col-span-2 font-bold text-stone-900 font-mono">
-                            {pdfInvoice.projectNumber || "PRJ-2026-008"}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">INVOICE TYPE</span>
-                          <span className="col-span-2">{pdfInvoice.invoiceType || "Supply & Turnkey"}</span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">PLACE OF SUPPLY</span>
-                          <span className="col-span-2">Maharashtra (27)</span>
-                        </div>
+
+                      <div className="border border-stone-800 rounded-xl overflow-hidden text-[10.5px]">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-stone-900 text-amber-400 font-bold">
+                              <th className="py-2 px-3">ITEM / COMPONENT NAME</th>
+                              <th className="py-2 px-2">MATERIAL / SPEC</th>
+                              <th className="py-2 px-2 text-center">SIZE / DIMENSIONS</th>
+                              <th className="py-2 px-2 text-center">QTY</th>
+                              <th className="py-2 px-2 text-right">RATE (₹)</th>
+                              <th className="py-2 px-3 text-right">TOTAL AMOUNT (₹)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-200 text-stone-800">
+                            {((pdfInvoice.items && pdfInvoice.items.length > 0) ? pdfInvoice.items : [
+                              { productName: "Master Bedroom Full Woodwork & Fitout", category: "Bedroom", dimensions: "6.5 × 6.5 ft", quantity: 1, rate: 195000, total: 195000 },
+                              { productName: "Living Room TV Unit & Louver Panelling", category: "Living", dimensions: "10.0 × 8.0 ft", quantity: 1, rate: 125000, total: 125000 },
+                              { productName: "Modular Kitchen Acrylic & Quartz Counter", category: "Kitchen", dimensions: "L-Shape 14ft", quantity: 1, rate: 148800, total: 148800 }
+                            ]).map((it, idx) => (
+                              <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
+                                <td className="py-2 px-3 font-semibold text-stone-900">{it.productName || it.name}</td>
+                                <td className="py-2 px-2 text-stone-600">{it.category || it.typeVariant || "Standard"}</td>
+                                <td className="py-2 px-2 text-center font-mono text-[10px]">{it.dimensions || "-"}</td>
+                                <td className="py-2 px-2 text-center font-bold">{it.quantity || it.qty || 1}</td>
+                                <td className="py-2 px-2 text-right font-mono">₹{(it.rate || 0).toLocaleString("en-IN")}</td>
+                                <td className="py-2 px-3 text-right font-mono font-bold text-stone-900">₹{(it.total || (it.rate * (it.quantity || 1))).toLocaleString("en-IN")}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 2-Column Parties Table: Details of Receiver vs Consignee */}
-                  <div className="grid grid-cols-2 border border-stone-900 rounded overflow-hidden text-[10.5px]">
-                    {/* Details of Receiver (Bill to) */}
-                    <div className="border-r border-stone-900">
-                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
-                        Details of Receiver (Bill to)
+                    {/* Commercial Summary Box */}
+                    <div className="bg-amber-50/80 border border-amber-300 rounded-xl p-4 flex justify-between items-center text-xs">
+                      <div className="space-y-1">
+                        <span className="font-extrabold text-[#9E7B1D] block">BOQ COMMERCIAL SUMMARY</span>
+                        <p className="text-[11px] text-stone-600">Subtotal Excl. GST: ₹{Math.round((pdfInvoice.grandTotal || 468800) / 1.18).toLocaleString("en-IN")}</p>
+                        <p className="text-[11px] text-stone-600">Estimated GST (18%): ₹{Math.round((pdfInvoice.grandTotal || 468800) - ((pdfInvoice.grandTotal || 468800) / 1.18)).toLocaleString("en-IN")}</p>
                       </div>
-                      <div className="p-3 space-y-1 text-stone-700">
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">CLIENT NAME</span>
-                          <span className="col-span-2 font-bold text-stone-900">
-                            {pdfInvoice.billTo?.name || pdfInvoice.clientName || "PREM SHUKLA"}
-                          </span>
+
+                      <div className="text-right bg-stone-950 text-white p-3 rounded-xl shadow-xs">
+                        <span className="text-[10px] text-amber-300 font-bold block uppercase">Grand Total Estimate</span>
+                        <span className="font-mono text-base font-black text-white">₹{(pdfInvoice.grandTotal || 468800).toLocaleString("en-IN")}</span>
+                      </div>
+                    </div>
+
+                    {/* Milestone Payment Schedule Terms */}
+                    <div className="border border-stone-200 rounded-xl p-3 space-y-2 text-[10.5px]">
+                      <span className="font-extrabold text-[#9E7B1D] block">Turnkey Payment Schedule Terms</span>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2 bg-stone-50 rounded-lg border border-stone-200">
+                          <span className="text-[9px] text-stone-400 font-bold block">1. BOOKING (50%)</span>
+                          <span className="font-mono font-bold text-stone-900">₹{Math.round((pdfInvoice.grandTotal || 468800) * 0.5).toLocaleString("en-IN")}</span>
                         </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">CONTACT NO</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.billTo?.phone || pdfInvoice.clientPhone || "+91 78000 20496"}
-                          </span>
+                        <div className="p-2 bg-stone-50 rounded-lg border border-stone-200">
+                          <span className="text-[9px] text-stone-400 font-bold block">2. PRODUCTION (40%)</span>
+                          <span className="font-mono font-bold text-stone-900">₹{Math.round((pdfInvoice.grandTotal || 468800) * 0.4).toLocaleString("en-IN")}</span>
                         </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">ADDRESS</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.billTo?.address || pdfInvoice.clientAddress || "402, WAKAD CHOWK, PUNE"}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">EMAIL</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.billTo?.email || pdfInvoice.clientEmail || "PREMSHUKLA@GMAIL.COM"}
-                          </span>
+                        <div className="p-2 bg-stone-50 rounded-lg border border-stone-200">
+                          <span className="text-[9px] text-stone-400 font-bold block">3. HANDOVER (10%)</span>
+                          <span className="font-mono font-bold text-stone-900">₹{Math.round((pdfInvoice.grandTotal || 468800) * 0.1).toLocaleString("en-IN")}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Details of Consignee (Ship to) */}
-                    <div>
-                      <div className="bg-stone-900 text-amber-400 font-bold px-3 py-1 text-[11px]">
-                        Details of Consignee (Ship to)
-                      </div>
-                      <div className="p-3 space-y-1 text-stone-700">
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">CLIENT NAME</span>
-                          <span className="col-span-2 font-bold text-stone-900">
-                            {pdfInvoice.shipTo?.name || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientName : "-")}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">CONTACT NO</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.shipTo?.phone || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientPhone : "-")}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">ADDRESS</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.shipTo?.address || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientAddress : "-")}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3">
-                          <span className="font-semibold text-stone-500">EMAIL</span>
-                          <span className="col-span-2">
-                            {pdfInvoice.shipTo?.email || (pdfInvoice.sameAsBillTo ? pdfInvoice.clientEmail : "-")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Items Table matching Image 2 */}
-                  <div className="border border-stone-900 rounded overflow-hidden">
-                    <table className="w-full text-left text-[10.5px] border-collapse">
-                      <thead>
-                        <tr className="bg-blue-600 text-white font-bold">
-                          <th className="py-1.5 px-2 text-center">SL.NO</th>
-                          <th className="py-1.5 px-3">PRODUCT/SERVICE NAME</th>
-                          <th className="py-1.5 px-2 text-center">HSN/SAC</th>
-                          <th className="py-1.5 px-2 text-center">UOM</th>
-                          <th className="py-1.5 px-2 text-center">QTY</th>
-                          <th className="py-1.5 px-2 text-right">UNIT RATE</th>
-                          <th className="py-1.5 px-2 text-center">TAX RATIO (%)</th>
-                          <th className="py-1.5 px-3 text-right">TAXABLE AMOUNT</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-200 text-stone-800">
-                        {((pdfInvoice.items && pdfInvoice.items.length > 0) ? pdfInvoice.items : [
-                          { productName: "Queen Size Bed, With Cushion", hsnSac: "995476", uom: "30", quantity: 1, rate: 36000, total: 36000 },
-                          { productName: "King Size Bed Hydrolic", hsnSac: "995476", uom: "45.5", quantity: 1, rate: 64000, total: 64000 },
-                          { productName: "Openable Wardrobe 1", hsnSac: "995476", uom: "42.5", quantity: 1, rate: 55000, total: 55000 },
-                          { productName: "Openable Wardrobe 2, Study Table", hsnSac: "995476", uom: "59.5, 2'", quantity: 1, rate: 71400, total: 71400 },
-                          { productName: "Openable Wardrobe 3, Study Table", hsnSac: "995476", uom: "34", quantity: 1, rate: 40800, total: 40800 },
-                          { productName: "Study Table", hsnSac: "995476", uom: "56", quantity: 1, rate: 67200, total: 67200 },
-                          { productName: "Side Table", hsnSac: "995476", uom: "1.96", quantity: 4, rate: 5500, total: 22000 },
-                          { productName: "Dressing", hsnSac: "995476", uom: "-", quantity: 3, rate: 21000, total: 63000 },
-                          { productName: "Shoe Rack , With Side Sitting", hsnSac: "995476", uom: "12", quantity: 1, rate: 14400, total: 14400 },
-                          { productName: "Dinning Table", hsnSac: "995476", uom: "-", quantity: 1, rate: 35000, total: 35000 }
-                        ]).map((it, idx) => (
-                          <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50/50"}>
-                            <td className="py-1.5 px-2 text-center text-stone-500 font-bold">{idx + 1}</td>
-                            <td className="py-1.5 px-3 font-semibold">{it.productName || it.description}</td>
-                            <td className="py-1.5 px-2 text-center text-stone-500">{it.hsnSac || "995476"}</td>
-                            <td className="py-1.5 px-2 text-center">{it.uom || it.unit || "-"}</td>
-                            <td className="py-1.5 px-2 text-center font-bold">{it.quantity || 1}</td>
-                            <td className="py-1.5 px-2 text-right font-mono">
-                              ₹{(it.rate || 0).toLocaleString("en-IN")}
-                            </td>
-                            <td className="py-1.5 px-2 text-center">{it.gstPercent || 0}%</td>
-                            <td className="py-1.5 px-3 text-right font-bold font-mono">
-                              ₹{(it.total || (it.rate * (it.quantity || 1))).toLocaleString("en-IN")}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="border-t border-stone-300 font-bold">
-                          <td colSpan={7} className="py-1.5 px-3 text-right">Sub Total Amount</td>
-                          <td className="py-1.5 px-3 text-right font-mono">
-                            ₹{(pdfInvoice.subtotal || pdfInvoice.grandTotal || 468800).toLocaleString("en-IN")}
-                          </td>
-                        </tr>
-                        <tr className="font-bold">
-                          <td colSpan={7} className="py-1.5 px-3 text-right">Total Tax</td>
-                          <td className="py-1.5 px-3 text-right font-mono">
-                            ₹{(pdfInvoice.gstTotal || 0).toLocaleString("en-IN")}
-                          </td>
-                        </tr>
-                        <tr className="bg-blue-600 text-white font-extrabold">
-                          <td colSpan={7} className="py-2 px-3 text-right">Grand Total Amount</td>
-                          <td className="py-2 px-3 text-right font-mono text-xs">
-                            ₹{(pdfInvoice.grandTotal || 468800).toLocaleString("en-IN")}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Total Invoice Amount In Words Row matching Image 2 */}
-                  <div className="grid grid-cols-3 border border-stone-300 text-[10.5px] rounded overflow-hidden">
-                    <div className="bg-stone-200 text-stone-900 font-bold px-3 py-1.5">
-                      Total Invoice Amount In Words
-                    </div>
-                    <div className="col-span-2 px-3 py-1.5 font-bold text-stone-900">
-                      Four Lakh Sixty Eight Thousand Eight Hundred Rupees Only
-                    </div>
-                  </div>
-
-                  {/* BANK DETAILS & PAYMENT INSTRUCTIONS matching Image 2 & 3 */}
-                  <div className="border border-stone-900 rounded overflow-hidden text-[10.5px]">
-                    <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
-                      BANK DETAILS & PAYMENT INSTRUCTIONS
-                    </div>
-                    <div className="p-3 space-y-1 text-stone-800">
-                      <p><strong>Account Holder:</strong> VELORA LUXURY INTERIORS</p>
-                      <p><strong>Account Number:</strong> 50200073374185</p>
-                      <p><strong>IFSC:</strong> HDFC0000223 | <strong>Branch:</strong> WAKAD / PASHAN</p>
-                      <p><strong>Account Type:</strong> Current Account</p>
-                    </div>
-                  </div>
-
-                  {/* Notes Box matching Image 3 */}
-                  <div className="border border-stone-900 rounded overflow-hidden text-[10.5px]">
-                    <div className="bg-blue-600 text-white font-bold px-3 py-1 text-[11px]">
-                      Notes
-                    </div>
-                    <div className="p-2 text-stone-800 font-medium">
-                      Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.
-                    </div>
-                  </div>
-
-                  {/* Terms & Conditions matching Image 3 & 4 */}
-                  <div className="border border-stone-900 rounded overflow-hidden text-[10px] space-y-2 p-3 text-stone-700 leading-relaxed">
-                    <div className="bg-blue-600 text-white font-bold -mx-3 -mt-3 p-2 text-[11px]">
-                      Terms & Conditions - For Interior Design & Turnkey Execution Services
-                    </div>
-                    <p><strong>1. Scope of Work:</strong> The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, furniture design, civil work, electrical work, false ceiling, modular furniture, décor assistance, site supervision, and turnkey execution as mutually agreed in the final quotation/work order. Any work outside the approved quotation shall be treated as additional work and billed separately.</p>
-                    <p><strong>2. Design Process:</strong> 1. Initial consultation & requirement discussion. 2. Concept design and layout planning. 3. Material and finish selection. 4. Final design approval. 5. Execution and site coordination. 6. Project handover. Design revisions beyond agreed number may attract additional charges.</p>
-                    <p><strong>3. Quotation & Pricing:</strong> All quotations are valid for 15 days from issue date. Prices based on current market rates. Any increase in material cost, taxes, transport or vendor pricing after quotation approval may lead to revised costing.</p>
-                    <p><strong>4. Payment Terms:</strong> 10% Advance – Booking & Design Initiation; 40% – Before Production/Execution; 40% – During Execution Stage; 10% – Before Final Handover. All payments must be made as per agreed timelines.</p>
-                    <p><strong>5. Project Timeline:</strong> Timelines estimated based on project scope & site conditions. Working days exclude Sundays and public holidays.</p>
-                    <p><strong>6. Client Responsibilities:</strong> Provide timely approvals, ensure site accessibility and basic utilities like electricity and water, clear all dues as per schedule.</p>
-                    <p><strong>7. Material & Finishes:</strong> Natural variations in wood, veneer, marble, laminates, fabric, stone are normal and not defects.</p>
-                    <p><strong>8. Warranty:</strong> Modular Furniture & Interior Work Warranty - 5 years for manufacturing defects.</p>
-                    <p><strong>9. Cancellation Policy:</strong> Booking amount/design fees non-refundable. Charges for completed work/materials procured recoverable.</p>
-                    <p><strong>10. Ownership of Designs:</strong> Designs remain intellectual property of VELORA LUXURY INTERIORS.</p>
-                    <p><strong>11. Photography & Portfolio Rights:</strong> Company reserves right to photograph completed projects for portfolio/social media.</p>
-                    <p><strong>12. Limitation of Liability:</strong> Company not liable for structural defects, existing site issues, external agency delays.</p>
-                    <p><strong>13. Force Majeure:</strong> Company not responsible for delays caused by natural disasters, strikes, pandemic, supply disruptions.</p>
-                    <p><strong>14. Dispute Resolution:</strong> Subject to jurisdiction of Pune, Maharashtra courts only.</p>
-                    <p><strong>15. Acceptance:</strong> Approval of quotation/work order and payment of advance shall be considered acceptance of these T&C.</p>
-                  </div>
-
-                  {/* Signatures & Seal Box matching Image 4 */}
-                  <div className="pt-4 space-y-4">
-                    <div className="flex justify-between text-xs text-stone-900 font-medium">
-                      <span>Client Signature: _______________________</span>
-                      <span>Date: _________________</span>
-                    </div>
-
-                    <div className="border border-stone-300 rounded-xl p-3 flex justify-between items-center bg-stone-50">
+                    {/* Signature and Common Seal */}
+                    <div className="border-t border-stone-200 pt-4 flex justify-between items-center text-xs">
                       <div>
-                        <span className="font-bold text-stone-900 text-xs block">Authorized Signatory</span>
-                        <span className="font-black text-blue-900 text-sm block">VELORA LUXURY INTERIORS</span>
-                        <span className="text-[10px] text-stone-500 italic block">Bespoke Designs • Turnkey Execution</span>
+                        <span className="font-bold text-stone-900 block">VELORA LUXURY INTERIORS</span>
+                        <span className="text-[10px] text-stone-500 italic block">Authorised Design Signatory</span>
                       </div>
-                      <div className="w-36 h-16 border-2 border-dashed border-stone-300 rounded-lg flex items-center justify-center text-[10px] text-stone-400 font-bold text-center px-2">
-                        Authorised Common seal
+                      <div className="w-32 h-14 border border-dashed border-stone-300 rounded flex items-center justify-center text-[9px] text-stone-400 font-bold">
+                        Authorised Common Seal
                       </div>
-                    </div>
-
-                    <div className="text-center text-[10px] text-stone-400 border-t border-stone-200 pt-2 font-medium">
-                      This is a computer generated invoice, Hence no signature is required.
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 bg-stone-900 border-t border-stone-700 flex items-center justify-end gap-3 text-xs">
-              <button
-                onClick={() => setIsPdfViewerOpen(false)}
-                className="px-5 py-2 rounded-xl bg-stone-700 hover:bg-stone-600 text-white font-bold transition cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                onClick={handlePrint}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold border border-stone-600 transition cursor-pointer"
-              >
-                <Printer size={14} />
-                <span>Print</span>
-              </button>
-              <button
-                onClick={() => exportInvoiceCsv(pdfInvoice)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition cursor-pointer"
-                title="Download invoice item details as CSV data file"
-              >
-                <FileSpreadsheet size={14} />
-                <span>Download CSV Data</span>
-              </button>
-              <button
-                onClick={() => downloadInvoicePdf(pdfInvoice)}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-xs transition cursor-pointer"
-              >
-                <Download size={14} />
-                <span>Download PDF</span>
-              </button>
+            {/* Modal Footer with High Visibility Action Buttons */}
+            <div className="p-4 bg-stone-900 border-t border-stone-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-stone-400 text-xs font-medium">Viewing Format:</span>
+                <span className={`px-2.5 py-1 rounded-lg font-extrabold text-xs ${pdfDocumentMode === "tax" ? "bg-blue-900/80 text-blue-300 border border-blue-700" : "bg-amber-950/80 text-amber-300 border border-amber-700"}`}>
+                  {pdfDocumentMode === "tax" ? "📜 Tax Invoice (GST Legal Document)" : "📋 BOQ Estimate & Quotation Scope"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsPdfViewerOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-stone-700 hover:bg-stone-600 text-white font-bold transition cursor-pointer"
+                >
+                  Close
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold border border-stone-600 transition cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => exportInvoiceCsv(pdfInvoice)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition cursor-pointer"
+                  title="Download invoice item details as CSV data file"
+                >
+                  <FileSpreadsheet size={14} />
+                  <span>Download CSV</span>
+                </button>
+
+                {/* Direct Button for Tax Invoice PDF */}
+                <button
+                  type="button"
+                  onClick={() => downloadInvoicePdf(pdfInvoice)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition cursor-pointer"
+                  title="Download Official Tax Invoice PDF with GST & Statutory Details"
+                >
+                  <Download size={14} />
+                  <span>Download Tax Invoice PDF</span>
+                </button>
+
+                {/* Direct Button for BOQ Estimate PDF */}
+                <button
+                  type="button"
+                  onClick={() => downloadBOQPdf(pdfInvoice)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black shadow-md transition cursor-pointer"
+                  title="Download BOQ Project Estimate Quotation PDF"
+                >
+                  <Download size={14} />
+                  <span>Download BOQ PDF</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2788,41 +3073,52 @@ export default function QuotationInvoiceManager() {
                             </span>
                           </td>
 
-                          {/* Quick Actions */}
+                          {/* Quick Actions with High Visibility Labels */}
                           <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Open Details Button */}
+                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                              {/* Open BOQ Scope Details Button */}
                               <button
                                 onClick={() => handleOpenEstimateDetail(est)}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                                title="Open All Estimate Details"
+                                className="flex items-center gap-1 px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-[10.5px] rounded-lg border border-stone-300 transition cursor-pointer"
+                                title="View BOQ Scope Breakdown"
                               >
-                                <Eye size={15} />
+                                <Eye size={12} className="text-stone-700" />
+                                <span>Details</span>
+                              </button>
+
+                              {/* Preview Tax Invoice Button */}
+                              <button
+                                onClick={() => handleOpenPdfViewer(est, "tax")}
+                                className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10.5px] rounded-lg border border-blue-200 transition cursor-pointer"
+                                title="Preview Tax Invoice Layout"
+                              >
+                                <Receipt size={12} className="text-blue-600" />
+                                <span>Tax View</span>
                               </button>
 
                               {/* 1-Click Auto-Create Standard Invoice Button */}
                               <button
                                 onClick={() => handleAutoCreateInvoiceFromBOQ(est)}
-                                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold text-[10px] rounded-lg shadow-xs transition cursor-pointer"
+                                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold text-[10.5px] rounded-lg shadow-xs transition cursor-pointer"
                                 title="Auto-Generate Standard Tax Invoice"
                               >
                                 <Zap size={11} className="fill-amber-300 text-amber-300" />
-                                <span>Invoice</span>
+                                <span>Auto Invoice</span>
                               </button>
 
-                              {/* Download PDF Quotation */}
+                              {/* Download BOQ PDF */}
                               <button
                                 onClick={() => downloadBOQPdf(est)}
-                                className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                                className="p-1 bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] rounded-lg border border-amber-300 transition cursor-pointer"
                                 title="Download Official BOQ PDF"
                               >
-                                <Download size={14} />
+                                <Download size={13} />
                               </button>
 
                               {/* Edit in BOQ Builder */}
                               <button
                                 onClick={() => navigate("/boq", { state: { clientName: est.clientName, clientPhone: est.clientPhone } })}
-                                className="p-1.5 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                                className="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-lg border border-stone-200 transition cursor-pointer"
                                 title="Open in BOQ Editor"
                               >
                                 <Edit2 size={13} />

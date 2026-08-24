@@ -609,8 +609,8 @@ export default function BOQManagement() {
       }
 
       const key = chosenVariant.toLowerCase();
-      const vConfig = comp[key] || comp.standard || comp.premium || comp.elite || {};
-      const unit = vConfig.unit || {};
+      const vConfig = comp[key] || {};
+      const unit = vConfig.unit || comp.standard?.unit || comp.unit || {};
 
       const lengthFt = unit.lengthFt !== undefined && (unit.lengthFt > 0 || unit.lengthIn > 0) ? unit.lengthFt : 1;
       const lengthIn = unit.lengthIn || 0;
@@ -619,13 +619,31 @@ export default function BOQManagement() {
       const depthFt = unit.depthFt || 0;
       const depthIn = unit.depthIn || 0;
 
-      let rate = vConfig.rate || unit.rate || (chosenVariant === "Elite" ? 2200 : chosenVariant === "Premium" ? 1800 : 1500);
-      const typeVariant = vConfig.type || comp.variant || "Box Standard";
-      const description = vConfig.description || comp.description || "";
+      // Base rate from standard tier or component root
+      const baseRate = comp.standard?.rate || comp.rate || 1500;
+      let rate = vConfig.rate || vConfig.unit?.rate || unit.rate;
+
+      if (!rate) {
+        if (chosenVariant === "Elite") {
+          rate = comp.elite?.rate || Math.round(baseRate * 1.65);
+        } else if (chosenVariant === "Premium") {
+          rate = comp.premium?.rate || Math.round(baseRate * 1.30);
+        } else {
+          rate = baseRate;
+        }
+      }
+
+      const typeVariant = vConfig.type || (chosenVariant === "Elite" ? "Elite Acrylic & HDMR" : chosenVariant === "Premium" ? "Premium Laminate & BWP" : "Standard MR & Matte");
+      const description = vConfig.description || comp.description || `Providing of ${comp.name} (${chosenVariant} specification)`;
       const photos = (vConfig.images || comp.images || []).map((img) => ({
         url: typeof img === "string" ? img : img.url,
         caption: img.name || comp.name
       }));
+
+      const l = lengthFt + lengthIn / 12;
+      const h = heightFt + heightIn / 12;
+      const sqft = parseFloat((l * h || 1).toFixed(3));
+      const amount = Math.round(sqft * rate);
 
       const newItem = {
         name: comp.name,
@@ -639,9 +657,9 @@ export default function BOQManagement() {
         depthIn,
         qty: 1,
         description,
-        sqft: parseFloat(((lengthFt + lengthIn / 12) * (heightFt + heightIn / 12) || 1).toFixed(3)),
+        sqft,
         rate,
-        amount: rate,
+        amount,
         photos
       };
       targetSpace.items.push(newItem);
@@ -649,9 +667,8 @@ export default function BOQManagement() {
 
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
-    setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}`);
+    setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}!`);
     setTimeout(() => setSuccessToast(""), 2000);
-
   };
 
   // Change Item Package Variant dynamically (e.g. Standard -> Elite)
@@ -668,35 +685,116 @@ export default function BOQManagement() {
       const matchedComp = libraryComponents.find(
         (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
       );
-      if (matchedComp) {
-        const key = newVariant.toLowerCase();
-        const vConfig = matchedComp[key];
-        if (vConfig) {
-          const unit = vConfig.unit || {};
-          if (unit.lengthFt > 0 || unit.lengthIn > 0) item.lengthFt = unit.lengthFt;
-          if (unit.lengthIn !== undefined) item.lengthIn = unit.lengthIn;
-          if (unit.heightFt > 0 || unit.heightIn > 0) item.heightFt = unit.heightFt;
-          if (unit.heightIn !== undefined) item.heightIn = unit.heightIn;
-          if (unit.depthFt !== undefined) item.depthFt = unit.depthFt;
-          if (unit.depthIn !== undefined) item.depthIn = unit.depthIn;
+      const baseRate = matchedComp?.standard?.rate || matchedComp?.rate || item.rate || 1500;
+      const key = newVariant.toLowerCase();
+      const vConfig = matchedComp ? matchedComp[key] : null;
 
-          item.typeVariant = vConfig.type || item.typeVariant || "Box";
-          item.rate = vConfig.rate || unit.rate || item.rate;
-          if (vConfig.description) item.description = vConfig.description;
-          if (vConfig.images?.length) {
-            item.photos = vConfig.images.map((img) => ({
-              url: typeof img === "string" ? img : img.url,
-              caption: img.name || item.name
-            }));
-          }
+      if (vConfig && (vConfig.rate || vConfig.unit?.rate)) {
+        item.rate = vConfig.rate || vConfig.unit?.rate;
+        if (vConfig.type) item.typeVariant = vConfig.type;
+        if (vConfig.description) item.description = vConfig.description;
+        if (vConfig.images?.length) {
+          item.photos = vConfig.images.map((img) => ({
+            url: typeof img === "string" ? img : img.url,
+            caption: img.name || item.name
+          }));
+        }
+      } else {
+        if (newVariant === "Elite") {
+          item.rate = Math.round(baseRate * 1.65);
+          item.typeVariant = "Elite Acrylic & HDMR";
+          item.description = `Elite Luxury specification for ${item.name}`;
+        } else if (newVariant === "Premium") {
+          item.rate = Math.round(baseRate * 1.30);
+          item.typeVariant = "Premium Laminate & BWP";
+          item.description = `Premium specification for ${item.name}`;
+        } else {
+          item.rate = baseRate;
+          item.typeVariant = "Standard MR & Matte";
+          item.description = `Standard specification for ${item.name}`;
         }
       }
+
+      // Recalculate item amount and sqft
+      const l = (Number(item.lengthFt) || 0) + (Number(item.lengthIn) || 0) / 12;
+      const h = (Number(item.heightFt) || 0) + (Number(item.heightIn) || 0) / 12;
+      const qty = Number(item.qty) || 1;
+      item.sqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : item.sqft || 1;
+      item.amount = Math.round(item.sqft * item.rate);
     }
 
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
-    setSuccessToast(`Switched ${item.name} to ${newVariant}`);
-    setTimeout(() => setSuccessToast(""), 1500);
+    setSuccessToast(`Switched ${item.name} to ${newVariant} (Rate: ₹${item.rate}/sqft)`);
+    setTimeout(() => setSuccessToast(""), 2000);
+  };
+
+  // Bulk Apply Package Variant to active space or all rooms
+  const handleApplyPackageToSpace = (newPkg, applyToAllSpaces = false) => {
+    setSelectedPackage(newPkg);
+    if (!activeBOQ) return;
+
+    const updated = JSON.parse(JSON.stringify(activeBOQ));
+    
+    const updateSpaceItems = (sp) => {
+      sp.items = sp.items.map((item) => {
+        const matchedComp = libraryComponents.find(
+          (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+        );
+        const baseRate = matchedComp?.standard?.rate || matchedComp?.rate || item.rate || 1500;
+        const key = newPkg.toLowerCase();
+        const vConfig = matchedComp ? matchedComp[key] : null;
+
+        let rate = item.rate;
+        let typeVariant = item.typeVariant || "Box Standard";
+
+        if (vConfig && (vConfig.rate || vConfig.unit?.rate)) {
+          rate = vConfig.rate || vConfig.unit?.rate;
+          if (vConfig.type) typeVariant = vConfig.type;
+        } else {
+          if (newPkg === "Elite") {
+            rate = Math.round(baseRate * 1.65);
+            typeVariant = "Elite Acrylic & HDMR";
+          } else if (newPkg === "Premium") {
+            rate = Math.round(baseRate * 1.30);
+            typeVariant = "Premium Laminate & BWP";
+          } else {
+            rate = baseRate;
+            typeVariant = "Standard MR & Matte";
+          }
+        }
+
+        const l = (Number(item.lengthFt) || 0) + (Number(item.lengthIn) || 0) / 12;
+        const h = (Number(item.heightFt) || 0) + (Number(item.heightIn) || 0) / 12;
+        const qty = Number(item.qty) || 1;
+        const sqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : item.sqft || 1;
+        const amount = Math.round(sqft * rate);
+
+        return {
+          ...item,
+          packageVariant: newPkg,
+          typeVariant,
+          rate,
+          sqft,
+          amount
+        };
+      });
+    };
+
+    if (applyToAllSpaces) {
+      updated.spaces.forEach((sp) => updateSpaceItems(sp));
+      updated.activePackage = newPkg;
+      setSuccessToast(`Applied ${newPkg} Package to ALL spaces in BOQ!`);
+    } else {
+      if (updated.spaces[activeSpaceIdx]) {
+        updateSpaceItems(updated.spaces[activeSpaceIdx]);
+      }
+      setSuccessToast(`Applied ${newPkg} Package to ${currentSpace.name}!`);
+    }
+
+    const recalculated = recalculateBOQ(updated);
+    setActiveBOQ(recalculated);
+    setTimeout(() => setSuccessToast(""), 2500);
   };
 
   // Open Custom Mix Modal for a palette component
@@ -1910,18 +2008,29 @@ export default function BOQManagement() {
               </button>
             </div>
 
-            {/* Default Package Selector */}
+            {/* Default Package Selector with Bulk Apply Action */}
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-stone-500 font-semibold">Default Package:</span>
               <select
                 value={selectedPackage}
-                onChange={(e) => setSelectedPackage(e.target.value)}
-                className="h-8 px-2.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                onChange={(e) => handleApplyPackageToSpace(e.target.value, false)}
+                className="h-8 px-2.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37] cursor-pointer"
+                title="Change package for items in this space"
               >
                 <option value="Standard">Standard Package</option>
                 <option value="Premium">Premium Package</option>
                 <option value="Elite">Elite Luxury Package</option>
               </select>
+
+              <button
+                type="button"
+                onClick={() => handleApplyPackageToSpace(selectedPackage, true)}
+                className="h-8 px-2.5 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-[10.5px] rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1"
+                title="Apply selected package tier to ALL rooms in this BOQ estimate"
+              >
+                <Zap size={11} className="fill-stone-950" />
+                <span>Apply to All Rooms</span>
+              </button>
             </div>
           </div>
 

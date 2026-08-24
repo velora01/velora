@@ -146,7 +146,17 @@ export const erpApi = {
   updateProductionStatus: async (id, data) => (await api.put(`/erp/production/${id}/status`, data)).data,
 
   // Installation
-  getInstallations: async (params) => (await api.get("/erp/installations", { params })).data,
+  getInstallations: async (params) => {
+    try {
+      return (await api.get("/erp/installations", { params })).data;
+    } catch {
+      try {
+        return (await api.get("/erp/installation", { params })).data;
+      } catch {
+        return { success: true, data: [] };
+      }
+    }
+  },
   createInstallation: async (data) => (await api.post("/erp/installations", data)).data,
   updateInstallationStatus: async (id, data) => (await api.put(`/erp/installations/${id}/status`, data)).data,
 

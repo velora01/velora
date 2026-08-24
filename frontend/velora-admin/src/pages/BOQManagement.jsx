@@ -850,7 +850,9 @@ export default function BOQManagement() {
       }
 
       const typeVariant = vConfig.type || (chosenVariant === "Elite" ? "Elite Acrylic & HDMR" : chosenVariant === "Premium" ? "Premium Laminate & BWP" : "Standard MR & Matte");
+
       const description = vConfig.description || comp.description || `Providing of ${comp.name} (${chosenVariant} specification)`;
+
       const photos = (vConfig.images || comp.images || []).map((img) => ({
         url: typeof img === "string" ? img : img.url,
         caption: img.name || comp.name
@@ -902,7 +904,9 @@ export default function BOQManagement() {
         (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
       );
       const baseRate = matchedComp?.standard?.rate || matchedComp?.rate || item.rate || 1500;
+      
       const key = newVariant.toLowerCase();
+
       const vConfig = matchedComp ? matchedComp[key] : null;
 
       if (vConfig && (vConfig.rate || vConfig.unit?.rate)) {

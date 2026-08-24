@@ -7,9 +7,13 @@ export default function InstallationManager() {
   const [search, setSearch] = useState("");
 
   const loadInstallations = () => {
-    erpApi.getInstallations({ search }).then((res) => {
-      if (res?.data) setInstallations(res.data);
-    });
+    erpApi.getInstallations({ search })
+      .then((res) => {
+        if (res?.data) setInstallations(res.data);
+      })
+      .catch(() => {
+        setInstallations([]);
+      });
   };
 
   useEffect(() => {

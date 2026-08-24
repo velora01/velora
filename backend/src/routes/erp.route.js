@@ -108,8 +108,11 @@ router.put("/production/:id/status", checkRole(["Admin", "Factory Manager", "Sup
 
 // Installation
 router.get("/installation", getInstallations);
+router.get("/installations", getInstallations);
 router.post("/installation", checkRole(["Admin", "Project Manager", "Installation Team", "Super Admin"]), createInstallation);
+router.post("/installations", checkRole(["Admin", "Project Manager", "Installation Team", "Super Admin"]), createInstallation);
 router.put("/installation/:id/status", updateInstallationStatus);
+router.put("/installations/:id/status", updateInstallationStatus);
 
 // Site Visit
 router.get("/site-visits", getSiteVisits);

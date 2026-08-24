@@ -132,7 +132,176 @@ export default function BOQManagement() {
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [enquiryList, setEnquiryList] = useState([]);
 
-  // Full default standard spaces template
+  // Get Default Components & Preset Prices for any space name
+  const getDefaultItemsForSpace = (spaceName) => {
+    const s = (spaceName || "").toLowerCase();
+
+    if (s.includes("living")) {
+      return [
+        {
+          name: "Living Room TV Unit & Paneling",
+          typeVariant: "Box Standard",
+          lengthFt: 8,
+          lengthIn: 0,
+          heightFt: 7,
+          heightIn: 0,
+          depthFt: 1,
+          depthIn: 6,
+          qty: 1,
+          description: "Providing of TV Unit with Panelling & Storage Drawers",
+          sqft: 56,
+          rate: 1800,
+          amount: 100800,
+          packageVariant: "Standard"
+        },
+        {
+          name: "Living Room Wall Louver Paneling",
+          typeVariant: "Panel",
+          lengthFt: 10,
+          lengthIn: 0,
+          heightFt: 9,
+          heightIn: 0,
+          depthFt: 0,
+          depthIn: 4,
+          qty: 1,
+          description: "Fluted Charcoal/WPC Panel Accent Wall",
+          sqft: 90,
+          rate: 1600,
+          amount: 144000,
+          packageVariant: "Standard"
+        }
+      ];
+    } else if (s.includes("kitchen")) {
+      return [
+        {
+          name: "Kitchen Base Cabinet",
+          typeVariant: "Box",
+          lengthFt: 12,
+          lengthIn: 0,
+          heightFt: 2,
+          heightIn: 8,
+          depthFt: 2,
+          depthIn: 0,
+          qty: 1,
+          description: "Modular Kitchen Base Units with Marine Ply & Tandem Baskets",
+          sqft: 32,
+          rate: 1800,
+          amount: 57600,
+          packageVariant: "Standard"
+        },
+        {
+          name: "Kitchen Overhead Storage",
+          typeVariant: "Box",
+          lengthFt: 12,
+          lengthIn: 0,
+          heightFt: 2,
+          heightIn: 0,
+          depthFt: 1,
+          depthIn: 3,
+          qty: 1,
+          description: "Overhead Cabinets with Hydraulic Lift-Up Doors",
+          sqft: 24,
+          rate: 1600,
+          amount: 38400,
+          packageVariant: "Standard"
+        }
+      ];
+    } else if (s.includes("bed") || s.includes("room")) {
+      return [
+        {
+          name: "King Size Hydraulic Bed",
+          typeVariant: "Bed",
+          lengthFt: 6,
+          lengthIn: 6,
+          heightFt: 4,
+          heightIn: 0,
+          depthFt: 6,
+          depthIn: 0,
+          qty: 1,
+          description: "King Size Bed with Cushioned Headboard & Hydraulic Storage",
+          sqft: 26,
+          rate: 2200,
+          amount: 57200,
+          packageVariant: "Standard"
+        },
+        {
+          name: "4-Door Openable Wardrobe",
+          typeVariant: "Wardrobe",
+          lengthFt: 7,
+          lengthIn: 0,
+          heightFt: 9,
+          heightIn: 6,
+          depthFt: 2,
+          depthIn: 0,
+          qty: 1,
+          description: "Floor-to-Ceiling Wardrobe with Inner Drawers & Loft",
+          sqft: 66.5,
+          rate: 1900,
+          amount: 126350,
+          packageVariant: "Standard"
+        }
+      ];
+    } else if (s.includes("dining")) {
+      return [
+        {
+          name: "Crockery & Display Console",
+          typeVariant: "Glass Box",
+          lengthFt: 5,
+          lengthIn: 0,
+          heightFt: 7,
+          heightIn: 0,
+          depthFt: 1,
+          depthIn: 6,
+          qty: 1,
+          description: "Crockery Unit with Glass Fluted Doors & Warm LED Profile",
+          sqft: 35,
+          rate: 2100,
+          amount: 73500,
+          packageVariant: "Standard"
+        }
+      ];
+    } else if (s.includes("puja") || s.includes("pooja")) {
+      return [
+        {
+          name: "Custom Mandir Unit with CNC Jali",
+          typeVariant: "Custom Box",
+          lengthFt: 4,
+          lengthIn: 0,
+          heightFt: 7,
+          heightIn: 0,
+          depthFt: 1,
+          depthIn: 6,
+          qty: 1,
+          description: "Teak Wood Finished Pooja Mandir with Backlit CNC Jali & Brass Bells",
+          sqft: 28,
+          rate: 2500,
+          amount: 70000,
+          packageVariant: "Standard"
+        }
+      ];
+    } else {
+      return [
+        {
+          name: "Shoe Rack",
+          typeVariant: "Box Standard",
+          lengthFt: 4,
+          lengthIn: 0,
+          heightFt: 3,
+          heightIn: 0,
+          depthFt: 1,
+          depthIn: 3,
+          qty: 1,
+          description: "Foyer Storage Cabinet with Seating Cushion",
+          sqft: 12,
+          rate: 1600,
+          amount: 19200,
+          packageVariant: "Standard"
+        }
+      ];
+    }
+  };
+
+  // Full default standard spaces template with pre-priced components
   const defaultStandardSpaces = [
     {
       name: "Entrance",
@@ -185,15 +354,36 @@ export default function BOQManagement() {
         }
       ]
     },
-    { name: "Entrance (Copy)", roomTotal: 0, items: [] },
-    { name: "PUJA ROOM", roomTotal: 85000, items: [] },
-    { name: "Living Room", roomTotal: 420000, items: [] },
-    { name: "Modular Kitchen", roomTotal: 650000, items: [] },
-    { name: "Dining Area", roomTotal: 120000, items: [] },
-    { name: "Master Bedroom", roomTotal: 580000, items: [] },
-    { name: "Kids Bedroom", roomTotal: 340000, items: [] },
-    { name: "Parents Bedroom", roomTotal: 310000, items: [] },
-    { name: "Guest Bedroom", roomTotal: 250000, items: [] }
+    {
+      name: "Living Room",
+      roomTotal: 244800,
+      items: getDefaultItemsForSpace("Living Room")
+    },
+    {
+      name: "Modular Kitchen",
+      roomTotal: 96000,
+      items: getDefaultItemsForSpace("Modular Kitchen")
+    },
+    {
+      name: "Dining Area",
+      roomTotal: 73500,
+      items: getDefaultItemsForSpace("Dining Area")
+    },
+    {
+      name: "Master Bedroom",
+      roomTotal: 183550,
+      items: getDefaultItemsForSpace("Master Bedroom")
+    },
+    {
+      name: "Kids Bedroom",
+      roomTotal: 183550,
+      items: getDefaultItemsForSpace("Kids Bedroom")
+    },
+    {
+      name: "Puja Room",
+      roomTotal: 70000,
+      items: getDefaultItemsForSpace("Puja Room")
+    }
   ];
 
   // Fetch BOQ List
@@ -1145,17 +1335,29 @@ export default function BOQManagement() {
   // Add New Space / Room Tab manually
   const handleAddNewSpace = () => {
     if (!newSpaceName.trim() || !activeBOQ) return;
+    const name = newSpaceName.trim();
     const updated = JSON.parse(JSON.stringify(activeBOQ));
-    updated.spaces.push({
-      name: newSpaceName.trim(),
-      roomTotal: 0,
-      items: []
+
+    // Automatically populate preset pre-priced items for this room type
+    const initialItems = getDefaultItemsForSpace(name);
+    let spaceSum = 0;
+    initialItems.forEach((item) => {
+      spaceSum += (item.amount || 0);
     });
+
+    updated.spaces.push({
+      name,
+      roomTotal: spaceSum,
+      items: initialItems
+    });
+
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
     setActiveSpaceIdx(updated.spaces.length - 1);
     setNewSpaceName("");
     setIsAddSpaceOpen(false);
+    setSuccessToast(`Added ${name} space with pre-set items!`);
+    setTimeout(() => setSuccessToast(""), 2500);
   };
 
   // Duplicate current space
@@ -1237,34 +1439,48 @@ export default function BOQManagement() {
     });
   }, [libraryComponents, componentSearch]);
 
-  // Filtered Component Palette
+  // Filtered Component Palette with Smart Fuzzy Room Matching
   const relevantComponents = useMemo(() => {
-    const spaceName = currentSpace?.name?.toLowerCase() || "";
-    return libraryComponents.filter((c) => {
+    const spaceName = (currentSpace?.name || "").toLowerCase();
+    const matched = libraryComponents.filter((c) => {
       const matchesSearch =
         !componentSearch || c.name.toLowerCase().includes(componentSearch.toLowerCase());
+      const relSpace = (c.relevantSpace || "").toLowerCase();
+
       const isRelevant =
-        c.relevantSpace?.toLowerCase().includes(spaceName) ||
-        (spaceName.includes("entrance") && c.relevantSpace === "Entrance") ||
-        (spaceName.includes("kitchen") && c.relevantSpace === "Modular Kitchen") ||
-        (spaceName.includes("living") && c.relevantSpace === "Living Room");
+        relSpace.includes(spaceName) ||
+        spaceName.includes(relSpace) ||
+        (spaceName.includes("entrance") && relSpace.includes("entrance")) ||
+        (spaceName.includes("foyer") && relSpace.includes("entrance")) ||
+        (spaceName.includes("kitchen") && relSpace.includes("kitchen")) ||
+        (spaceName.includes("living") && relSpace.includes("living")) ||
+        (spaceName.includes("bed") && relSpace.includes("bed")) ||
+        (spaceName.includes("dining") && relSpace.includes("dining")) ||
+        (spaceName.includes("puja") && relSpace.includes("puja")) ||
+        (spaceName.includes("pooja") && relSpace.includes("pooja"));
+
       return matchesSearch && isRelevant;
     });
+
+    // If no specific components match the current space name, return all library components
+    if (matched.length === 0) {
+      return libraryComponents.filter((c) =>
+        !componentSearch || c.name.toLowerCase().includes(componentSearch.toLowerCase())
+      );
+    }
+
+    return matched;
   }, [libraryComponents, currentSpace, componentSearch]);
 
   const otherComponents = useMemo(() => {
-    const spaceName = currentSpace?.name?.toLowerCase() || "";
+    const spaceName = (currentSpace?.name || "").toLowerCase();
     return libraryComponents.filter((c) => {
       const matchesSearch =
         !componentSearch || c.name.toLowerCase().includes(componentSearch.toLowerCase());
-      const isRelevant =
-        c.relevantSpace?.toLowerCase().includes(spaceName) ||
-        (spaceName.includes("entrance") && c.relevantSpace === "Entrance") ||
-        (spaceName.includes("kitchen") && c.relevantSpace === "Modular Kitchen") ||
-        (spaceName.includes("living") && c.relevantSpace === "Living Room");
-      return matchesSearch && !isRelevant;
+      const isAlreadyInRelevant = relevantComponents.some((r) => r.name === c.name);
+      return matchesSearch && !isAlreadyInRelevant;
     });
-  }, [libraryComponents, currentSpace, componentSearch]);
+  }, [libraryComponents, currentSpace, componentSearch, relevantComponents]);
 
   // Filtered Enquiries in Modal
   const filteredEnquiries = useMemo(() => {

@@ -41,6 +41,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
 import { downloadBOQPdf } from "../utils/downloadHelper";
 
+const STANDARD_SPACE_SUGGESTIONS = [
+  "Living Room",
+  "Master Bedroom",
+  "Modular Kitchen",
+  "Dining Room",
+  "Entrance / Foyer",
+  "Guest Bedroom",
+  "Kids Bedroom",
+  "Balcony / Terrace",
+  "Pooja Room",
+  "Home Theater",
+  "Study / Home Office",
+  "Walk-in Wardrobe / Dressing Area"
+];
+
 export default function BOQManagement() {
   const { id: urlId } = useParams();
   const navigate = useNavigate();
@@ -60,6 +75,7 @@ export default function BOQManagement() {
   const [activeCategory, setActiveCategory] = useState("Component"); // Component | Accessories | Appliances | Other Services
   const [selectedPackage, setSelectedPackage] = useState("Standard"); // Standard | Premium | Elite
   const [componentSearch, setComponentSearch] = useState("");
+  const [isComponentSearchFocused, setIsComponentSearchFocused] = useState(false);
   const [libraryComponents, setLibraryComponents] = useState([]);
   const [autoSave, setAutoSave] = useState(true);
   const [successToast, setSuccessToast] = useState("");
@@ -396,6 +412,15 @@ export default function BOQManagement() {
         { name: "Name Plate", relevantSpace: "Entrance", variant: "Custom", standard: { rate: 3500 } },
         { name: "Smart Lock", relevantSpace: "Entrance", variant: "Box Standard", standard: { rate: 15000 } },
         { name: "Shoe Rack Seating", relevantSpace: "Entrance", variant: "Box", standard: { rate: 2200 } },
+        { name: "Living Room TV Unit & Paneling", relevantSpace: "Living Room", variant: "Box Standard", standard: { rate: 1800 } },
+        { name: "Living Room Wall Louver Paneling", relevantSpace: "Living Room", variant: "Panel", standard: { rate: 1600 } },
+        { name: "Crockery & Display Console", relevantSpace: "Living Room", variant: "Glass Box", standard: { rate: 2100 } },
+        { name: "Living Room Foyer Divider Partition", relevantSpace: "Living Room", variant: "Partition", standard: { rate: 2400 } },
+        { name: "Bar Counter & Storage Cabinet", relevantSpace: "Living Room", variant: "Luxury Box", standard: { rate: 2800 } },
+        { name: "King Size Hydraulic Bed", relevantSpace: "Master Bedroom", variant: "Bed", standard: { rate: 45000 } },
+        { name: "4-Door Openable Wardrobe", relevantSpace: "Master Bedroom", variant: "Wardrobe", standard: { rate: 1900 } },
+        { name: "Dressing Unit with LED Mirror", relevantSpace: "Master Bedroom", variant: "Dresser", standard: { rate: 2200 } },
+        { name: "Bedside Tables (Pair)", relevantSpace: "Master Bedroom", variant: "Side Table", standard: { rate: 8500 } },
         { name: "Kitchen Base Cabinet", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Loft", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Kitchen SS Trolly", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 6000 } },
@@ -1200,6 +1225,18 @@ export default function BOQManagement() {
     }
   };
 
+  // Live Component Search Autocomplete Suggestions
+  const suggestedComponents = useMemo(() => {
+    if (!componentSearch || !componentSearch.trim()) return [];
+    const q = componentSearch.trim().toLowerCase();
+    return libraryComponents.filter((c) => {
+      const nameMatch = c.name?.toLowerCase().includes(q);
+      const spaceMatch = c.relevantSpace?.toLowerCase().includes(q);
+      const variantMatch = c.variant?.toLowerCase().includes(q);
+      return nameMatch || spaceMatch || variantMatch;
+    });
+  }, [libraryComponents, componentSearch]);
+
   // Filtered Component Palette
   const relevantComponents = useMemo(() => {
     const spaceName = currentSpace?.name?.toLowerCase() || "";
@@ -1762,16 +1799,95 @@ export default function BOQManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left Column: Components Palette */}
         <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
-          {/* Search Component */}
+          {/* Search Component with Live Autocomplete Suggestions */}
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
-              placeholder="Search Component"
+              placeholder="Search Component (e.g. living, shoe, bed)"
               value={componentSearch}
-              onChange={(e) => setComponentSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
+              onChange={(e) => {
+                setComponentSearch(e.target.value);
+                setIsComponentSearchFocused(true);
+              }}
+              onFocus={() => setIsComponentSearchFocused(true)}
+              className="w-full pl-8 pr-8 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition"
             />
+            {componentSearch && (
+              <button
+                type="button"
+                onClick={() => setComponentSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                <X size={13} />
+              </button>
+            )}
+
+            {/* Live Autocomplete Suggestions Dropdown */}
+            {isComponentSearchFocused && componentSearch.trim().length > 0 && (
+              <div
+                className="absolute left-0 right-0 top-10 z-50 bg-white rounded-2xl shadow-2xl border border-amber-200 p-2 space-y-1.5 max-h-72 overflow-y-auto animate-in fade-in zoom-in-95"
+                onMouseLeave={() => setIsComponentSearchFocused(false)}
+              >
+                <div className="px-2 py-1 flex items-center justify-between text-[10px] font-black text-amber-800 bg-amber-50 rounded-lg">
+                  <span>SUGGESTED COMPONENTS FOR "{componentSearch.toUpperCase()}"</span>
+                  <span>{suggestedComponents.length} Found</span>
+                </div>
+
+                {suggestedComponents.length === 0 ? (
+                  <div className="p-3 text-center text-stone-400 text-xs">
+                    No components found matching "{componentSearch}".
+                  </div>
+                ) : (
+                  suggestedComponents.map((comp, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 rounded-xl border border-stone-100 hover:border-amber-300 hover:bg-amber-50/50 transition text-xs space-y-1 bg-white shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-stone-900">{comp.name}</span>
+                        <span className="text-[9.5px] text-[#9E7B1D] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 font-extrabold">
+                          {comp.relevantSpace || "General"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Elite");
+                            setIsComponentSearchFocused(false);
+                          }}
+                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-amber-100 text-amber-900 hover:bg-[#D4AF37] hover:text-stone-950 transition cursor-pointer"
+                        >
+                          + Elite
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Premium");
+                            setIsComponentSearchFocused(false);
+                          }}
+                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-sky-100 text-sky-900 hover:bg-sky-500 hover:text-white transition cursor-pointer"
+                        >
+                          + Premium
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Standard");
+                            setIsComponentSearchFocused(false);
+                          }}
+                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white transition cursor-pointer"
+                        >
+                          + Standard
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Relevant Components Section */}
@@ -2329,32 +2445,62 @@ export default function BOQManagement() {
         </div>
       </div>
 
-      {/* Add New Space Modal */}
+      {/* Add New Space Modal with Autocomplete Suggestions */}
       {isAddSpaceOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl border border-[#EAE3D2] w-full max-w-sm overflow-hidden p-5 space-y-4">
             <h3 className="text-sm font-bold text-stone-900">Add New Space / Room</h3>
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1.5">Space Name</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-stone-700">Space Name</label>
               <input
                 type="text"
-                placeholder="e.g. Balcony, Home Theater, Dressing Area"
+                placeholder="e.g. Living Room, Balcony, Home Theater"
                 value={newSpaceName}
                 onChange={(e) => setNewSpaceName(e.target.value)}
                 autoFocus
                 className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
               />
+
+              {/* Popular Space Suggestions Pill List */}
+              <div className="pt-1 space-y-1.5">
+                <span className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                  Suggested Spaces ({STANDARD_SPACE_SUGGESTIONS.filter((s) => !newSpaceName || s.toLowerCase().includes(newSpaceName.toLowerCase())).length})
+                </span>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                  {STANDARD_SPACE_SUGGESTIONS.filter((s) =>
+                    !newSpaceName || s.toLowerCase().includes(newSpaceName.toLowerCase())
+                  ).map((spaceName) => (
+                    <button
+                      key={spaceName}
+                      type="button"
+                      onClick={() => {
+                        setNewSpaceName(spaceName);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer border ${
+                        newSpaceName === spaceName
+                          ? "bg-[#D4AF37] text-stone-950 border-amber-400 font-bold shadow-2xs"
+                          : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-amber-50 hover:border-amber-300"
+                      }`}
+                    >
+                      + {spaceName}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setIsAddSpaceOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl"
+                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleAddNewSpace}
-                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs"
+                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs cursor-pointer"
               >
                 Add Space
               </button>

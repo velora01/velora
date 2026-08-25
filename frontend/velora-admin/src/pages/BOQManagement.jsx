@@ -904,7 +904,7 @@ export default function BOQManagement() {
         (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
       );
       const baseRate = matchedComp?.standard?.rate || matchedComp?.rate || item.rate || 1500;
-      
+
       const key = newVariant.toLowerCase();
 
       const vConfig = matchedComp ? matchedComp[key] : null;
@@ -1015,7 +1015,10 @@ export default function BOQManagement() {
     const recalculated = recalculateBOQ(updated);
     setActiveBOQ(recalculated);
     setTimeout(() => setSuccessToast(""), 2500);
+
   };
+
+
 
   // Open Custom Mix Modal for a palette component
   const handleOpenCustomMix = (comp) => {

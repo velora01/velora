@@ -862,6 +862,8 @@ export const downloadCsv = (filename, columns, data) => {
       .join(",")
   );
 
+
+
   const csvContent = [headerRow, ...dataRows].join("\r\n");
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   triggerBlobDownload(blob, `${filename.replace(/\.csv$/, "")}.csv`);

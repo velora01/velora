@@ -676,6 +676,9 @@ export const exportInvoiceCsv = (invoice) => {
   const invNum = invoice?.invoiceNumber || "Invoice";
   const items = invoice?.items || [];
 
+  const detail = invoice?.items.Authorization();
+  console.log(invoice)
+
   const columns = [
     { header: "Invoice Number", key: "invoiceNumber" },
     { header: "Client Name", key: "clientName" },

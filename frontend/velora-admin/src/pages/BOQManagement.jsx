@@ -1864,225 +1864,183 @@ export default function BOQManagement() {
         </div>
       </div>
 
-      {/* Main Two-Column Work Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left Column: Focused Search & Add Component Panel */}
-        <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-3.5 shadow-xs space-y-3">
-          {/* Header Label */}
-          <div className="flex items-center justify-between pb-1 border-b border-stone-100">
-            <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Search size={13} className="text-[#9E7B1D]" />
-              <span>Search Component</span>
-            </h4>
-            <button
-              onClick={() => handleOpenCustomMix(null)}
-              className="text-[10.5px] font-extrabold text-[#9E7B1D] hover:underline cursor-pointer flex items-center gap-0.5"
-            >
-              <Plus size={10} />
-              <span>Custom</span>
-            </button>
+      {/* Main Full-Width Work Area (Horizontal Search + Extended Details Table) */}
+      <div className="w-full bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
+        {/* Room Title & Total Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EAE3D2]">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-black text-stone-900">{currentSpace?.name || "Space"}</h3>
+            <span className="text-sm font-black text-[#9E7B1D] bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+              Room Total: ₹{(currentSpace?.roomTotal || 0).toLocaleString("en-IN")}
+            </span>
           </div>
 
-          {/* Search Input Bar */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          {/* Room Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDuplicateSpace}
+              title="Duplicate Space"
+              className="px-3 py-1.5 bg-stone-50 hover:bg-amber-50 text-stone-700 hover:text-[#9E7B1D] border border-stone-200 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            >
+              <Copy size={14} />
+              <span>Duplicate Room</span>
+            </button>
+            <button
+              onClick={handleDeleteCurrentSpace}
+              title="Delete Space"
+              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            >
+              <Trash2 size={14} />
+              <span>Delete Room</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Integrated Horizontal Search & Component Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE3D2]">
+          {/* Search & Add Component Input with Live Suggestions Dropdown */}
+          <div className="relative flex-1 min-w-[320px]">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
-              placeholder="Search (e.g. shoe, tv, bed, wardrobe)"
+              placeholder={`Search & Add Component to ${currentSpace?.name || "this room"} (e.g. shoe, tv, bed, wardrobe, door)...`}
               value={componentSearch}
-              onChange={(e) => setComponentSearch(e.target.value)}
-              className="w-full pl-8 pr-8 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition font-medium"
+              onChange={(e) => {
+                setComponentSearch(e.target.value);
+                setIsComponentSearchFocused(true);
+              }}
+              onFocus={() => setIsComponentSearchFocused(true)}
+              className="w-full pl-9 pr-9 py-2 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] font-semibold shadow-2xs"
             />
             {componentSearch && (
               <button
                 type="button"
                 onClick={() => setComponentSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
               >
-                <X size={13} />
+                <X size={14} />
               </button>
             )}
-          </div>
 
-          {/* Quick Room Filter Pills */}
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-stone-400 uppercase block">Quick Room Filter:</span>
-            <div className="flex items-center gap-1 flex-wrap">
-              {["All", currentSpace?.name || "Entrance", "Living Room", "Modular Kitchen", "Master Bedroom", "Puja Room"].map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => setComponentSearch(tag === "All" ? "" : tag)}
-                  className={`px-2 py-0.5 text-[9.5px] font-bold rounded-md transition cursor-pointer ${
-                    (tag === "All" && !componentSearch) || componentSearch?.toLowerCase() === tag.toLowerCase()
-                      ? "bg-[#D4AF37] text-stone-950 font-black shadow-2xs"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Search Results Component Cards List */}
-          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
-            {filteredSearchResults.length > 0 ? (
-              filteredSearchResults.map((comp, idx) => {
-                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
-                const rate = comp.standard?.rate || comp.rate || 1500;
-
-                return (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition text-xs bg-white shadow-2xs space-y-1.5"
+            {/* Live Search Suggestions Dropdown */}
+            {isComponentSearchFocused && (
+              <div
+                className="absolute left-0 right-0 top-11 z-50 bg-white rounded-2xl shadow-2xl border border-amber-300 p-2 space-y-1.5 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95"
+                onMouseLeave={() => setIsComponentSearchFocused(false)}
+              >
+                <div className="px-2.5 py-1 flex items-center justify-between text-[10px] font-black text-amber-800 bg-amber-50 rounded-lg">
+                  <span>SELECT COMPONENT TO ADD ({filteredSearchResults.length} FOUND)</span>
+                  <button
+                    onClick={() => setIsComponentSearchFocused(false)}
+                    className="text-stone-400 hover:text-stone-700 cursor-pointer"
                   >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {imgCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
-                            <Camera size={9} />
-                            <span>{imgCount}</span>
-                          </span>
-                        )}
-                        <span className="font-bold text-stone-900 truncate">{comp.name}</span>
+                    <X size={12} />
+                  </button>
+                </div>
+
+                {filteredSearchResults.length === 0 ? (
+                  <div className="p-3 text-center text-stone-400 text-xs font-medium">
+                    No matching components found for "{componentSearch}".
+                  </div>
+                ) : (
+                  filteredSearchResults.map((comp, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 px-3 rounded-xl border border-stone-100 hover:border-amber-300 hover:bg-amber-50/50 transition flex items-center justify-between gap-3 bg-white"
+                    >
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-stone-900 text-xs block">{comp.name}</span>
+                        <span className="text-[10px] text-stone-400 font-medium">
+                          {comp.relevantSpace || "General"} • ₹{(comp.standard?.rate || comp.rate || 1500).toLocaleString("en-IN")}/sq.ft
+                        </span>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => handleOpenCustomMix(comp)}
-                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                          title={`Custom Mix for ${comp.name}`}
+                          type="button"
+                          onClick={() => {
+                            handleOpenCustomMix(comp);
+                            setIsComponentSearchFocused(false);
+                          }}
+                          className="px-2 py-1 bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-[#9E7B1D] font-bold text-[10.5px] rounded-lg transition"
+                          title="Custom Mix Specs"
                         >
-                          <SlidersHorizontal size={11} />
+                          <SlidersHorizontal size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, selectedPackage);
+                            setIsComponentSearchFocused(false);
+                            setComponentSearch("");
+                          }}
+                          className="px-3 py-1 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-lg transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus size={12} />
+                          <span>+ Add to {currentSpace?.name || "Room"}</span>
                         </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-stone-500 font-medium">
-                      <span className="bg-amber-50 text-[#9E7B1D] px-1.5 py-0.5 rounded border border-amber-200 font-extrabold">
-                        {comp.relevantSpace || "General"}
-                      </span>
-                      <span className="font-mono font-bold text-stone-700">₹{rate.toLocaleString("en-IN")}/sq.ft</span>
-                    </div>
-
-                    <div className="pt-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
-                        className="w-full py-1 px-2.5 text-[11px] font-extrabold rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
-                      >
-                        <Plus size={12} />
-                        <span>Add Component</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-4 text-center space-y-2 bg-[#FAF9F5] rounded-xl border border-dashed border-[#EAE3D2]">
-                <Search size={20} className="mx-auto text-stone-400" />
-                <p className="text-xs text-stone-500 font-medium">
-                  {componentSearch ? `No components match "${componentSearch}"` : "Type in search bar above or tap a room filter tag to search components"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleOpenCustomMix(null)}
-                  className="px-3 py-1.5 bg-[#D4AF37] text-stone-950 font-bold text-xs rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1"
-                >
-                  <Plus size={12} />
-                  <span>+ Custom Mix</span>
-                </button>
+                  ))
+                )}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Right Column: Space Components Table */}
-        <div className="lg:col-span-9 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
-          {/* Room Title Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EAE3D2]">
-            <div className="flex items-center gap-3">
-              <h3 className="text-base font-black text-stone-900">{currentSpace?.name || "Space"}</h3>
-              <span className="text-sm font-black text-[#9E7B1D]">
-                ₹{(currentSpace?.roomTotal || 0).toLocaleString("en-IN")}
-              </span>
-            </div>
+          {/* Controls & Package Selector */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => handleOpenCustomMix(null)}
+              className="px-3 py-1.5 bg-white border border-[#EAE3D2] hover:bg-amber-50 text-stone-800 font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
+            >
+              <Plus size={13} className="text-[#9E7B1D]" />
+              <span>Custom Item</span>
+            </button>
 
-            {/* Room Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleDuplicateSpace}
-                title="Duplicate Space"
-                className="p-1.5 text-stone-500 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
-              >
-                <Copy size={15} />
-              </button>
-              <button
-                onClick={handleDeleteCurrentSpace}
-                title="Delete Space"
-                className="p-1.5 text-stone-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          </div>
-
-          {/* Subheader: Components Label & Package Variant Selector */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-stone-800">Components</span>
-              <button title="Copy Component Selection" className="text-stone-400 hover:text-[#9E7B1D]">
-                <Copy size={13} />
-              </button>
-            </div>
-
-            {/* Default Package Selector with Bulk Apply Action */}
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-stone-500 font-semibold">Default Package:</span>
+            <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
+              <span className="text-[11px] text-stone-500 font-bold">Default Package:</span>
               <select
                 value={selectedPackage}
                 onChange={(e) => handleApplyPackageToSpace(e.target.value, false)}
-                className="h-8 px-2.5 bg-[#FAF9F5] border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37] cursor-pointer"
-                title="Change package for items in this space"
+                className="h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37] cursor-pointer shadow-2xs"
               >
                 <option value="Standard">Standard Package</option>
                 <option value="Premium">Premium Package</option>
                 <option value="Elite">Elite Luxury Package</option>
               </select>
-
-              <button
-                type="button"
-                onClick={() => handleApplyPackageToSpace(selectedPackage, true)}
-                className="h-8 px-2.5 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-[10.5px] rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1"
-                title="Apply selected package tier to ALL rooms in this BOQ estimate"
-              >
-                <Zap size={11} className="fill-stone-950" />
-                <span>Apply to All Rooms</span>
-              </button>
             </div>
-          </div>
 
-          {/* Components Dimension & Calculation Table */}
-          <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl bg-white shadow-2xs">
-            <table className="w-full text-left border-collapse text-[11px]">
-              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] font-bold text-stone-700">
-                <tr>
-                  <th className="py-2 px-1 w-6 text-center text-stone-400"></th>
-                  <th className="py-2 px-1.5 min-w-[100px]">Name</th>
-                  <th className="py-2 px-1 w-20">Package</th>
-                  <th className="py-2 px-1 w-20">Type</th>
-                  <th className="py-2 px-1 text-center w-14">L (ft/in)</th>
-                  <th className="py-2 px-1 text-center w-14">H (ft/in)</th>
-                  <th className="py-2 px-1 text-center w-14">D (ft/in)</th>
-                  <th className="py-2 px-1 text-center w-10">Qty</th>
-                  <th className="py-2 px-1.5 min-w-[90px]">Description</th>
-                  <th className="py-2 px-1 text-right w-11">Sq.ft</th>
-                  <th className="py-2 px-1 text-right w-16">Rate</th>
-                  <th className="py-2 px-1.5 text-right w-20">Amount</th>
-                  <th className="py-2 px-1 text-center w-12">Action</th>
-                </tr>
-              </thead>
+            <button
+              type="button"
+              onClick={() => handleApplyPackageToSpace(selectedPackage, true)}
+              className="h-8 px-3 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
+            >
+              <Zap size={12} className="fill-stone-950" />
+              <span>Apply to All Rooms</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 100% Extended Component Calculation Table */}
+        <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl bg-white shadow-2xs">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
+              <tr>
+                <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
+                <th className="py-2.5 px-3 min-w-[150px]">Component Name</th>
+                <th className="py-2.5 px-2 w-28">Package / Variant</th>
+                <th className="py-2.5 px-2 w-28">Type</th>
+                <th className="py-2.5 px-2 text-center w-20">Length (ft/in)</th>
+                <th className="py-2.5 px-2 text-center w-20">Height (ft/in)</th>
+                <th className="py-2.5 px-2 text-center w-20">Depth (ft/in)</th>
+                <th className="py-2.5 px-2 text-center w-14">Qty</th>
+                <th className="py-2.5 px-3 min-w-[160px]">Specification / Description</th>
+                <th className="py-2.5 px-2 text-right w-16">Sq.ft</th>
+                <th className="py-2.5 px-2 text-right w-24">Rate (sq.ft)</th>
+                <th className="py-2.5 px-3 text-right w-28">Amount</th>
+                <th className="py-2.5 px-2 text-center w-16">Action</th>
+              </tr>
+            </thead>
 
               <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
                 {!currentSpace?.items || currentSpace.items.length === 0 ? (
@@ -2355,7 +2313,6 @@ export default function BOQManagement() {
             </table>
           </div>
         </div>
-      </div>
 
       {/* Add New Space Modal with Autocomplete Suggestions */}
       {isAddSpaceOpen && (

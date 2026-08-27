@@ -1955,29 +1955,53 @@ export default function BOQManagement() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Elite");
+                            setIsComponentSearchFocused(false);
+                            setComponentSearch("");
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-amber-100 text-amber-900 hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-300 transition cursor-pointer shadow-2xs"
+                          title={`Add Elite variant (₹${comp.elite?.rate || Math.round((comp.standard?.rate || 1500) * 1.65)}/sq.ft)`}
+                        >
+                          + Elite
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Premium");
+                            setIsComponentSearchFocused(false);
+                            setComponentSearch("");
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-sky-100 text-sky-900 hover:bg-sky-500 hover:text-white border border-sky-300 transition cursor-pointer shadow-2xs"
+                          title={`Add Premium variant (₹${comp.premium?.rate || Math.round((comp.standard?.rate || 1500) * 1.30)}/sq.ft)`}
+                        >
+                          + Premium
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAddComponentToSpace(comp, null, "Standard");
+                            setIsComponentSearchFocused(false);
+                            setComponentSearch("");
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer shadow-2xs"
+                          title={`Add Standard variant (₹${comp.standard?.rate || 1500}/sq.ft)`}
+                        >
+                          + Standard
+                        </button>
                         <button
                           type="button"
                           onClick={() => {
                             handleOpenCustomMix(comp);
                             setIsComponentSearchFocused(false);
                           }}
-                          className="px-2 py-1 bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-[#9E7B1D] font-bold text-[10.5px] rounded-lg transition"
+                          className="p-1.5 bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-[#9E7B1D] font-bold rounded-lg transition"
                           title="Custom Mix Specs"
                         >
                           <SlidersHorizontal size={12} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleAddComponentToSpace(comp, null, selectedPackage);
-                            setIsComponentSearchFocused(false);
-                            setComponentSearch("");
-                          }}
-                          className="px-3 py-1 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-lg transition shadow-2xs flex items-center gap-1 cursor-pointer"
-                        >
-                          <Plus size={12} />
-                          <span>+ Add to {currentSpace?.name || "Room"}</span>
                         </button>
                       </div>
                     </div>

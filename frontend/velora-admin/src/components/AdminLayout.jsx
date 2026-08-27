@@ -73,18 +73,22 @@ export default function AdminLayout({ children }) {
     return current?.name || "Velora";
   };
 
+  const isBOQPage = location.pathname.startsWith("/boq") || location.pathname === "/estimates";
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-stone-800 flex font-sans antialiased">
       {/* Mobile Top Navigation */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-[#E8DFCE] px-4 flex items-center justify-between z-40 shadow-xs">
-        <span className="font-black text-sm text-[#9E7B1D] tracking-wider">VELORA</span>
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-1.5 text-stone-600 hover:bg-amber-50 rounded-lg transition"
-        >
-          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
+      {!isBOQPage && (
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-[#E8DFCE] px-4 flex items-center justify-between z-40 shadow-xs">
+          <span className="font-black text-sm text-[#9E7B1D] tracking-wider">VELORA</span>
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-1.5 text-stone-600 hover:bg-amber-50 rounded-lg transition"
+          >
+            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      )}
 
       {/* Sidebar Panel - Clean Luxury Gold & White Theme */}
       <aside
@@ -209,39 +213,41 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 pt-14 md:pt-0 overflow-y-auto h-screen flex flex-col">
-        {/* Top Navbar Header - Clean without CRM word or V logo */}
-        <header className="hidden md:flex items-center justify-between h-14 px-6 bg-white border-b border-[#EAE3D2] sticky top-0 z-30 shadow-2xs">
-          {/* Left: Page Title only (no V logo, no CRM word) */}
-          <div className="flex items-center">
-            <h1 className="text-base font-bold text-stone-900 tracking-tight">
-              {getCurrentPageTitle()}
-            </h1>
-          </div>
+      <main className={`flex-1 min-w-0 ${isBOQPage ? "pt-0" : "pt-14 md:pt-0"} overflow-y-auto h-screen flex flex-col`}>
+        {/* Top Navbar Header - Hidden on BOQ Page */}
+        {!isBOQPage && (
+          <header className="hidden md:flex items-center justify-between h-14 px-6 bg-white border-b border-[#EAE3D2] sticky top-0 z-30 shadow-2xs">
+            {/* Left: Page Title only (no V logo, no CRM word) */}
+            <div className="flex items-center">
+              <h1 className="text-base font-bold text-stone-900 tracking-tight">
+                {getCurrentPageTitle()}
+              </h1>
+            </div>
 
-          {/* Right: Notifications Bell & Golden User Avatar Badge */}
-          <div className="flex items-center gap-4">
-            {/* Notification Bell with golden dot */}
-            <Link
-              to="/notifications"
-              className="relative p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition"
-              title="Notifications"
-            >
-              <Bell size={18} />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#D4AF37] ring-2 ring-white" />
-            </Link>
-
-            {/* Profile Avatar (Golden circle with user initial) */}
-            <div className="flex items-center gap-2.5 pl-2 border-l border-[#EAE3D2]">
-              <div
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] text-stone-950 font-black text-xs flex items-center justify-center shadow-xs cursor-pointer select-none"
-                title={`${adminUser?.name || "Admin"} (${adminUser?.role || "Super Admin"})`}
+            {/* Right: Notifications Bell & Golden User Avatar Badge */}
+            <div className="flex items-center gap-4">
+              {/* Notification Bell with golden dot */}
+              <Link
+                to="/notifications"
+                className="relative p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition"
+                title="Notifications"
               >
-                {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "N"}
+                <Bell size={18} />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#D4AF37] ring-2 ring-white" />
+              </Link>
+
+              {/* Profile Avatar (Golden circle with user initial) */}
+              <div className="flex items-center gap-2.5 pl-2 border-l border-[#EAE3D2]">
+                <div
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] text-stone-950 font-black text-xs flex items-center justify-center shadow-xs cursor-pointer select-none"
+                  title={`${adminUser?.name || "Admin"} (${adminUser?.role || "Super Admin"})`}
+                >
+                  {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "N"}
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Page Body */}
         <div className="p-4 md:p-6 max-w-7xl mx-auto w-full space-y-6 flex-1">{children}</div>

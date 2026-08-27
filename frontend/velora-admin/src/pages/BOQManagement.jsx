@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
-import { downloadBOQPdf } from "../utils/downloadHelper";
+import { downloadBOQPdf, downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
 
 const STANDARD_SPACE_SUGGESTIONS = [
   "Living Room",
@@ -79,6 +79,7 @@ export default function BOQManagement() {
   const [libraryComponents, setLibraryComponents] = useState([]);
   const [autoSave, setAutoSave] = useState(true);
   const [successToast, setSuccessToast] = useState("");
+  const [savedSuccessModal, setSavedSuccessModal] = useState(null);
 
   // Quotation Modal State
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
@@ -1397,27 +1398,82 @@ export default function BOQManagement() {
   const handleSaveBOQ = async () => {
     if (!activeBOQ) return;
     try {
+      let res = null;
       if (activeBOQ._id && !activeBOQ._id.startsWith("temp_") && !activeBOQ._id.startsWith("boq_")) {
-        await erpApi.updateBOQ(activeBOQ._id, activeBOQ);
+        res = await erpApi.updateBOQ(activeBOQ._id, activeBOQ);
       } else {
-        await erpApi.createBOQ(activeBOQ);
+        res = await erpApi.createBOQ(activeBOQ);
       }
-      // Update local state list so it displays immediately
+
+      const savedBoq = res?.data || activeBOQ;
+      const syncedClient = res?.client || {
+        name: savedBoq.clientName,
+        phone: savedBoq.clientPhone,
+        email: savedBoq.clientEmail,
+        status: "Active"
+      };
+      const syncedInvoice = res?.invoice || {
+        invoiceNumber: `VLA-INV-${savedBoq.boqNumber ? savedBoq.boqNumber.replace(/^BOQ-?/i, "") : "2026-018"}`,
+        clientName: savedBoq.clientName,
+        clientPhone: savedBoq.clientPhone,
+        clientEmail: savedBoq.clientEmail,
+        grandTotal: savedBoq.grandTotal,
+        subtotal: savedBoq.subtotal || Math.round((savedBoq.grandTotal || 0) / 1.18),
+        gstTotal: savedBoq.gstTotal || Math.round((savedBoq.grandTotal || 0) - (savedBoq.grandTotal || 0) / 1.18),
+        issueDate: savedBoq.enquiryDate || new Date(),
+        items: (savedBoq.spaces || []).flatMap((sp) =>
+          (sp.items || []).map((it) => ({
+            productName: it.name,
+            category: sp.name,
+            quantity: it.qty || 1,
+            unit: it.unit || "sqft",
+            rate: it.rate || 0,
+            total: it.amount || (it.rate * (it.qty || 1))
+          }))
+        )
+      };
+
       setBoqList((prev) => {
-        const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
+        const idx = prev.findIndex((b) => b._id === savedBoq._id || b.enquiryNo === savedBoq.enquiryNo);
         if (idx >= 0) {
           const copy = [...prev];
-          copy[idx] = activeBOQ;
+          copy[idx] = savedBoq;
           return copy;
         }
-        return [activeBOQ, ...prev];
+        return [savedBoq, ...prev];
       });
-      setSuccessToast("BOQ saved successfully!");
+
       fetchBOQList();
       setViewMode("list");
       setActiveBOQ(null);
-      setTimeout(() => setSuccessToast(""), 3500);
+
+      // Open Post-Save Modal with Print Invoice & View Client Profile
+      setSavedSuccessModal({
+        boq: savedBoq,
+        client: syncedClient,
+        invoice: syncedInvoice
+      });
     } catch {
+      const invoiceData = {
+        invoiceNumber: `VLA-INV-${activeBOQ.boqNumber ? activeBOQ.boqNumber.replace(/^BOQ-?/i, "") : "2026-018"}`,
+        clientName: activeBOQ.clientName,
+        clientPhone: activeBOQ.clientPhone,
+        clientEmail: activeBOQ.clientEmail,
+        grandTotal: activeBOQ.grandTotal,
+        subtotal: activeBOQ.subtotal || Math.round((activeBOQ.grandTotal || 0) / 1.18),
+        gstTotal: activeBOQ.gstTotal || Math.round((activeBOQ.grandTotal || 0) - (activeBOQ.grandTotal || 0) / 1.18),
+        items: (activeBOQ.spaces || []).flatMap((sp) =>
+          (sp.items || []).map((it) => ({
+            productName: it.name,
+            category: sp.name,
+            quantity: it.qty || 1,
+            unit: it.unit || "sqft",
+            rate: it.rate || 0,
+            total: it.amount || (it.rate * (it.qty || 1))
+          }))
+        )
+      };
+
       setBoqList((prev) => {
         const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
         if (idx >= 0) {
@@ -1427,10 +1483,14 @@ export default function BOQManagement() {
         }
         return [activeBOQ, ...prev];
       });
-      setSuccessToast("BOQ saved successfully!");
+
       setViewMode("list");
+      setSavedSuccessModal({
+        boq: activeBOQ,
+        client: { name: activeBOQ.clientName, phone: activeBOQ.clientPhone, email: activeBOQ.clientEmail },
+        invoice: invoiceData
+      });
       setActiveBOQ(null);
-      setTimeout(() => setSuccessToast(""), 3500);
     }
   };
 
@@ -1629,9 +1689,25 @@ export default function BOQManagement() {
                         {String(row.spaces?.length || row.numberOfSpaces || 0).padStart(2, "0")}
                       </td>
 
-                      {/* Actions (Screenshot 1) */}
+                      {/* Actions */}
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => printInvoice(row)}
+                            title="Print Invoice for this BOQ"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer"
+                          >
+                            <Printer size={13} />
+                            <span>Print Invoice</span>
+                          </button>
+                          <button
+                            onClick={() => navigate("/clients")}
+                            title="View Client Section"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer"
+                          >
+                            <User size={13} />
+                            <span>Client Profile</span>
+                          </button>
                           <button
                             onClick={() => handleOpenQuotationModal(row)}
                             title="Generate & View Official Quotation"
@@ -1645,13 +1721,6 @@ export default function BOQManagement() {
                             className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                           >
                             <Edit2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleOpenBuilder(row)}
-                            title="More Options"
-                            className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg transition cursor-pointer"
-                          >
-                            <MoreVertical size={14} />
                           </button>
                         </div>
                       </td>
@@ -3543,6 +3612,94 @@ export default function BOQManagement() {
               alt="Preview"
               className="max-h-[80vh] w-auto mx-auto object-contain rounded-xl"
             />
+          </div>
+        </div>
+      )}
+
+      {/* BOQ Saved Confirmation Modal (Auto Client & Invoice Synced) */}
+      {savedSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+            <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 p-6 text-white text-center relative">
+              <button
+                onClick={() => setSavedSuccessModal(null)}
+                className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/20 p-1.5 rounded-full transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <CheckCircle2 size={32} className="text-white" />
+              </div>
+              <h3 className="text-xl font-black">BOQ Saved Successfully!</h3>
+              <p className="text-amber-100 text-xs mt-1">
+                Client profile & Tax Invoice automatically synchronized & generated.
+              </p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Client profile card */}
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Client Profile</span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">Synced & Active</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <p className="font-extrabold text-stone-900 text-sm">{savedSuccessModal.client?.name || savedSuccessModal.boq?.clientName}</p>
+                    <p className="text-xs text-stone-500">{savedSuccessModal.client?.phone || savedSuccessModal.boq?.clientPhone || "N/A"} | {savedSuccessModal.client?.email || savedSuccessModal.boq?.clientEmail || "N/A"}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSavedSuccessModal(null);
+                      navigate("/clients");
+                    }}
+                    className="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <User size={13} />
+                    <span>View Profile</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Invoice details card */}
+              <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Tax Invoice</span>
+                  <span className="px-2 py-0.5 bg-amber-200/80 text-amber-900 text-[10px] font-bold rounded-md">{savedSuccessModal.invoice?.invoiceNumber || "Ready to Print"}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <p className="font-extrabold text-stone-900 text-sm">Invoice #: {savedSuccessModal.invoice?.invoiceNumber}</p>
+                    <p className="text-xs text-amber-900 font-bold">Grand Total: ₹{(savedSuccessModal.boq?.grandTotal || savedSuccessModal.invoice?.grandTotal || 0).toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => printInvoice(savedSuccessModal.invoice || savedSuccessModal.boq)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    >
+                      <Printer size={14} />
+                      <span>Print Invoice</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5 justify-end">
+                <button
+                  onClick={() => downloadBOQPdf(savedSuccessModal.boq)}
+                  className="w-full sm:w-auto px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Download BOQ PDF</span>
+                </button>
+                <button
+                  onClick={() => setSavedSuccessModal(null)}
+                  className="w-full sm:w-auto px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

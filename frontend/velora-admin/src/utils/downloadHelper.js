@@ -627,7 +627,18 @@ export const generateClientSideInvoicePdf = (invoice) => {
   doc.setTextColor(100, 116, 139);
   doc.text("This is a computer generated invoice, Hence no signature is required.", 297.5, sealY + 88, { align: "center" });
 
-  doc.save(`${invNum}.pdf`);
+  if (isPrint) {
+    try {
+      doc.autoPrint();
+      const blobUrl = doc.output("bloburl");
+      window.open(blobUrl, "_blank");
+    } catch (e) {
+      console.warn("Auto-print preview error, falling back to download:", e);
+      doc.save(`${invNum}.pdf`);
+    }
+  } else {
+    doc.save(`${invNum}.pdf`);
+  }
 };
 
 /**
@@ -640,7 +651,7 @@ export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
   // Instant client-side download if full object is passed
   if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber)) {
     try {
-      generateClientSideInvoicePdf(invoiceOrId);
+      generateClientSideInvoicePdf(invoiceOrId, false);
       return;
     } catch (err) {
       console.warn("Client-side PDF generation fallback attempt:", err);
@@ -666,7 +677,28 @@ export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
   }
 
   const invData = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(id), clientName: "Valued Client", grandTotal: 468800 };
-  generateClientSideInvoicePdf(invData);
+  generateClientSideInvoicePdf(invData, false);
+};
+
+/**
+ * Direct Print Invoice Function
+ */
+export const printInvoice = async (invoiceOrId) => {
+  if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber)) {
+    generateClientSideInvoicePdf(invoiceOrId, true);
+    return;
+  }
+  try {
+    const id = typeof invoiceOrId === "object" ? (invoiceOrId?._id || invoiceOrId?.invoiceNumber) : invoiceOrId;
+    const res = await erpApi.getInvoiceById(id);
+    if (res?.success && res.data) {
+      generateClientSideInvoicePdf(res.data, true);
+      return;
+    }
+  } catch {
+    // Fallback
+  }
+  downloadInvoicePdf(invoiceOrId);
 };
 
 /**
@@ -676,8 +708,7 @@ export const exportInvoiceCsv = (invoice) => {
   const invNum = invoice?.invoiceNumber || "Invoice";
   const items = invoice?.items || [];
 
-  const detail = invoice?.items.Authorization();
-  console.log(invoice)
+  console.log("Exporting invoice CSV:", invoice);
 
   const columns = [
     { header: "Invoice Number", key: "invoiceNumber" },
@@ -691,6 +722,7 @@ export const exportInvoiceCsv = (invoice) => {
     { header: "GST Ratio (%)", key: "gstPercent" },
     { header: "Total Taxable Amount (Rs)", key: "total" }
   ];
+
 
   let data = items.map((item) => ({
     invoiceNumber: invNum,
@@ -723,6 +755,9 @@ export const exportInvoiceCsv = (invoice) => {
   downloadCsv(`${invNum}_Items_Data`, columns, data);
 };
 
+// for(const i=0; i<=9; i++){
+//   console.log(i)
+// }
 /**
  * Export All Invoices Summary Data as CSV
  */

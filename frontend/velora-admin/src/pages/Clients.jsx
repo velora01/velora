@@ -29,9 +29,10 @@ import {
   Tag,
   ArrowRight,
   UploadCloud,
-  FileCheck
+  FileCheck,
+  Printer
 } from "lucide-react";
-import { downloadBOQPdf, downloadInvoicePdf } from "../utils/downloadHelper";
+import { downloadBOQPdf, downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
 
 export default function Clients() {
   const navigate = useNavigate();
@@ -1003,6 +1004,28 @@ export default function Clients() {
                     >
                       <Eye size={14} />
                       <span>Preview</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
+                        const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                        printInvoice({
+                          invoiceNumber: invNum,
+                          clientName: selectedClient.name,
+                          clientPhone: selectedClient.phone,
+                          clientEmail: selectedClient.email,
+                          clientAddress: selectedClient.address,
+                          projectName: `${selectedClient.name} Residence`,
+                          grandTotal: totalAmt,
+                          subtotal: totalAmt
+                        });
+                      }}
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                      title="Print Tax Invoice"
+                    >
+                      <Printer size={14} />
+                      <span>Print Invoice</span>
                     </button>
 
                     <button

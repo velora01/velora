@@ -37,7 +37,7 @@ import {
   SlidersHorizontal,
   CheckCircle
 } from "lucide-react";
-import { downloadInvoicePdf, downloadBOQPdf, exportInvoiceCsv, exportAllInvoicesCsv } from "../utils/downloadHelper";
+import { downloadInvoicePdf, printInvoice, downloadBOQPdf, exportInvoiceCsv, exportAllInvoicesCsv } from "../utils/downloadHelper";
 
 export default function QuotationInvoiceManager() {
   const location = useLocation();

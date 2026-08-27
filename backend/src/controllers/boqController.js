@@ -5,10 +5,11 @@ import Client from "../models/Client.js";
 import { logActivity } from "../services/auditService.js";
 import { generateBOQPdf } from "../services/exportService.js";
 
-// Helper to sync BOQ data & financials to the single client record
+// Helper to sync BOQ data, full Client profile & generate/sync Invoice
 export const syncClientCommercialsFromBOQ = async (boq) => {
   try {
-    if (!boq) return;
+    if (!boq || !boq.clientName) return null;
+
     let client = null;
     if (boq.client) {
       client = await Client.findById(boq.client);
@@ -23,28 +24,65 @@ export const syncClientCommercialsFromBOQ = async (boq) => {
       client = await Client.findOne({ name: boq.clientName });
     }
 
-    if (!client && boq.clientName) {
-      // Auto-create client if not existing
+    const spaceNames = (boq.spaces || []).map((s) => s.name);
+    const grandTotal = boq.grandTotal || 0;
+    const subtotal = boq.subtotal || Math.round(grandTotal / 1.18);
+    const gstTotal = boq.gstTotal || Math.round(grandTotal - grandTotal / 1.18);
+    const budgetRange =
+      grandTotal > 5000000 ? "₹60L - ₹90L" : grandTotal > 2500000 ? "₹25L - ₹40L" : "₹15L - ₹25L";
+
+    if (!client) {
       const cCount = await Client.countDocuments();
-      const cCode = `VLA-CL-${String(cCount + 1001)}`;
+      const cCode = `VEL-CL-${String(cCount + 1001)}`;
       client = await Client.create({
         clientId: cCode,
         clientCode: cCode,
         name: boq.clientName,
         phone: boq.clientPhone || "9876543210",
-        email: boq.clientEmail || `${boq.clientName.toLowerCase().replace(/\s+/g, "")}@client.velora.com`,
+        email: boq.clientEmail || `${boq.clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}@client.velora.com`,
+        address: boq.address || boq.clientAddress || "Pune, Maharashtra",
+        siteAddress: boq.siteAddress || boq.clientAddress || "Pune, Maharashtra",
         enquiryNo: boq.enquiryNo || "",
-        status: "Active"
+        enquiryDate: boq.enquiryDate || new Date(),
+        projectType: `${boq.numberOfSpaces || spaceNames.length || 1}BHK Luxury Residence`,
+        preferredStyle: boq.activePackage ? `${boq.activePackage} Luxury` : "Modern Contemporary",
+        budgetRange,
+        approximateBudget: grandTotal || 2500000,
+        spaceRequirements: spaceNames.length ? spaceNames : ["Living Room", "Modular Kitchen", "Master Bedroom"],
+        status: "Active",
+        boqs: [boq._id],
+        commercialSummary: {
+          subtotal,
+          discountTotal: boq.discountTotal || 0,
+          additionalCharges: boq.additionalCharges || {
+            installation: 0,
+            transportation: 0,
+            design: 0,
+            labour: 0,
+            other: 0,
+            totalCharges: 0
+          },
+          taxGst: gstTotal,
+          grandTotal,
+          paidAmount: 0,
+          balanceDue: grandTotal
+        }
       });
-    }
-
-    if (client) {
+    } else {
       if (!client.boqs.includes(boq._id)) {
         client.boqs.push(boq._id);
       }
+      if (boq.clientPhone && (!client.phone || client.phone === "9876543210")) client.phone = boq.clientPhone;
+      if (boq.clientEmail && (!client.email || client.email.includes("@client.velora.com"))) client.email = boq.clientEmail;
+      if (spaceNames.length > 0) client.spaceRequirements = spaceNames;
+      if (grandTotal > 0) {
+        client.approximateBudget = grandTotal;
+        client.budgetRange = budgetRange;
+      }
+
       const paid = client.commercialSummary?.paidAmount || 0;
       client.commercialSummary = {
-        subtotal: boq.subtotal || Math.round((boq.grandTotal || 0) / 1.18),
+        subtotal,
         discountTotal: boq.discountTotal || 0,
         additionalCharges: boq.additionalCharges || {
           installation: 0,
@@ -54,15 +92,136 @@ export const syncClientCommercialsFromBOQ = async (boq) => {
           other: 0,
           totalCharges: 0
         },
-        taxGst: boq.gstTotal || Math.round((boq.grandTotal || 0) - (boq.grandTotal || 0) / 1.18),
-        grandTotal: boq.grandTotal || 0,
+        taxGst: gstTotal,
+        grandTotal,
         paidAmount: paid,
-        balanceDue: Math.max(0, (boq.grandTotal || 0) - paid)
+        balanceDue: Math.max(0, grandTotal - paid)
       };
       await client.save();
     }
+
+    // Ensure BOQ has client reference
+    if (!boq.client || String(boq.client) !== String(client._id)) {
+      boq.client = client._id;
+      await BOQ.findByIdAndUpdate(boq._id, { client: client._id });
+    }
+
+    // Sync Invoice
+    let invoice = await Invoice.findOne({
+      $or: [
+        { boq: boq._id },
+        { boqNumber: boq.boqNumber },
+        { invoiceNumber: `INV-${boq.boqNumber.replace(/^BOQ-?/i, "")}` },
+        { invoiceNumber: `VLA-INV-${boq.boqNumber.replace(/^BOQ-?/i, "")}` }
+      ]
+    });
+
+    const invoiceItems = [];
+    (boq.spaces || []).forEach((sp) => {
+      if (sp.items && sp.items.length > 0) {
+        sp.items.forEach((item) => {
+          invoiceItems.push({
+            productId: item.productId || "",
+            productName: item.name,
+            category: sp.name || item.category || "Interior Component",
+            image: item.image || (item.photos && item.photos[0] ? item.photos[0].url : ""),
+            description: item.description || `${sp.name} - ${item.typeVariant || "Standard"}`,
+            dimensions: item.customDimensions || (item.lengthFt ? `${item.lengthFt}'${item.lengthIn || 0}" x ${item.heightFt || 0}'${item.heightIn || 0}"` : ""),
+            hsnSac: "995476",
+            quantity: item.qty || 1,
+            unit: item.unit || "sqft",
+            rate: item.rate || 0,
+            discount: item.discount || 0,
+            gstPercent: item.taxPercent || 18,
+            gstAmount: item.taxAmount || Math.round((item.amount || 0) * 0.18),
+            total: item.amount || Math.round((item.sqft || 1) * (item.rate || 0)),
+            notes: item.notes || ""
+          });
+        });
+      } else if (sp.roomTotal > 0) {
+        invoiceItems.push({
+          productName: `${sp.name} Scope Execution`,
+          category: "Interior Space",
+          description: `Turnkey execution for ${sp.name}`,
+          hsnSac: "995476",
+          quantity: 1,
+          unit: "Space",
+          rate: sp.roomTotal,
+          total: sp.roomTotal
+        });
+      }
+    });
+
+    const invNum = `VLA-INV-${boq.boqNumber.replace(/^BOQ-?/i, "")}`;
+
+    if (!invoice) {
+      invoice = await Invoice.create({
+        invoiceNumber: invNum,
+        client: client._id,
+        clientId: client.clientId || client.clientCode,
+        boq: boq._id,
+        boqNumber: boq.boqNumber,
+        invoiceType: "Turnkey Execution",
+        projectName: `${boq.clientName} Residence`,
+        clientName: boq.clientName,
+        clientEmail: boq.clientEmail || client.email,
+        clientPhone: boq.clientPhone || client.phone,
+        clientAddress: client.address || "Pune",
+        billTo: {
+          name: boq.clientName,
+          email: boq.clientEmail || client.email,
+          phone: boq.clientPhone || client.phone,
+          address: client.address || "Pune"
+        },
+        shipTo: {
+          name: boq.clientName,
+          email: boq.clientEmail || client.email,
+          phone: boq.clientPhone || client.phone,
+          address: client.siteAddress || client.address || "Pune"
+        },
+        sameAsBillTo: true,
+        items: invoiceItems,
+        subtotal,
+        discountTotal: boq.discountTotal || 0,
+        additionalCharges: boq.additionalCharges || {
+          installation: 0,
+          transportation: 0,
+          design: 0,
+          labour: 0,
+          other: 0,
+          totalCharges: 0
+        },
+        taxPercent: 18,
+        gstTotal,
+        grandTotal,
+        paidAmount: client.commercialSummary?.paidAmount || 0,
+        balanceDue: Math.max(0, grandTotal - (client.commercialSummary?.paidAmount || 0)),
+        status: "Issued",
+        issueDate: boq.enquiryDate || new Date()
+      });
+    } else {
+      invoice.client = client._id;
+      invoice.clientId = client.clientId || client.clientCode;
+      invoice.clientName = boq.clientName;
+      invoice.clientEmail = boq.clientEmail || client.email;
+      invoice.clientPhone = boq.clientPhone || client.phone;
+      invoice.items = invoiceItems;
+      invoice.subtotal = subtotal;
+      invoice.gstTotal = gstTotal;
+      invoice.grandTotal = grandTotal;
+      invoice.balanceDue = Math.max(0, grandTotal - (invoice.paidAmount || 0));
+      await invoice.save();
+    }
+
+    if (!client.invoices.includes(invoice._id)) {
+      client.invoices.push(invoice._id);
+      await client.save();
+    }
+
+    return { client, invoice };
   } catch (e) {
     console.error("syncClientCommercialsFromBOQ error:", e);
+    return null;
   }
 };
 
@@ -346,7 +505,7 @@ export const createBOQ = async (req, res) => {
       enquiryNo
     });
 
-    await syncClientCommercialsFromBOQ(boq);
+    const synced = await syncClientCommercialsFromBOQ(boq);
 
     await logActivity({
       userName: req.user?.name || "Admin",
@@ -355,7 +514,12 @@ export const createBOQ = async (req, res) => {
       description: `Created BOQ ${boq.boqNumber} for ${boq.clientName}`
     });
 
-    res.status(201).json({ success: true, data: boq });
+    res.status(201).json({
+      success: true,
+      data: boq,
+      client: synced?.client || null,
+      invoice: synced?.invoice || null
+    });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -367,7 +531,7 @@ export const updateBOQ = async (req, res) => {
     const boq = await BOQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
 
-    await syncClientCommercialsFromBOQ(boq);
+    const synced = await syncClientCommercialsFromBOQ(boq);
 
     await logActivity({
       userName: req.user?.name || "Admin",
@@ -376,7 +540,12 @@ export const updateBOQ = async (req, res) => {
       description: `Updated BOQ ${boq.boqNumber}`
     });
 
-    res.json({ success: true, data: boq });
+    res.json({
+      success: true,
+      data: boq,
+      client: synced?.client || null,
+      invoice: synced?.invoice || null
+    });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }

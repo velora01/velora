@@ -519,6 +519,20 @@ export default function BOQManagement() {
     return activeBOQ.spaces[activeSpaceIdx] || activeBOQ.spaces[0];
   }, [activeBOQ, activeSpaceIdx]);
 
+  // Search filtered components for clean left search panel
+  const filteredSearchResults = useMemo(() => {
+    if (!libraryComponents || libraryComponents.length === 0) return [];
+    if (!componentSearch || componentSearch.trim() === "") {
+      const activeSpaceName = currentSpace?.name?.toLowerCase() || "";
+      const matched = libraryComponents.filter((c) => (c.relevantSpace || "").toLowerCase().includes(activeSpaceName) || activeSpaceName.includes((c.relevantSpace || "").toLowerCase()));
+      return matched.length > 0 ? matched : libraryComponents.slice(0, 10);
+    }
+    const q = componentSearch.toLowerCase().trim();
+    return libraryComponents.filter(
+      (c) => c.name?.toLowerCase().includes(q) || c.relevantSpace?.toLowerCase().includes(q)
+    );
+  }, [libraryComponents, componentSearch, currentSpace]);
+
   // Recalculate Sqft, Amount, Space Total and Grand Total
   const recalculateBOQ = (updatedBOQ) => {
     let grand = 0;
@@ -1741,17 +1755,19 @@ export default function BOQManagement() {
         </div>
 
         {/* Center: Client Name & BOQ Total */}
-        <div className="flex items-center gap-6">
-          <div>
-            <span className="text-[10px] text-stone-400 block font-semibold">Name</span>
-            <span className="text-xs font-extrabold text-stone-900">{activeBOQ?.clientName || "Client"}</span>
+        <div className="flex items-center gap-4 bg-[#FAF9F5] px-3 py-1 rounded-xl border border-[#EAE3D2]">
+          <div className="flex items-center gap-1.5 border-r border-stone-200 pr-3">
+            <User size={13} className="text-[#9E7B1D]" />
+            <div>
+              <span className="text-[9px] text-stone-400 block font-bold uppercase leading-none">Name</span>
+              <span className="text-xs font-black text-stone-900 leading-tight">{activeBOQ?.clientName || "Client"}</span>
+            </div>
           </div>
 
           <div>
-            <span className="text-[10px] text-stone-400 block font-semibold">BOQ Total</span>
-            <div className="flex items-center gap-1 text-sm font-black text-[#9E7B1D]">
+            <span className="text-[9px] text-stone-400 block font-bold uppercase leading-none">BOQ Total</span>
+            <div className="flex items-center gap-1 text-xs font-black text-[#9E7B1D] leading-tight">
               <span>₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}</span>
-              <ChevronDown size={14} className="text-stone-400 cursor-pointer" />
             </div>
           </div>
         </div>
@@ -1850,21 +1866,32 @@ export default function BOQManagement() {
 
       {/* Main Two-Column Work Area */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left Column: Components Palette */}
-        <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
-          {/* Search Component with Live Autocomplete Suggestions */}
+        {/* Left Column: Focused Search & Add Component Panel */}
+        <div className="lg:col-span-3 bg-white border border-[#EAE3D2] rounded-2xl p-3.5 shadow-xs space-y-3">
+          {/* Header Label */}
+          <div className="flex items-center justify-between pb-1 border-b border-stone-100">
+            <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider flex items-center gap-1.5">
+              <Search size={13} className="text-[#9E7B1D]" />
+              <span>Search Component</span>
+            </h4>
+            <button
+              onClick={() => handleOpenCustomMix(null)}
+              className="text-[10.5px] font-extrabold text-[#9E7B1D] hover:underline cursor-pointer flex items-center gap-0.5"
+            >
+              <Plus size={10} />
+              <span>Custom</span>
+            </button>
+          </div>
+
+          {/* Search Input Bar */}
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
-              placeholder="Search Component (e.g. living, shoe, bed)"
+              placeholder="Search (e.g. shoe, tv, bed, wardrobe)"
               value={componentSearch}
-              onChange={(e) => {
-                setComponentSearch(e.target.value);
-                setIsComponentSearchFocused(true);
-              }}
-              onFocus={() => setIsComponentSearchFocused(true)}
-              className="w-full pl-8 pr-8 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition"
+              onChange={(e) => setComponentSearch(e.target.value)}
+              className="w-full pl-8 pr-8 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition font-medium"
             />
             {componentSearch && (
               <button
@@ -1875,204 +1902,99 @@ export default function BOQManagement() {
                 <X size={13} />
               </button>
             )}
+          </div>
 
-            {/* Live Autocomplete Suggestions Dropdown */}
-            {isComponentSearchFocused && componentSearch.trim().length > 0 && (
-              <div
-                className="absolute left-0 right-0 top-10 z-50 bg-white rounded-2xl shadow-2xl border border-amber-200 p-2 space-y-1.5 max-h-72 overflow-y-auto animate-in fade-in zoom-in-95"
-                onMouseLeave={() => setIsComponentSearchFocused(false)}
-              >
-                <div className="px-2 py-1 flex items-center justify-between text-[10px] font-black text-amber-800 bg-amber-50 rounded-lg">
-                  <span>SUGGESTED COMPONENTS FOR "{componentSearch.toUpperCase()}"</span>
-                  <span>{suggestedComponents.length} Found</span>
-                </div>
+          {/* Quick Room Filter Pills */}
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase block">Quick Room Filter:</span>
+            <div className="flex items-center gap-1 flex-wrap">
+              {["All", currentSpace?.name || "Entrance", "Living Room", "Modular Kitchen", "Master Bedroom", "Puja Room"].map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setComponentSearch(tag === "All" ? "" : tag)}
+                  className={`px-2 py-0.5 text-[9.5px] font-bold rounded-md transition cursor-pointer ${
+                    (tag === "All" && !componentSearch) || componentSearch?.toLowerCase() === tag.toLowerCase()
+                      ? "bg-[#D4AF37] text-stone-950 font-black shadow-2xs"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                {suggestedComponents.length === 0 ? (
-                  <div className="p-3 text-center text-stone-400 text-xs">
-                    No components found matching "{componentSearch}".
-                  </div>
-                ) : (
-                  suggestedComponents.map((comp, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2 rounded-xl border border-stone-100 hover:border-amber-300 hover:bg-amber-50/50 transition text-xs space-y-1 bg-white shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-stone-900">{comp.name}</span>
-                        <span className="text-[9.5px] text-[#9E7B1D] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 font-extrabold">
-                          {comp.relevantSpace || "General"}
-                        </span>
+          {/* Search Results Component Cards List */}
+          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+            {filteredSearchResults.length > 0 ? (
+              filteredSearchResults.map((comp, idx) => {
+                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
+                const rate = comp.standard?.rate || comp.rate || 1500;
+
+                return (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition text-xs bg-white shadow-2xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {imgCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
+                            <Camera size={9} />
+                            <span>{imgCount}</span>
+                          </span>
+                        )}
+                        <span className="font-bold text-stone-900 truncate">{comp.name}</span>
                       </div>
 
-                      <div className="pt-0.5">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
-                          type="button"
-                          onClick={() => {
-                            handleAddComponentToSpace(comp, null, selectedPackage);
-                            setIsComponentSearchFocused(false);
-                          }}
-                          className="w-full py-1 px-2 text-[10.5px] font-bold rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                          onClick={() => handleOpenCustomMix(comp)}
+                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
+                          title={`Custom Mix for ${comp.name}`}
                         >
-                          <Plus size={11} />
-                          <span>Add Component</span>
+                          <SlidersHorizontal size={11} />
                         </button>
                       </div>
                     </div>
-                  ))
-                )}
+
+                    <div className="flex items-center justify-between text-[10px] text-stone-500 font-medium">
+                      <span className="bg-amber-50 text-[#9E7B1D] px-1.5 py-0.5 rounded border border-amber-200 font-extrabold">
+                        {comp.relevantSpace || "General"}
+                      </span>
+                      <span className="font-mono font-bold text-stone-700">₹{rate.toLocaleString("en-IN")}/sq.ft</span>
+                    </div>
+
+                    <div className="pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
+                        className="w-full py-1 px-2.5 text-[11px] font-extrabold rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                      >
+                        <Plus size={12} />
+                        <span>Add Component</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-4 text-center space-y-2 bg-[#FAF9F5] rounded-xl border border-dashed border-[#EAE3D2]">
+                <Search size={20} className="mx-auto text-stone-400" />
+                <p className="text-xs text-stone-500 font-medium">
+                  {componentSearch ? `No components match "${componentSearch}"` : "Type in search bar above or tap a room filter tag to search components"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleOpenCustomMix(null)}
+                  className="px-3 py-1.5 bg-[#D4AF37] text-stone-950 font-bold text-xs rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                >
+                  <Plus size={12} />
+                  <span>+ Custom Mix</span>
+                </button>
               </div>
             )}
-          </div>
-
-          {/* Relevant Components Section */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider">
-              Relevant Components
-            </h4>
-            <div className="space-y-2">
-              {relevantComponents.map((comp, idx) => {
-                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
-
-                return (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {imgCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
-                            <Camera size={9} />
-                            <span>{imgCount}</span>
-                          </span>
-                        )}
-                        <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <label
-                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                          title={`Upload image for ${comp.name}`}
-                        >
-                          {uploadingCompId === (comp._id || comp.name) ? (
-                            <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
-                          ) : (
-                            <Upload size={12} />
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            disabled={uploadingCompId === (comp._id || comp.name)}
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) handleDirectUploadComponentPhoto(comp, e.target.files[0]);
-                              e.target.value = null;
-                            }}
-                          />
-                        </label>
-
-                        <button
-                          onClick={() => handleOpenCustomMix(comp)}
-                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                          title={`Custom Mix for ${comp.name}`}
-                        >
-                          <SlidersHorizontal size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Single Add Component Button */}
-                    <div className="pt-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
-                        className="w-full py-1 px-2.5 text-[11px] font-bold rounded-lg bg-[#FAF9F5] hover:bg-amber-100 text-[#9E7B1D] border border-amber-300 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs group-hover:bg-[#D4AF37] group-hover:text-stone-950 group-hover:border-[#D4AF37]"
-                      >
-                        <Plus size={12} />
-                        <span>Add Component</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-              {relevantComponents.length === 0 && (
-                <p className="text-[11px] text-stone-400 italic py-1">No space-specific items</p>
-              )}
-            </div>
-          </div>
-
-          {/* Other Components Section */}
-          <div className="space-y-2 pt-2 border-t border-[#EAE3D2]">
-            <h4 className="text-xs font-bold text-stone-600 uppercase tracking-wider">
-              Other Components
-            </h4>
-            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              {otherComponents.map((comp, idx) => {
-                const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
-
-                return (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl border border-stone-200 hover:border-amber-300 hover:bg-amber-50/40 transition group text-xs bg-white shadow-2xs space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {imgCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded shrink-0" title={`${imgCount} photos available`}>
-                            <Camera size={9} />
-                            <span>{imgCount}</span>
-                          </span>
-                        )}
-                        <span className="font-semibold text-stone-900 truncate">{comp.name}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <label
-                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                          title={`Upload image for ${comp.name}`}
-                        >
-                          {uploadingCompId === (comp._id || comp.name) ? (
-                            <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
-                          ) : (
-                            <Upload size={12} />
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            disabled={uploadingCompId === (comp._id || comp.name)}
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) handleDirectUploadComponentPhoto(comp, e.target.files[0]);
-                              e.target.value = null;
-                            }}
-                          />
-                        </label>
-
-                        <button
-                          onClick={() => handleOpenCustomMix(comp)}
-                          className="p-1 rounded-md bg-stone-100 text-stone-600 hover:bg-amber-100 hover:text-[#9E7B1D] transition cursor-pointer shadow-2xs shrink-0"
-                          title={`Custom Mix for ${comp.name}`}
-                        >
-                          <SlidersHorizontal size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Single Add Component Button */}
-                    <div className="pt-0.5">
-                      <button
-                        type="button"
-                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
-                        className="w-full py-1 px-2.5 text-[11px] font-bold rounded-lg bg-[#FAF9F5] hover:bg-amber-100 text-[#9E7B1D] border border-amber-300 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs group-hover:bg-[#D4AF37] group-hover:text-stone-950 group-hover:border-[#D4AF37]"
-                      >
-                        <Plus size={12} />
-                        <span>Add Component</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
 

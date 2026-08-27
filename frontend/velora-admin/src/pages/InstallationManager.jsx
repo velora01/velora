@@ -20,6 +20,10 @@ export default function InstallationManager() {
     loadInstallations();
   }, [search]);
 
+  useEffect(() => {
+    console.log("Installation Manager")
+  })
+
   const columns = [
     { header: "Installation Code", key: "installationCode" },
     { header: "Project Name", key: "projectName", sortable: true },
@@ -39,6 +43,7 @@ export default function InstallationManager() {
       </div>
 
       <DataTable title="Active Installations" columns={columns} data={installations} search={search} setSearch={setSearch} />
+
     </div>
   );
 }

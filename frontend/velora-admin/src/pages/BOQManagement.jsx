@@ -133,258 +133,17 @@ export default function BOQManagement() {
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [enquiryList, setEnquiryList] = useState([]);
 
-  // Get Default Components & Preset Prices for any space name
-  const getDefaultItemsForSpace = (spaceName) => {
-    const s = (spaceName || "").toLowerCase();
+  // Default empty spaces template for CRM operator to populate manually
+  const getDefaultItemsForSpace = () => [];
 
-    if (s.includes("living")) {
-      return [
-        {
-          name: "Living Room TV Unit & Paneling",
-          typeVariant: "Box Standard",
-          lengthFt: 8,
-          lengthIn: 0,
-          heightFt: 7,
-          heightIn: 0,
-          depthFt: 1,
-          depthIn: 6,
-          qty: 1,
-          description: "Providing of TV Unit with Panelling & Storage Drawers",
-          sqft: 56,
-          rate: 1800,
-          amount: 100800,
-          packageVariant: "Standard"
-        },
-        {
-          name: "Living Room Wall Louver Paneling",
-          typeVariant: "Panel",
-          lengthFt: 10,
-          lengthIn: 0,
-          heightFt: 9,
-          heightIn: 0,
-          depthFt: 0,
-          depthIn: 4,
-          qty: 1,
-          description: "Fluted Charcoal/WPC Panel Accent Wall",
-          sqft: 90,
-          rate: 1600,
-          amount: 144000,
-          packageVariant: "Standard"
-        }
-      ];
-    } else if (s.includes("kitchen")) {
-      return [
-        {
-          name: "Kitchen Base Cabinet",
-          typeVariant: "Box",
-          lengthFt: 12,
-          lengthIn: 0,
-          heightFt: 2,
-          heightIn: 8,
-          depthFt: 2,
-          depthIn: 0,
-          qty: 1,
-          description: "Modular Kitchen Base Units with Marine Ply & Tandem Baskets",
-          sqft: 32,
-          rate: 1800,
-          amount: 57600,
-          packageVariant: "Standard"
-        },
-        {
-          name: "Kitchen Overhead Storage",
-          typeVariant: "Box",
-          lengthFt: 12,
-          lengthIn: 0,
-          heightFt: 2,
-          heightIn: 0,
-          depthFt: 1,
-          depthIn: 3,
-          qty: 1,
-          description: "Overhead Cabinets with Hydraulic Lift-Up Doors",
-          sqft: 24,
-          rate: 1600,
-          amount: 38400,
-          packageVariant: "Standard"
-        }
-      ];
-    } else if (s.includes("bed") || s.includes("room")) {
-      return [
-        {
-          name: "King Size Hydraulic Bed",
-          typeVariant: "Bed",
-          lengthFt: 6,
-          lengthIn: 6,
-          heightFt: 4,
-          heightIn: 0,
-          depthFt: 6,
-          depthIn: 0,
-          qty: 1,
-          description: "King Size Bed with Cushioned Headboard & Hydraulic Storage",
-          sqft: 26,
-          rate: 2200,
-          amount: 57200,
-          packageVariant: "Standard"
-        },
-        {
-          name: "4-Door Openable Wardrobe",
-          typeVariant: "Wardrobe",
-          lengthFt: 7,
-          lengthIn: 0,
-          heightFt: 9,
-          heightIn: 6,
-          depthFt: 2,
-          depthIn: 0,
-          qty: 1,
-          description: "Floor-to-Ceiling Wardrobe with Inner Drawers & Loft",
-          sqft: 66.5,
-          rate: 1900,
-          amount: 126350,
-          packageVariant: "Standard"
-        }
-      ];
-    } else if (s.includes("dining")) {
-      return [
-        {
-          name: "Crockery & Display Console",
-          typeVariant: "Glass Box",
-          lengthFt: 5,
-          lengthIn: 0,
-          heightFt: 7,
-          heightIn: 0,
-          depthFt: 1,
-          depthIn: 6,
-          qty: 1,
-          description: "Crockery Unit with Glass Fluted Doors & Warm LED Profile",
-          sqft: 35,
-          rate: 2100,
-          amount: 73500,
-          packageVariant: "Standard"
-        }
-      ];
-    } else if (s.includes("puja") || s.includes("pooja")) {
-      return [
-        {
-          name: "Custom Mandir Unit with CNC Jali",
-          typeVariant: "Custom Box",
-          lengthFt: 4,
-          lengthIn: 0,
-          heightFt: 7,
-          heightIn: 0,
-          depthFt: 1,
-          depthIn: 6,
-          qty: 1,
-          description: "Teak Wood Finished Pooja Mandir with Backlit CNC Jali & Brass Bells",
-          sqft: 28,
-          rate: 2500,
-          amount: 70000,
-          packageVariant: "Standard"
-        }
-      ];
-    } else {
-      return [
-        {
-          name: "Shoe Rack",
-          typeVariant: "Box Standard",
-          lengthFt: 4,
-          lengthIn: 0,
-          heightFt: 3,
-          heightIn: 0,
-          depthFt: 1,
-          depthIn: 3,
-          qty: 1,
-          description: "Foyer Storage Cabinet with Seating Cushion",
-          sqft: 12,
-          rate: 1600,
-          amount: 19200,
-          packageVariant: "Standard"
-        }
-      ];
-    }
-  };
-
-  // Full default standard spaces template with pre-priced components
   const defaultStandardSpaces = [
-    {
-      name: "Entrance",
-      roomTotal: 75813,
-      items: [
-        {
-          name: "Shoe Rack",
-          typeVariant: "Box Standard",
-          lengthFt: 1,
-          lengthIn: 6,
-          heightFt: 9,
-          heightIn: 3,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "Providing of size (4ft x 3ft) shoe rack",
-          sqft: 13.875,
-          rate: 1500,
-          amount: 20813
-        },
-        {
-          name: "Entrance Safety Door",
-          typeVariant: "Frame Standard",
-          lengthFt: 1,
-          lengthIn: 0,
-          heightFt: 1,
-          heightIn: 0,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "entrance area - Category Grill",
-          sqft: 1,
-          rate: 40000,
-          amount: 40000
-        },
-        {
-          name: "Smart Lock",
-          typeVariant: "Box Standard",
-          lengthFt: 1,
-          lengthIn: 0,
-          heightFt: 1,
-          heightIn: 0,
-          depthFt: 0,
-          depthIn: 0,
-          qty: 1,
-          description: "Smart digital biometric lock",
-          sqft: 1,
-          rate: 15000,
-          amount: 15000
-        }
-      ]
-    },
-    {
-      name: "Living Room",
-      roomTotal: 244800,
-      items: getDefaultItemsForSpace("Living Room")
-    },
-    {
-      name: "Modular Kitchen",
-      roomTotal: 96000,
-      items: getDefaultItemsForSpace("Modular Kitchen")
-    },
-    {
-      name: "Dining Area",
-      roomTotal: 73500,
-      items: getDefaultItemsForSpace("Dining Area")
-    },
-    {
-      name: "Master Bedroom",
-      roomTotal: 183550,
-      items: getDefaultItemsForSpace("Master Bedroom")
-    },
-    {
-      name: "Kids Bedroom",
-      roomTotal: 183550,
-      items: getDefaultItemsForSpace("Kids Bedroom")
-    },
-    {
-      name: "Puja Room",
-      roomTotal: 70000,
-      items: getDefaultItemsForSpace("Puja Room")
-    }
+    { name: "Entrance", roomTotal: 0, items: [] },
+    { name: "Living Room", roomTotal: 0, items: [] },
+    { name: "Modular Kitchen", roomTotal: 0, items: [] },
+    { name: "Dining Area", roomTotal: 0, items: [] },
+    { name: "Master Bedroom", roomTotal: 0, items: [] },
+    { name: "Kids Bedroom", roomTotal: 0, items: [] },
+    { name: "Puja Room", roomTotal: 0, items: [] }
   ];
 
   // Fetch BOQ List
@@ -702,7 +461,9 @@ export default function BOQManagement() {
       clientPhone: enquiry.phone || "",
       numberOfSpaces: defaultStandardSpaces.length,
       activePackage: "Standard",
-      grandTotal: 3964567,
+      subtotal: 0,
+      gstTotal: 0,
+      grandTotal: 0,
       spaces: JSON.parse(JSON.stringify(defaultStandardSpaces))
     };
 
@@ -2143,36 +1904,17 @@ export default function BOQManagement() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      <div className="pt-0.5">
                         <button
                           type="button"
                           onClick={() => {
-                            handleAddComponentToSpace(comp, null, "Elite");
+                            handleAddComponentToSpace(comp, null, selectedPackage);
                             setIsComponentSearchFocused(false);
                           }}
-                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-amber-100 text-amber-900 hover:bg-[#D4AF37] hover:text-stone-950 transition cursor-pointer"
+                          className="w-full py-1 px-2 text-[10.5px] font-bold rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                         >
-                          + Elite
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleAddComponentToSpace(comp, null, "Premium");
-                            setIsComponentSearchFocused(false);
-                          }}
-                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-sky-100 text-sky-900 hover:bg-sky-500 hover:text-white transition cursor-pointer"
-                        >
-                          + Premium
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleAddComponentToSpace(comp, null, "Standard");
-                            setIsComponentSearchFocused(false);
-                          }}
-                          className="px-2 py-0.5 text-[9.5px] font-black rounded bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white transition cursor-pointer"
-                        >
-                          + Standard
+                          <Plus size={11} />
+                          <span>Add Component</span>
                         </button>
                       </div>
                     </div>
@@ -2189,9 +1931,6 @@ export default function BOQManagement() {
             </h4>
             <div className="space-y-2">
               {relevantComponents.map((comp, idx) => {
-                const availableVariants = comp.selectedVariants?.length
-                  ? comp.selectedVariants
-                  : ["Elite", "Premium", "Standard"];
                 const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
 
                 return (
@@ -2242,35 +1981,16 @@ export default function BOQManagement() {
                       </div>
                     </div>
 
-                    {/* Variant Specific Action Buttons based on component configuration */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      {availableVariants.includes("Elite") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Elite")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-200 transition cursor-pointer"
-                          title={`Add Elite variant (₹${comp.elite?.rate || 2200})`}
-                        >
-                          + Elite
-                        </button>
-                      )}
-                      {availableVariants.includes("Premium") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Premium")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-sky-50 text-sky-800 hover:bg-sky-500 hover:text-white border border-sky-200 transition cursor-pointer"
-                          title={`Add Premium variant (₹${comp.premium?.rate || 1800})`}
-                        >
-                          + Premium
-                        </button>
-                      )}
-                      {availableVariants.includes("Standard") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Standard")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer"
-                          title={`Add Standard variant (₹${comp.standard?.rate || 1500})`}
-                        >
-                          + Standard
-                        </button>
-                      )}
+                    {/* Single Add Component Button */}
+                    <div className="pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
+                        className="w-full py-1 px-2.5 text-[11px] font-bold rounded-lg bg-[#FAF9F5] hover:bg-amber-100 text-[#9E7B1D] border border-amber-300 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs group-hover:bg-[#D4AF37] group-hover:text-stone-950 group-hover:border-[#D4AF37]"
+                      >
+                        <Plus size={12} />
+                        <span>Add Component</span>
+                      </button>
                     </div>
                   </div>
                 );
@@ -2288,9 +2008,6 @@ export default function BOQManagement() {
             </h4>
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
               {otherComponents.map((comp, idx) => {
-                const availableVariants = comp.selectedVariants?.length
-                  ? comp.selectedVariants
-                  : ["Elite", "Premium", "Standard"];
                 const imgCount = (comp.elite?.images?.length || 0) + (comp.premium?.images?.length || 0) + (comp.standard?.images?.length || 0) + (comp.images?.length || 0);
 
                 return (
@@ -2341,35 +2058,16 @@ export default function BOQManagement() {
                       </div>
                     </div>
 
-                    {/* Variant Action Buttons */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      {availableVariants.includes("Elite") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Elite")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-amber-50 text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-200 transition cursor-pointer"
-                          title={`Add Elite variant (₹${comp.elite?.rate || 2200})`}
-                        >
-                          + Elite
-                        </button>
-                      )}
-                      {availableVariants.includes("Premium") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Premium")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-sky-50 text-sky-800 hover:bg-sky-500 hover:text-white border border-sky-200 transition cursor-pointer"
-                          title={`Add Premium variant (₹${comp.premium?.rate || 1800})`}
-                        >
-                          + Premium
-                        </button>
-                      )}
-                      {availableVariants.includes("Standard") && (
-                        <button
-                          onClick={() => handleAddComponentToSpace(comp, null, "Standard")}
-                          className="px-2 py-0.5 text-[10px] font-black rounded-md bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer"
-                          title={`Add Standard variant (₹${comp.standard?.rate || 1500})`}
-                        >
-                          + Standard
-                        </button>
-                      )}
+                    {/* Single Add Component Button */}
+                    <div className="pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAddComponentToSpace(comp, null, selectedPackage)}
+                        className="w-full py-1 px-2.5 text-[11px] font-bold rounded-lg bg-[#FAF9F5] hover:bg-amber-100 text-[#9E7B1D] border border-amber-300 transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs group-hover:bg-[#D4AF37] group-hover:text-stone-950 group-hover:border-[#D4AF37]"
+                      >
+                        <Plus size={12} />
+                        <span>Add Component</span>
+                      </button>
                     </div>
                   </div>
                 );
@@ -2444,31 +2142,31 @@ export default function BOQManagement() {
           </div>
 
           {/* Components Dimension & Calculation Table */}
-          <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl">
-            <table className="w-full text-left border-collapse min-w-[1020px]">
-              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
+          <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl bg-white shadow-2xs">
+            <table className="w-full text-left border-collapse text-[11px]">
+              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] font-bold text-stone-700">
                 <tr>
-                  <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
-                  <th className="py-2.5 px-3 min-w-[130px]">Name</th>
-                  <th className="py-2.5 px-2 min-w-[100px]">Package / Variant</th>
-                  <th className="py-2.5 px-2 min-w-[90px]">Type</th>
-                  <th className="py-2.5 px-2 text-center min-w-[95px]">Length (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center min-w-[95px]">Height (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center min-w-[95px]">Depth (ft & in)</th>
-                  <th className="py-2.5 px-2 text-center w-12">Qty</th>
-                  <th className="py-2.5 px-3 min-w-[120px]">Description</th>
-                  <th className="py-2.5 px-2 text-right w-14">Sq.ft</th>
-                  <th className="py-2.5 px-2 text-right min-w-[85px]">Rate (sq.ft)</th>
-                  <th className="py-2.5 px-2 text-right min-w-[85px]">Amount</th>
-                  <th className="py-2.5 px-2 text-center w-16">Action</th>
+                  <th className="py-2 px-1 w-6 text-center text-stone-400"></th>
+                  <th className="py-2 px-1.5 min-w-[100px]">Name</th>
+                  <th className="py-2 px-1 w-20">Package</th>
+                  <th className="py-2 px-1 w-20">Type</th>
+                  <th className="py-2 px-1 text-center w-14">L (ft/in)</th>
+                  <th className="py-2 px-1 text-center w-14">H (ft/in)</th>
+                  <th className="py-2 px-1 text-center w-14">D (ft/in)</th>
+                  <th className="py-2 px-1 text-center w-10">Qty</th>
+                  <th className="py-2 px-1.5 min-w-[90px]">Description</th>
+                  <th className="py-2 px-1 text-right w-11">Sq.ft</th>
+                  <th className="py-2 px-1 text-right w-16">Rate</th>
+                  <th className="py-2 px-1.5 text-right w-20">Amount</th>
+                  <th className="py-2 px-1 text-center w-12">Action</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
                 {!currentSpace?.items || currentSpace.items.length === 0 ? (
                   <tr>
-                    <td colSpan={13} className="py-12 text-center text-stone-400">
-                      No components added in {currentSpace?.name || "this space"}. Pick any variant from the left palette to add.
+                    <td colSpan={13} className="py-10 text-center text-stone-400 text-xs">
+                      No components added in {currentSpace?.name || "this space"}. Pick any component from the left palette to add.
                     </td>
                   </tr>
                 ) : (
@@ -2483,18 +2181,18 @@ export default function BOQManagement() {
                     return (
                       <tr key={idx} className="hover:bg-amber-50/20 transition">
                         {/* Drag Handle */}
-                        <td className="py-2 px-2 text-center text-stone-300">
+                        <td className="py-1.5 px-1 text-center text-stone-300">
                           <GripVertical size={13} className="mx-auto cursor-grab" />
                         </td>
 
                         {/* Name with Image Thumbnail Preview & Direct Upload Option */}
-                        <td className="py-2 px-3 font-semibold text-stone-900">
-                          <div className="flex items-center gap-2">
+                        <td className="py-1.5 px-1.5 font-semibold text-stone-900">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             {item.photos && item.photos.length > 0 ? (
                               <div className="relative group/photo shrink-0">
                                 <div
                                   onClick={() => handleOpenImagePicker(idx)}
-                                  className="relative w-8 h-8 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
+                                  className="relative w-7 h-7 rounded-md overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
                                   title={`${item.photos.length} image(s) attached. Click to select/change.`}
                                 >
                                   <img
@@ -2503,7 +2201,7 @@ export default function BOQManagement() {
                                     className="w-full h-full object-cover"
                                   />
                                   {item.photos.length > 1 && (
-                                    <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                    <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[7.5px] px-0.5 font-bold rounded-tl">
                                       {item.photos.length}
                                     </span>
                                   )}
@@ -2511,13 +2209,13 @@ export default function BOQManagement() {
 
                                 {/* Hover Quick Add Extra Photo */}
                                 <label
-                                  className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
+                                  className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
                                   title="Upload additional photo for this item"
                                 >
                                   {uploadingRowIdx === idx ? (
-                                    <Loader2 size={9} className="animate-spin" />
+                                    <Loader2 size={8} className="animate-spin" />
                                   ) : (
-                                    <Plus size={9} />
+                                    <Plus size={8} />
                                   )}
                                   <input
                                     type="file"
@@ -2535,13 +2233,13 @@ export default function BOQManagement() {
                               <div className="flex items-center gap-1 shrink-0">
                                 {/* Direct Instant Upload Button when no image is added */}
                                 <label
-                                  className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded-lg text-[10px] font-bold cursor-pointer transition shadow-2xs select-none"
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded text-[9.5px] font-bold cursor-pointer transition shadow-2xs select-none"
                                   title="Product image not added. Click to directly upload an image from your device."
                                 >
                                   {uploadingRowIdx === idx ? (
-                                    <Loader2 size={11} className="animate-spin text-[#9E7B1D]" />
+                                    <Loader2 size={10} className="animate-spin text-[#9E7B1D]" />
                                   ) : (
-                                    <Upload size={11} />
+                                    <Upload size={10} />
                                   )}
                                   <span>+ Photo</span>
                                   <input
@@ -2557,16 +2255,16 @@ export default function BOQManagement() {
                                 </label>
                               </div>
                             )}
-                            <span className="truncate">{item.name}</span>
+                            <span className="truncate text-[11px]">{item.name}</span>
                           </div>
                         </td>
 
                         {/* Package / Variant Selector per line item */}
-                        <td className="py-2 px-2">
+                        <td className="py-1.5 px-1">
                           <select
                             value={item.packageVariant || "Standard"}
                             onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
-                            className={`w-full h-7 px-1.5 border rounded text-[11px] font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
+                            className={`w-full h-6 px-1 border rounded text-[10px] font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
                               ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
                               : item.packageVariant === "Premium"
                                 ? "bg-sky-50 text-sky-800 border-sky-300"
@@ -2585,114 +2283,114 @@ export default function BOQManagement() {
                         </td>
 
                         {/* Type */}
-                        <td className="py-2 px-2">
+                        <td className="py-1.5 px-1">
                           <input
                             type="text"
                             value={item.typeVariant || "Box Standard"}
                             onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
-                            className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs text-stone-700"
+                            className="w-full h-6 px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px] text-stone-700"
                           />
                         </td>
 
                         {/* Length (ft & inch) */}
-                        <td className="py-2 px-2">
-                          <div className="flex items-center gap-1 justify-center">
+                        <td className="py-1.5 px-1">
+                          <div className="flex items-center gap-0.5 justify-center">
                             <input
                               type="number"
                               value={item.lengthFt}
                               onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Feet"
                             />
                             <input
                               type="number"
                               value={item.lengthIn}
                               onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Inches"
                             />
                           </div>
                         </td>
 
                         {/* Height (ft & inch) */}
-                        <td className="py-2 px-2">
-                          <div className="flex items-center gap-1 justify-center">
+                        <td className="py-1.5 px-1">
+                          <div className="flex items-center gap-0.5 justify-center">
                             <input
                               type="number"
                               value={item.heightFt}
                               onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Feet"
                             />
                             <input
                               type="number"
                               value={item.heightIn}
                               onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Inches"
                             />
                           </div>
                         </td>
 
                         {/* Depth (ft & inch) */}
-                        <td className="py-2 px-2">
-                          <div className="flex items-center gap-1 justify-center">
+                        <td className="py-1.5 px-1">
+                          <div className="flex items-center gap-0.5 justify-center">
                             <input
                               type="number"
                               value={item.depthFt}
                               onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Feet"
                             />
                             <input
                               type="number"
                               value={item.depthIn}
                               onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
-                              className="w-10 h-7 text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
                               title="Inches"
                             />
                           </div>
                         </td>
 
                         {/* Qty */}
-                        <td className="py-2 px-2">
+                        <td className="py-1.5 px-1">
                           <input
                             type="number"
                             min={1}
                             value={item.qty || 1}
                             onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
-                            className="w-12 h-7 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-xs"
+                            className="w-8 h-6 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-[10.5px] p-0"
                           />
                         </td>
 
                         {/* Description */}
-                        <td className="py-2 px-3">
+                        <td className="py-1.5 px-1.5">
                           <input
                             type="text"
                             value={item.description || ""}
                             onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
-                            placeholder="Specification notes"
-                            className="w-full h-7 px-2 bg-white border border-[#EAE3D2] rounded text-xs"
+                            placeholder="Spec notes"
+                            className="w-full h-6 px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px]"
                           />
                         </td>
 
                         {/* Sq.ft (calculated) */}
-                        <td className="py-2 px-2 text-right font-mono font-semibold text-stone-700">
+                        <td className="py-1.5 px-1 text-right font-mono font-semibold text-stone-700 text-[10.5px]">
                           {item.sqft || 1}
                         </td>
 
                         {/* Rate */}
-                        <td className="py-2 px-3 text-right">
+                        <td className="py-1.5 px-1 text-right">
                           <input
                             type="number"
                             value={item.rate || 0}
                             onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
-                            className="w-20 h-7 text-right px-1.5 bg-white border border-[#EAE3D2] rounded text-xs font-semibold text-stone-800"
+                            className="w-14 h-6 text-right px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px] font-semibold text-stone-800"
                           />
                         </td>
 
                         {/* Amount */}
-                        <td className="py-2 px-3 text-right font-black text-[#9E7B1D]">
+                        <td className="py-1.5 px-1.5 text-right font-black text-[#9E7B1D] text-[11px] whitespace-nowrap">
                           ₹{(item.amount || 0).toLocaleString("en-IN")}
                         </td>
 

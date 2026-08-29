@@ -32,7 +32,8 @@ export default function ActivityAuditLogs() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">System Audit & Activity Trail</h1>
-        <p className="text-xs text-slate-500 mt-1 font-medium">Immutable audit records of all system mutations (Created, Updated, Deleted, Approved)</p>
+        <p className="text-xs text-slate-500 mt-1 font-medium">Immutable audit records of all system mutations
+           (Created, Updated, Deleted, Approved)</p>
       </div>
       <DataTable title="Audit Records Grid" columns={columns} data={logs} search={search} setSearch={setSearch} />
     </div>

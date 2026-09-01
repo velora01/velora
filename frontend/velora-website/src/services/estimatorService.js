@@ -20,10 +20,12 @@ export const calculateCost = async (data) => {
     return result.calculation;
   } catch (error) {
     console.warn("Estimator calculate API error, using client-side math:", error);
+
     // Client side fallback calculation
     const rateMap = { Essential: 1200, Premium: 1850, Luxury: 2800 };
     const rate = rateMap[data.packageTier] || 1850;
     const base = (data.sqft || 800) * rate;
+
     const minEst = Math.round(base * 0.95);
     const maxEst = Math.round(base * 1.1);
 
@@ -45,7 +47,6 @@ export const submitQuoteRequest = async (quoteData) => {
     },
     body: JSON.stringify(quoteData),
   });
-
   const result = await response.json();
   if (!response.ok) {
     throw new Error(result.message || "Failed to submit quote request.");

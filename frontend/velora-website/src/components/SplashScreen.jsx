@@ -25,6 +25,7 @@ const SplashScreen = ({ onFinish }) => {
 
   return (
     <div className="splash-screen">
+
       <div
         className="curtain-panel curtain-left"
         style={{ backgroundImage: `url(${imageSrc})` }}
@@ -34,8 +35,10 @@ const SplashScreen = ({ onFinish }) => {
             className="curtain-image"
             style={{ backgroundImage: `url(${imageSrc})` }}
           />
+          
         </div>
       </div>
+
       <div
         className="curtain-panel curtain-right"
         style={{ backgroundImage: `url(${imageSrc})` }}
@@ -47,7 +50,7 @@ const SplashScreen = ({ onFinish }) => {
           />
         </div>
       </div>
-      <div className="splash-overlay" />
+      <div className="splash-overlay"/>
     </div>
   );
 };

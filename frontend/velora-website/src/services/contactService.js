@@ -44,10 +44,11 @@ export const deleteContactMessage = async (messageId) => {
       "Content-Type": "application/json",
     },
   });
-    
+
   const result = await response.json();
   if (!response.ok) {
     throw new Error(result.message || "Failed to delete contact message.");
   }
   return result;
+
 }

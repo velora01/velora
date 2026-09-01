@@ -56,6 +56,7 @@ const ProjectsPreview = () => {
           <div className="text-center text-gray-600">Loading projects...</div>
         )}
 
+      
         {!loading && error && (
           <div className="text-center text-red-600">{error}</div>
         )}

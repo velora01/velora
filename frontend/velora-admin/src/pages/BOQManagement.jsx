@@ -40,6 +40,11 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
 import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation } from "../utils/downloadHelper";
+import {
+  DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
+  calculateMilestones,
+  getActiveTermsTemplate
+} from "../constants/termsAndConditionsTemplates";
 
 const STANDARD_SPACE_SUGGESTIONS = [
   "Living Room",
@@ -84,6 +89,8 @@ export default function BOQManagement() {
   // Quotation Modal State
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [quotationBOQ, setQuotationBOQ] = useState(null);
+  const [includeTermsInPrint, setIncludeTermsInPrint] = useState(true);
+  const [quotationModalTab, setQuotationModalTab] = useState("preview"); // "preview" | "tc_template"
 
   // Measurement Unit State (Screenshot 1)
   const [measurementUnit, setMeasurementUnit] = useState("Feet.inch"); // Feet.inch | Millimeter
@@ -3354,10 +3361,26 @@ export default function BOQManagement() {
                   Official Estimate & BOQ Quotation • {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
                 </h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Interactive T&C Print / PDF Toggle */}
+                <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-stone-300 rounded-xl cursor-pointer hover:bg-stone-50 select-none transition shadow-2xs">
+                  <input
+                    type="checkbox"
+                    checked={includeTermsInPrint}
+                    onChange={(e) => setIncludeTermsInPrint(e.target.checked)}
+                    className="w-4 h-4 accent-[#9E7B1D] cursor-pointer rounded"
+                  />
+                  <span className="text-xs font-bold text-stone-800">
+                    Include T&C Pages
+                  </span>
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${includeTermsInPrint ? "bg-amber-100 text-[#9E7B1D]" : "bg-stone-100 text-stone-500"}`}>
+                    {includeTermsInPrint ? "Full Multi-Page BOQ" : "Quotation Only"}
+                  </span>
+                </label>
+
                 <button
                   type="button"
-                  onClick={() => downloadBOQPdf(quotationBOQ)}
+                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
                   title="Download Official PDF Quotation"
                 >
@@ -3366,7 +3389,7 @@ export default function BOQManagement() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => printBOQQuotation(quotationBOQ)}
+                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint })}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 border border-stone-200 rounded-xl transition cursor-pointer"
                   title="Print or Save as High-Res Vector PDF"
                 >
@@ -3382,208 +3405,528 @@ export default function BOQManagement() {
               </div>
             </div>
 
-            {/* Printable Quotation Sheet matching Image 1 & 2 */}
-            <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
-              {/* Brand Header matching Image 2 & Image 1 */}
-              <div className="flex flex-wrap items-start justify-between gap-6 pb-4 border-b border-stone-200">
-                {/* Left: Prepared For */}
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Prepared for</span>
-                  <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
-                  <p className="text-xs text-stone-600 font-medium">Project: {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
-                  {quotationBOQ.clientPhone && (
-                    <p className="text-xs text-stone-600 font-medium">Phone: {quotationBOQ.clientPhone}</p>
-                  )}
-                  <p className="text-xs text-stone-500">
-                    Date: {new Date(quotationBOQ.enquiryDate || quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
-                  </p>
-                </div>
-
-                {/* Right: Velora Antaraal Branding from Image 2 */}
-                <div className="text-right space-y-1">
-                  <h1 className="text-2xl font-black text-[#9E7B1D] tracking-wide">VELORA ANTARAAL</h1>
-                  <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
-                    INTERIOR DESIGN | DÉCOR | RETAIL
-                  </p>
-                  <p className="text-[11px] text-stone-600">
-                    Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road, Wakad, Pune-411057
-                  </p>
-                  <p className="text-[11px] text-stone-600 font-semibold">
-                    +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
-                  </p>
-                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
-                    Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
-                  </span>
-                </div>
+            {/* Modal Tabs: Preview Quotation vs Terms & Conditions Template */}
+            <div className="px-6 py-2 bg-stone-100/70 border-b border-[#EAE3D2] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuotationModalTab("preview")}
+                  className={`px-3 py-1 text-xs font-extrabold rounded-lg transition cursor-pointer ${quotationModalTab === "preview" ? "bg-white text-stone-950 shadow-xs border border-stone-200" : "text-stone-600 hover:text-stone-950"}`}
+                >
+                  Estimate & Summary Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuotationModalTab("tc_template")}
+                  className={`px-3 py-1 text-xs font-extrabold rounded-lg transition cursor-pointer ${quotationModalTab === "tc_template" ? "bg-white text-stone-950 shadow-xs border border-stone-200" : "text-stone-600 hover:text-stone-950"}`}
+                >
+                  Terms & Conditions Template
+                </button>
               </div>
-
-              {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
-              <div className="text-center py-2">
-                <h3 className="text-2xl sm:text-3xl font-black text-[#A83232] tracking-wider uppercase font-serif sm:font-sans">
-                  INTERIOR ESTIMATE & QUOTATION
-                </h3>
-              </div>
-
-              {/* Space-by-Space Tables matching Image 1 */}
-              <div className="space-y-8">
-                {(quotationBOQ.spaces || []).map((space, sIdx) => {
-                  const sItems = (space.items && space.items.length > 0) ? space.items : [
-                    { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
-                  ];
-
-                  return (
-                    <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
-                      {/* Space Maroon Title Bar matching Image 1 */}
-                      <div className="bg-[#FEF2F2] border-b-2 border-[#A83232] px-5 py-3 flex items-center justify-between">
-                        <span className="font-black text-base sm:text-lg text-[#A83232] uppercase tracking-wider">
-                          {space.name}
-                        </span>
-                        <span className="font-black text-sm sm:text-base text-[#A83232] font-mono">
-                          Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
-                        </span>
-                      </div>
-
-                      {/* Items Table matching Image 1 Columns */}
-                      <table className="w-full text-left border-collapse text-sm">
-                        <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
-                          <tr>
-                            <th className="py-3 px-3 w-12 text-center">SN</th>
-                            <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>
-                            <th className="py-3 px-3 w-28 text-center">Image</th>
-                            <th className="py-3 px-3 w-24 text-center">UOM</th>
-                            <th className="py-3 px-3 w-32 text-right">Unit Rate</th>
-                            <th className="py-3 px-2 w-16 text-center">Qty</th>
-                            <th className="py-3 px-4 w-36 text-right">Price</th>
-                          </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-stone-200 text-stone-900">
-                          {sItems.map((it, itIdx) => {
-                            const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
-                            const rate = Number(it.rate) || 0;
-                            const qty = Number(it.qty) || 1;
-                            const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
-                            const dims = (it.lengthFt || it.heightFt)
-                              ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
-                              : "";
-
-                            return (
-                              <tr key={itIdx} className="hover:bg-amber-50/30 transition">
-                                <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
-                                  {itIdx + 1}
-                                </td>
-                                <td className="py-3.5 px-4 space-y-1.5">
-                                  <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
-                                  <p className="text-xs font-bold text-stone-500">
-                                    {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: {it.packageVariant || "Standard"}
-                                  </p>
-                                  <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
-                                    {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
-                                  </p>
-                                  <p className="text-xs text-stone-600 font-semibold">
-                                    Hardware (Channels, fittings): Onyx / Ebco / Hettich
-                                  </p>
-                                  {dims && (
-                                    <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
-                                      {dims}
-                                    </p>
-                                  )}
-                                </td>
-                                <td className="py-3.5 px-2 text-center align-middle">
-                                  {imgUrl ? (
-                                    <img
-                                      src={imgUrl}
-                                      alt={it.name}
-                                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
-                                    />
-                                  ) : (
-                                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
-                                      <span>Image</span>
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
-                                  {it.uom || it.unit || "Sq. Ft"}
-                                </td>
-                                <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
-                                  ₹{rate.toLocaleString("en-IN")}
-                                </td>
-                                <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
-                                  {qty}
-                                </td>
-                                <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
-                                  ₹{amt.toLocaleString("en-IN")}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Bottom Commercial Totals & Terms & Conditions matching Image 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-stone-200">
-                {/* Terms & Conditions matching Image 2 */}
-                <div className="space-y-2 text-[10.5px] text-stone-600">
-                  <h5 className="font-extrabold text-stone-900 uppercase text-xs">TERMS & CONDITIONS</h5>
-                  <ol className="list-decimal pl-4 space-y-1 leading-tight">
-                    <li>18% GST Extra Applicable.</li>
-                    <li>Full Payment to be Cleared Before the Work Completion.</li>
-                    <li>Goods Once Sold will not be Taken back or Exchanged.</li>
-                    <li>NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.</li>
-                    <li>The Company hold no Responsibility on the Fabric on any product.</li>
-                    <li>The Company has full Rights to amend the Rates at any point of the Project before completion.</li>
-                    <li>Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.</li>
-                  </ol>
-                  <p className="font-bold text-stone-800 pt-1">*T&C is Well Read and Accepted. Thank You</p>
-                </div>
-
-                {/* Commercial Totals Box */}
-                <div className="border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
-                  <div className="divide-y divide-stone-200 text-xs">
-                    <div className="flex justify-between p-4 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37] text-sm">
-                      <span className="font-black">TOTAL ESTIMATE AMOUNT</span>
-                      <span className="font-black font-mono text-base">
-                        ₹{(quotationBOQ.subtotal || quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Signatures Row matching Image 2 */}
-              <div className="flex justify-between items-end pt-8 pb-4">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
-                </div>
-                <div className="text-right space-y-1">
-                  <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
-                  <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
-                </div>
-              </div>
-
-              {/* Footer matching Image 2 */}
-              <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
-                <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
-                <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Ganesh, Pune, Maharashtra, India</p>
+              <div className="text-[11px] font-bold text-stone-500">
+                Mode: <span className="text-[#9E7B1D]">{includeTermsInPrint ? "Quotation + T&C Attachment" : "Compact Quotation Only"}</span>
               </div>
             </div>
+
+            {/* Modal Body */}
+            {quotationModalTab === "preview" ? (
+              <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
+                {/* Brand Header matching Image 2 & Image 1 */}
+                <div className="flex flex-wrap items-start justify-between gap-6 pb-4 border-b border-stone-200">
+                  {/* Left: Prepared For */}
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Prepared for</span>
+                    <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
+                    <p className="text-xs text-stone-600 font-medium">Project: {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
+                    {quotationBOQ.clientPhone && (
+                      <p className="text-xs text-stone-600 font-medium">Phone: {quotationBOQ.clientPhone}</p>
+                    )}
+                    <p className="text-xs text-stone-500">
+                      Date: {new Date(quotationBOQ.enquiryDate || quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
+                    </p>
+                  </div>
+
+                  {/* Right: Velora Antaraal Branding from Image 2 */}
+                  <div className="text-right space-y-1">
+                    <h1 className="text-2xl font-black text-[#9E7B1D] tracking-wide">VELORA ANTARAAL</h1>
+                    <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
+                      INTERIOR DESIGN | DÉCOR | RETAIL
+                    </p>
+                    <p className="text-[11px] text-stone-600">
+                      Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road, Wakad, Pune-411057
+                    </p>
+                    <p className="text-[11px] text-stone-600 font-semibold">
+                      +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
+                    </p>
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
+                      Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
+                <div className="text-center py-2">
+                  <h3 className="text-2xl sm:text-3xl font-black text-[#A83232] tracking-wider uppercase font-serif sm:font-sans">
+                    INTERIOR ESTIMATE & QUOTATION
+                  </h3>
+                </div>
+
+                {/* Space-by-Space Tables matching Image 1 */}
+                <div className="space-y-8">
+                  {(quotationBOQ.spaces || []).map((space, sIdx) => {
+                    const sItems = (space.items && space.items.length > 0) ? space.items : [
+                      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
+                    ];
+
+                    return (
+                      <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
+                        {/* Space Maroon Title Bar matching Image 1 */}
+                        <div className="bg-[#FEF2F2] border-b-2 border-[#A83232] px-5 py-3 flex items-center justify-between">
+                          <span className="font-black text-base sm:text-lg text-[#A83232] uppercase tracking-wider">
+                            {space.name}
+                          </span>
+                          <span className="font-black text-sm sm:text-base text-[#A83232] font-mono">
+                            Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+
+                        {/* Items Table matching Image 1 Columns */}
+                        <table className="w-full text-left border-collapse text-sm">
+                          <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
+                            <tr>
+                              <th className="py-3 px-3 w-12 text-center">SN</th>
+                              <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>
+                              <th className="py-3 px-3 w-28 text-center">Ref.</th>
+                              <th className="py-3 px-3 w-24 text-center">UOM</th>
+                              <th className="py-3 px-3 w-32 text-right">Unit Rate</th>
+                              <th className="py-3 px-2 w-16 text-center">Qty</th>
+                              <th className="py-3 px-4 w-36 text-right">Price</th>
+                            </tr>
+                          </thead>
+
+                          <tbody className="divide-y divide-stone-200 text-stone-900">
+                            {sItems.map((it, itIdx) => {
+                              const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
+                              const rate = Number(it.rate) || 0;
+                              const qty = Number(it.qty) || 1;
+                              const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
+                              const dims = (it.lengthFt || it.heightFt)
+                                ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
+                                : "";
+
+                              return (
+                                <tr key={itIdx} className="hover:bg-amber-50/30 transition">
+                                  <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
+                                    {itIdx + 1}
+                                  </td>
+                                  <td className="py-3.5 px-4 space-y-1.5">
+                                    <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
+                                    <p className="text-xs font-bold text-stone-500">
+                                      {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
+                                      {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
+                                    </p>
+                                    <p className="text-xs text-stone-600 font-semibold">
+                                      Hardware (Channels, fittings): Onyx / Ebco / Hettich
+                                    </p>
+                                    {dims && (
+                                      <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
+                                        {dims}
+                                      </p>
+                                    )}
+                                  </td>
+                                  <td className="py-3.5 px-2 text-center align-middle">
+                                    {imgUrl ? (
+                                      <img
+                                        src={imgUrl}
+                                        alt={it.name}
+                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
+                                      />
+                                    ) : (
+                                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
+                                        <span>Ref. Image</span>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
+                                    {it.uom || it.unit || "Sq. Ft"}
+                                  </td>
+                                  <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
+                                    ₹{rate.toLocaleString("en-IN")}
+                                  </td>
+                                  <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
+                                    {qty}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
+                                    ₹{amt.toLocaleString("en-IN")}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Area Summary Table matching Image 4 & 5 */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-xl font-black text-[#A83232] tracking-wider">Summary</h4>
+                  <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
+                    <table className="w-full text-left border-collapse text-sm">
+                      <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs font-extrabold text-stone-900">
+                        <tr>
+                          <th className="py-3 px-4 w-16 text-center">SN</th>
+                          <th className="py-3 px-4">Area</th>
+                          <th className="py-3 px-4 w-32 text-center">Quantity</th>
+                          <th className="py-3 px-6 w-48 text-right">Total Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-200">
+                        {(quotationBOQ.spaces || []).map((sp, idx) => {
+                          let sSum = 0;
+                          (sp.items || []).forEach((it) => {
+                            sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+                          });
+                          if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+                          const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
+
+                          return (
+                            <tr key={idx} className="hover:bg-amber-50/20">
+                              <td className="py-3 px-4 text-center font-bold text-stone-600">{idx + 1}</td>
+                              <td className="py-3 px-4 font-bold text-stone-950 uppercase">{sp.name}</td>
+                              <td className="py-3 px-4 text-center font-bold text-stone-800">{count}</td>
+                              <td className="py-3 px-6 text-right font-mono font-black text-stone-950 text-base">
+                                ₹{sSum.toLocaleString("en-IN")}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Commercial Totals Box with PROPER LARGE TEXT matching Image 5 */}
+                {(() => {
+                  let subtotal = 0;
+                  (quotationBOQ.spaces || []).forEach((sp) => {
+                    let sSum = 0;
+                    (sp.items || []).forEach((it) => {
+                      sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+                    });
+                    if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+                    subtotal += sSum;
+                  });
+
+                  const discountAmount = Number(quotationBOQ.discountAmount) || 0;
+                  const gstTotal = Number(quotationBOQ.gstTotal) || 0;
+                  const grandTotal = Number(quotationBOQ.grandTotal) || (subtotal - discountAmount + gstTotal);
+
+                  return (
+                    <div className="flex justify-end pt-2">
+                      <div className="w-full max-w-md border-2 border-[#D4AF37] rounded-2xl overflow-hidden shadow-sm bg-white">
+                        <div className="divide-y divide-stone-100 text-sm">
+                          <div className="flex justify-between items-center px-5 py-3 text-stone-800 font-bold">
+                            <span className="text-base">Total</span>
+                            <span className="font-mono font-black text-lg text-stone-900">
+                              ₹{subtotal.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          {discountAmount > 0 && (
+                            <div className="flex justify-between items-center px-5 py-3 bg-red-50/70 text-red-700 font-bold">
+                              <span className="text-base">Discount</span>
+                              <span className="font-mono font-black text-lg">
+                                - ₹{discountAmount.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                          )}
+                          {gstTotal > 0 && (
+                            <div className="flex justify-between items-center px-5 py-3 text-stone-700 font-bold">
+                              <span className="text-base">GST (18%)</span>
+                              <span className="font-mono font-black text-lg text-stone-900">
+                                ₹{gstTotal.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center px-5 py-4 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37]">
+                            <span className="text-lg font-black tracking-wide">Grand Total</span>
+                            <span className="font-mono font-black text-2xl tracking-tight">
+                              ₹{grandTotal.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* TERMS & CONDITIONS ON NEW PAGES (When Enabled) */}
+                {includeTermsInPrint ? (
+                  <div className="pt-8 border-t-2 border-dashed border-stone-300 space-y-6">
+                    {/* Visual Page Break Indicator */}
+                    <div className="flex items-center gap-3 text-stone-400 py-1">
+                      <div className="h-px bg-stone-300 flex-1"></div>
+                      <span className="text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 bg-amber-50 text-[#9E7B1D] border border-amber-200 rounded-full">
+                        Page 2+ • Attached Terms & Conditions Document
+                      </span>
+                      <div className="h-px bg-stone-300 flex-1"></div>
+                    </div>
+
+                    {/* 1. Payment Plan Table */}
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-black text-[#A83232] tracking-wider">Payment Plan</h4>
+                      {(() => {
+                        const tcTemplate = getActiveTermsTemplate();
+                        const milestones = calculateMilestones(quotationBOQ.grandTotal || quotationBOQ.subtotal || 0, tcTemplate.paymentPlan);
+                        return (
+                          <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
+                            <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                              <thead className="bg-[#FAF9F5] border-b border-stone-300 font-extrabold text-stone-900">
+                                <tr>
+                                  <th className="py-2.5 px-4">Milestone</th>
+                                  <th className="py-2.5 px-4 w-28 text-center">Percent</th>
+                                  <th className="py-2.5 px-4 w-44 text-right">Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-stone-200">
+                                {milestones.map((m, mIdx) => (
+                                  <tr key={mIdx}>
+                                    <td className="py-2.5 px-4 font-bold text-stone-800">{m.milestone}</td>
+                                    <td className="py-2.5 px-4 text-center font-bold text-stone-700">{m.percent}%</td>
+                                    <td className="py-2.5 px-4 text-right font-mono font-black text-stone-900">
+                                      ₹{m.amount.toLocaleString("en-IN")}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* 2. Bank Account Details */}
+                    {(() => {
+                      const tcTemplate = getActiveTermsTemplate();
+                      return (
+                        <div className="border-l-4 border-[#A83232] bg-[#FAF9F5] p-4 rounded-xl border border-stone-200 space-y-2">
+                          <h5 className="font-extrabold text-sm text-[#A83232]">Bank Account Details</h5>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-stone-800">
+                            <div>Account Holder: <strong>{tcTemplate.bankDetails.accountHolder}</strong></div>
+                            <div>Account Number: <strong>{tcTemplate.bankDetails.accountNumber}</strong></div>
+                            <div>IFSC: <strong>{tcTemplate.bankDetails.ifsc}</strong></div>
+                            <div>Branch: <strong>{tcTemplate.bankDetails.branch}</strong></div>
+                            <div>Account Type: <strong>{tcTemplate.bankDetails.accountType}</strong></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* 3. Terms and Conditions (16 points) */}
+                    {(() => {
+                      const tcTemplate = getActiveTermsTemplate();
+                      return (
+                        <div className="space-y-3">
+                          <h5 className="text-base font-black text-[#A83232] border-l-4 border-[#A83232] pl-3 py-0.5">
+                            Terms and Conditions
+                          </h5>
+                          <ol className="list-decimal pl-5 space-y-1.5 text-xs text-stone-700 leading-relaxed">
+                            {tcTemplate.termsList.map((item, idx) => (
+                              <li key={idx}>
+                                <strong>{item.title ? `${item.title}: ` : ""}</strong>
+                                {item.text}
+                              </li>
+                            ))}
+                          </ol>
+                          <div className="p-3 bg-red-50 text-red-800 border-l-4 border-[#A83232] rounded-lg font-bold text-xs">
+                            {tcTemplate.note}
+                          </div>
+
+                          {/* 4. Material Details */}
+                          <h5 className="text-sm font-black text-[#A83232] border-l-4 border-[#A83232] pl-3 py-0.5 mt-4">
+                            Material Details:
+                          </h5>
+                          <ol className="list-decimal pl-5 space-y-1 text-xs text-stone-700 leading-relaxed">
+                            {tcTemplate.materialDetails.map((mat, idx) => (
+                              <li key={idx}>
+                                <strong>{mat.title}: </strong>{mat.text}
+                              </li>
+                            ))}
+                          </ol>
+
+                          {/* 5. Warranty Details */}
+                          <h5 className="text-sm font-black text-[#A83232] border-l-4 border-[#A83232] pl-3 py-0.5 mt-4">
+                            WARRANTY Details:
+                          </h5>
+                          <ol className="list-decimal pl-5 space-y-1 text-xs text-stone-700 leading-relaxed">
+                            {tcTemplate.warrantyDetails.map((wText, idx) => (
+                              <li key={idx}>{wText}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Signatures Row inside T&C */}
+                    <div className="flex justify-between items-end pt-8 pb-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
+                        <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
+                      <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Standalone Signatures Row when T&C is Excluded */
+                  <div className="pt-6 border-t border-stone-200">
+                    <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl mb-6 text-xs text-stone-600 flex items-center justify-between">
+                      <span>Terms & Conditions pages are currently <strong>Excluded</strong> from export.</span>
+                      <button
+                        type="button"
+                        onClick={() => setIncludeTermsInPrint(true)}
+                        className="font-bold text-[#9E7B1D] underline cursor-pointer hover:text-amber-800"
+                      >
+                        Enable T&C Pages
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-end pt-4 pb-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
+                        <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
+                      <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* TAB 2: TERMS & CONDITIONS TEMPLATE INSPECTOR & CONFIGURATOR */
+              <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-[#FAF9F5]">
+                <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-black text-stone-900">Standard Terms & Conditions Template</h4>
+                      <p className="text-xs text-stone-500">
+                        This template is automatically bound to your quotations when "Include T&C Pages" is enabled.
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black text-xs rounded-full">
+                      Active Template
+                    </span>
+                  </div>
+
+                  {/* Bank Details */}
+                  {(() => {
+                    const t = getActiveTermsTemplate();
+                    return (
+                      <div className="border border-stone-200 rounded-xl p-4 bg-stone-50/50 space-y-2">
+                        <h5 className="font-extrabold text-xs text-[#A83232] uppercase">Bank Account Details</h5>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div>Account Holder: <strong>{t.bankDetails.accountHolder}</strong></div>
+                          <div>Account Number: <strong>{t.bankDetails.accountNumber}</strong></div>
+                          <div>IFSC Code: <strong>{t.bankDetails.ifsc}</strong></div>
+                          <div>Branch: <strong>{t.bankDetails.branch}</strong></div>
+                          <div>Account Type: <strong>{t.bankDetails.accountType}</strong></div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Payment Milestone Structure */}
+                  {(() => {
+                    const t = getActiveTermsTemplate();
+                    return (
+                      <div className="space-y-2">
+                        <h5 className="font-extrabold text-xs text-[#A83232] uppercase">Milestone Payment Structure</h5>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {t.paymentPlan.map((p, idx) => (
+                            <div key={idx} className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-center">
+                              <span className="text-[10px] font-bold text-stone-500 block uppercase">{p.milestone}</span>
+                              <span className="text-lg font-black text-[#9E7B1D] block">{p.percent}%</span>
+                              <span className="text-[10px] text-stone-600 block truncate" title={p.description}>{p.description}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* 16 Clauses */}
+                  {(() => {
+                    const t = getActiveTermsTemplate();
+                    return (
+                      <div className="space-y-3">
+                        <h5 className="font-extrabold text-xs text-[#A83232] uppercase">16 Contract Clauses</h5>
+                        <div className="max-h-72 overflow-y-auto space-y-2 pr-2">
+                          {t.termsList.map((c, idx) => (
+                            <div key={idx} className="p-2.5 bg-stone-50 border border-stone-200 rounded-lg text-xs">
+                              <span className="font-bold text-stone-900">{idx + 1}. {c.title}: </span>
+                              <span className="text-stone-700">{c.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Material Details & Warranty */}
+                  {(() => {
+                    const t = getActiveTermsTemplate();
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                          <h6 className="font-bold text-xs text-stone-900">Material Specifications ({t.materialDetails.length} items)</h6>
+                          <ul className="list-disc pl-4 text-[11px] text-stone-600 space-y-1">
+                            {t.materialDetails.map((m, idx) => (
+                              <li key={idx}><strong>{m.title}:</strong> {m.text}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                          <h6 className="font-bold text-xs text-stone-900">12-Year Warranty Coverage ({t.warrantyDetails.length} clauses)</h6>
+                          <ul className="list-disc pl-4 text-[11px] text-stone-600 space-y-1">
+                            {t.warrantyDetails.slice(0, 4).map((w, idx) => (
+                              <li key={idx}>{w}</li>
+                            ))}
+                            <li className="text-stone-400 italic">+ 4 more statutory warranty terms</li>
+                          </ul>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
             {/* Modal Footer Controls */}
             <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => downloadBOQPdf(quotationBOQ)}
+                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition cursor-pointer"
                 >
                   <Download size={14} />
-                  <span>Download Quotation PDF</span>
+                  <span>Download Quotation PDF {includeTermsInPrint ? "(with T&C)" : ""}</span>
                 </button>
                 <button
-                  onClick={() => printBOQQuotation(quotationBOQ)}
+                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint })}
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition cursor-pointer"
                 >
                   <Printer size={14} />
@@ -3767,7 +4110,7 @@ export default function BOQManagement() {
 
                 <button
                   type="button"
-                  onClick={() => downloadBOQPdf(savedSuccessModal.boq)}
+                  onClick={() => downloadBOQPdf(savedSuccessModal.boq, null, { includeTerms: includeTermsInPrint })}
                   className="px-3 py-2 bg-stone-100 hover:bg-amber-50 text-[#9E7B1D] border border-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Download size={14} />
@@ -3776,7 +4119,7 @@ export default function BOQManagement() {
 
                 <button
                   type="button"
-                  onClick={() => printBOQQuotation(savedSuccessModal.boq)}
+                  onClick={() => printBOQQuotation(savedSuccessModal.boq, { includeTerms: includeTermsInPrint })}
                   className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Printer size={14} />

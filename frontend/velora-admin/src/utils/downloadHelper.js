@@ -1,6 +1,11 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import erpApi from "../services/erpService";
+import {
+  DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
+  calculateMilestones,
+  getActiveTermsTemplate
+} from "../constants/termsAndConditionsTemplates";
 
 /**
  * Triggers native browser download from a Blob
@@ -50,7 +55,8 @@ export const loadImageDataUrl = (url) => {
  * Client-Side Luxury BOQ / Estimate PDF Generator Matching User Images
  * (Image 1 Table Structure with Ref. Images + Image 2 Velora Antaraal Theme, Totals & T&C)
  */
-export const generateClientSideBOQPdf = async (boq) => {
+export const generateClientSideBOQPdf = async (boq, options = {}) => {
+  const includeTerms = options.includeTerms !== false;
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "pt",
@@ -244,68 +250,323 @@ export const generateClientSideBOQPdf = async (boq) => {
     currentY = doc.lastAutoTable.finalY + 18;
   });
 
-  // Check if summary and T&C need new page
-  if (currentY > 480) {
+  // Area-by-Area Summary Table Matching Reference Image 4 & 5
+  if (currentY > 580) {
     doc.addPage();
     currentY = 40;
   }
 
-  // Commercial Total Box (Clean Client Quotation without discount/GST split)
-  const summaryStartX = 300;
-  const summaryWidth = 255;
-  const rowHeight = 30;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(168, 50, 50); // Maroon
+  doc.text("Summary", 40, currentY + 12);
+  currentY += 18;
 
+  const summaryRows = spaces.map((sp, idx) => {
+    let sSum = 0;
+    (sp.items || []).forEach((it) => {
+      sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+    });
+    if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+    const qtyCount = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
+    return [
+      String(idx + 1),
+      sp.name.toUpperCase(),
+      String(qtyCount),
+      `Rs. ${sSum.toLocaleString("en-IN")}`
+    ];
+  });
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 40, right: 40 },
+    head: [["SN", "Area", "Quantity", "Total Amount"]],
+    body: summaryRows,
+    theme: "grid",
+    headStyles: {
+      fillColor: [250, 246, 237],
+      textColor: [28, 25, 23],
+      fontSize: 10,
+      fontStyle: "bold",
+      lineWidth: 0.5,
+      lineColor: [200, 200, 200],
+      cellPadding: 6
+    },
+    bodyStyles: {
+      fontSize: 9.5,
+      textColor: [25, 25, 25],
+      lineColor: [215, 215, 215],
+      lineWidth: 0.5,
+      valign: "middle",
+      cellPadding: 6
+    },
+    columnStyles: {
+      0: { cellWidth: 35, halign: "center", fontStyle: "bold" },
+      1: { cellWidth: 260, fontStyle: "bold" },
+      2: { cellWidth: 80, halign: "center", fontStyle: "bold" },
+      3: { cellWidth: 140, halign: "right", fontStyle: "bold" }
+    }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 16;
+
+  // Commercial Totals Box with PROPER LARGE TEXT matching Image 5
+  if (currentY > 660) {
+    doc.addPage();
+    currentY = 40;
+  }
+
+  const totalsBoxX = 265;
+  const totalsBoxW = 290;
+  let totY = currentY;
+
+  // Subtotal row
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(50, 50, 50);
+  doc.text("Total", totalsBoxX + 10, totY + 14);
+  doc.text(`Rs. ${spacesSubtotal.toLocaleString("en-IN")}`, totalsBoxX + totalsBoxW - 10, totY + 14, { align: "right" });
+  totY += 22;
+
+  // Discount row (if any)
+  if (discountAmount > 0) {
+    doc.setTextColor(180, 40, 40);
+    doc.text("Discount", totalsBoxX + 10, totY + 14);
+    doc.text(`- Rs. ${discountAmount.toLocaleString("en-IN")}`, totalsBoxX + totalsBoxW - 10, totY + 14, { align: "right" });
+    totY += 22;
+  }
+
+  // GST row (if applicable)
+  if (gstTotal > 0) {
+    doc.setTextColor(70, 70, 70);
+    doc.text(`GST (${gstPercent}%)`, totalsBoxX + 10, totY + 14);
+    doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, totalsBoxX + totalsBoxW - 10, totY + 14, { align: "right" });
+    totY += 22;
+  }
+
+  // Grand Total Box - High impact large text
   doc.setFillColor(250, 246, 237);
-  doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "FD");
+  doc.rect(totalsBoxX, totY, totalsBoxW, 36, "FD");
   doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(1.2);
-  doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "S");
+  doc.setLineWidth(1.5);
+  doc.rect(totalsBoxX, totY, totalsBoxW, 36, "S");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(158, 123, 29);
+  doc.text("Grand Total", totalsBoxX + 10, totY + 23);
+  doc.setFontSize(16);
+  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, totalsBoxX + totalsBoxW - 10, totY + 23, { align: "right" });
+
+  totY += 46;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text(numberToWordsIN(grandTotal), totalsBoxX + totalsBoxW, totY, { align: "right" });
+  currentY = totY + 20;
+
+  // Render Signatures if terms are not included on separate page
+  if (!includeTerms) {
+    if (currentY > 730) {
+      doc.addPage();
+      currentY = 40;
+    }
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text("Client Signature: _______________________", 40, currentY + 16);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("For VELORA ANTARAAL", 555, currentY + 16, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
+
+    doc.setDrawColor(212, 175, 55);
+    doc.line(40, 788, 555, 788);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(158, 123, 29);
+    doc.text("SPACES WITHIN, DESIGNED BEAUTIFULLY", 297.5, 802, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
+
+    doc.save(`${boqNum}.pdf`);
+    return;
+  }
+
+  // =========================================================================
+  // DEDICATED TERMS & CONDITIONS PAGES (Matching Image 5 & 6)
+  // Starts CLEANLY on a brand new page!
+  // =========================================================================
+  doc.addPage();
+  currentY = 40;
+
+  const tcTemplate = getActiveTermsTemplate();
+
+  // 1. Payment Plan Table
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(168, 50, 50); // Maroon
+  doc.text("Payment Plan", 40, currentY + 10);
+
+  const milestones = calculateMilestones(grandTotal, tcTemplate.paymentPlan);
+  const paymentRows = milestones.map((m) => [
+    m.milestone,
+    `${m.percent}%`,
+    `Rs. ${m.amount.toLocaleString("en-IN")}`
+  ]);
+
+  autoTable(doc, {
+    startY: currentY + 18,
+    margin: { left: 40, right: 40 },
+    head: [["Milestone", "Percent", "Amount"]],
+    body: paymentRows,
+    theme: "grid",
+    headStyles: {
+      fillColor: [250, 246, 237],
+      textColor: [28, 25, 23],
+      fontSize: 9.5,
+      fontStyle: "bold",
+      lineWidth: 0.5,
+      lineColor: [200, 200, 200],
+      cellPadding: 5
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      textColor: [40, 40, 40],
+      lineColor: [215, 215, 215],
+      lineWidth: 0.5,
+      cellPadding: 5
+    },
+    columnStyles: {
+      0: { cellWidth: 260 },
+      1: { cellWidth: 90, halign: "center", fontStyle: "bold" },
+      2: { cellWidth: 165, halign: "right", fontStyle: "bold" }
+    }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 16;
+
+  // 2. Bank Account Details
+  doc.setDrawColor(168, 50, 50);
+  doc.setLineWidth(3);
+  doc.line(40, currentY, 40, currentY + 54);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.setTextColor(158, 123, 29);
-  doc.text("TOTAL ESTIMATE AMOUNT", summaryStartX + 10, currentY + 19);
-  doc.text(`Rs. ${spacesSubtotal.toLocaleString("en-IN")}`, summaryStartX + summaryWidth - 10, currentY + 19, { align: "right" });
+  doc.setTextColor(168, 50, 50);
+  doc.text("Bank Account Details", 48, currentY + 12);
 
-  const sumY = currentY + rowHeight;
-
-  // Terms & Conditions Header & 7 Points matching Image 2
-  let tcY = currentY;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setTextColor(28, 25, 23);
-  doc.text("TERMS & CONDITIONS", 40, tcY + 12);
-  tcY += 20;
+  doc.text(`Account Holder: ${tcTemplate.bankDetails.accountHolder}`, 48, currentY + 24);
+  doc.text(`Account Number: ${tcTemplate.bankDetails.accountNumber}`, 48, currentY + 34);
+  doc.text(`IFSC: ${tcTemplate.bankDetails.ifsc}`, 48, currentY + 44);
+  doc.text(`Branch: ${tcTemplate.bankDetails.branch}    |    Account Type: ${tcTemplate.bankDetails.accountType}`, 48, currentY + 54);
 
-  const termsList = [
-    "1. 18% GST Extra Applicable.",
-    "2. Full Payment to be Cleared Before the Work Completion.",
-    "3. Goods Once Sold will not be Taken back or Exchanged.",
-    "4. NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.",
-    "5. The Company hold no Responsibility on the Fabric on any product.",
-    "6. The Company has full Rights to amend the Rates at any point of the Project before completion.",
-    "7. Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.",
-    "*T&C is Well Read and Accepted. Thank You"
-  ];
+  currentY += 68;
+
+  // 3. Terms and Conditions (16 Points matching PDF)
+  doc.setDrawColor(168, 50, 50);
+  doc.setLineWidth(3);
+  doc.line(40, currentY, 40, currentY + 16);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(168, 50, 50);
+  doc.text("Terms and Conditions", 48, currentY + 12);
+  currentY += 22;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(60, 60, 60);
+  doc.setTextColor(40, 40, 40);
 
-  termsList.forEach((t) => {
-    const lines = doc.splitTextToSize(t, 260);
-    doc.text(lines, 40, tcY);
-    tcY += (lines.length * 9.5) + 2;
+  tcTemplate.termsList.forEach((item, idx) => {
+    if (currentY > 780) {
+      doc.addPage();
+      currentY = 40;
+    }
+    const fullText = `${idx + 1}. ${item.title ? `${item.title}: ` : ""}${item.text}`;
+    const lines = doc.splitTextToSize(fullText, 515);
+    doc.text(lines, 40, currentY);
+    currentY += (lines.length * 9.5) + 3;
   });
 
-  const nextSectionY = Math.max(sumY, tcY) + 22;
+  // Note
+  if (currentY > 770) {
+    doc.addPage();
+    currentY = 40;
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(28, 25, 23);
+  doc.text(tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )", 40, currentY + 4);
+  currentY += 18;
 
-  // Signatures Section matching Image 2
-  if (nextSectionY > 730) {
+  // 4. Material Details
+  if (currentY > 700) {
+    doc.addPage();
+    currentY = 40;
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(168, 50, 50);
+  doc.text("Material Details:", 40, currentY);
+  currentY += 14;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(40, 40, 40);
+
+  tcTemplate.materialDetails.forEach((mat, mIdx) => {
+    if (currentY > 780) {
+      doc.addPage();
+      currentY = 40;
+    }
+    const fullText = `${mIdx + 1}. ${mat.title}: ${mat.text}`;
+    const lines = doc.splitTextToSize(fullText, 515);
+    doc.text(lines, 40, currentY);
+    currentY += (lines.length * 9.5) + 2;
+  });
+
+  // 5. Warranty Details
+  if (currentY > 660) {
+    doc.addPage();
+    currentY = 40;
+  }
+  currentY += 8;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(168, 50, 50);
+  doc.text("WARRANTY Details:", 40, currentY);
+  currentY += 14;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(40, 40, 40);
+
+  tcTemplate.warrantyDetails.forEach((wText, wIdx) => {
+    if (currentY > 780) {
+      doc.addPage();
+      currentY = 40;
+    }
+    const fullText = `${wIdx + 1}. ${wText}`;
+    const lines = doc.splitTextToSize(fullText, 515);
+    doc.text(lines, 40, currentY);
+    currentY += (lines.length * 9.5) + 2;
+  });
+
+  // 6. Signatures and Footer
+  if (currentY > 730) {
     doc.addPage();
     currentY = 40;
   } else {
-    currentY = nextSectionY;
+    currentY += 14;
   }
 
   doc.setFont("helvetica", "normal");
@@ -318,7 +579,6 @@ export const generateClientSideBOQPdf = async (boq) => {
   doc.setFont("helvetica", "normal");
   doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
 
-  // Footer matching Image 2
   doc.setDrawColor(212, 175, 55);
   doc.line(40, 788, 555, 788);
 
@@ -338,14 +598,14 @@ export const generateClientSideBOQPdf = async (boq) => {
 /**
  * Universal Download Function for BOQ / Quotation PDF
  */
-export const downloadBOQPdf = async (boqOrId, customFilename) => {
+export const downloadBOQPdf = async (boqOrId, customFilename, options = {}) => {
   const id = typeof boqOrId === "object" ? (boqOrId?._id || boqOrId?.boqNumber) : boqOrId;
   const filename = customFilename || (typeof boqOrId === "object" ? `${boqOrId?.boqNumber || "Quotation"}.pdf` : `Quotation_${id}.pdf`);
 
   // Instant client-side generation if full BOQ object is passed
   if (typeof boqOrId === "object" && (boqOrId.clientName || boqOrId.spaces || boqOrId.boqNumber)) {
     try {
-      await generateClientSideBOQPdf(boqOrId);
+      await generateClientSideBOQPdf(boqOrId, options);
       return;
     } catch (err) {
       console.warn("Client side BOQ PDF error, trying backend:", err);
@@ -373,15 +633,16 @@ export const downloadBOQPdf = async (boqOrId, customFilename) => {
 
   // Fallback: Generate Client-side PDF immediately
   const boqData = typeof boqOrId === "object" ? boqOrId : { boqNumber: String(id), clientName: "Valued Client", grandTotal: 3964567 };
-  await generateClientSideBOQPdf(boqData);
+  await generateClientSideBOQPdf(boqData, options);
 };
 
 /**
  * Direct High-Resolution Print / Save as PDF Function Matching Image 1 & 2
  */
-export const printBOQQuotation = (boq) => {
+export const printBOQQuotation = (boq, options = {}) => {
   if (!boq) return;
 
+  const includeTerms = options.includeTerms !== false;
   const clientName = boq.clientName || "Valued Client";
   const clientPhone = boq.clientPhone || "-";
   const clientEmail = boq.clientEmail || "-";
@@ -415,6 +676,9 @@ export const printBOQQuotation = (boq) => {
   const gstTotal = cgstAmount + sgstAmount;
   const grandTotal = Number(boq.grandTotal) || (taxableAmount + gstTotal);
 
+  const tcTemplate = getActiveTermsTemplate();
+  const milestones = calculateMilestones(grandTotal, tcTemplate.paymentPlan);
+
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     alert("Please allow popups to print / save as PDF.");
@@ -438,7 +702,7 @@ export const printBOQQuotation = (boq) => {
       color: #1c1917;
       margin: 0;
       padding: 0;
-      font-size: 14.5px;
+      font-size: 14px;
       line-height: 1.5;
       background: #fff;
       -webkit-font-smoothing: antialiased;
@@ -446,7 +710,7 @@ export const printBOQQuotation = (boq) => {
     .page-container {
       max-width: 920px;
       margin: 0 auto;
-      padding: 14px;
+      padding: 16px;
       box-sizing: border-box;
       border: 1px solid #e7e5e4;
       position: relative;
@@ -596,55 +860,187 @@ export const printBOQQuotation = (boq) => {
       margin: 0 auto;
       text-align: center;
     }
-    .bottom-section {
-      display: flex;
-      justify-content: space-between;
-      gap: 26px;
-      margin-top: 20px;
+
+    /* SUMMARY SECTION MATCHING IMAGE 4 & 5 */
+    .summary-section {
+      margin-top: 28px;
       break-inside: avoid;
     }
-    .tc-box {
-      flex: 1;
-      font-size: 12px;
-      color: #44403c;
-      line-height: 1.5;
-    }
-    .tc-box h5 {
-      margin: 0 0 8px 0;
-      font-size: 13px;
+    .summary-header {
+      font-size: 20px;
       font-weight: 900;
+      color: #a83232;
+      margin: 0 0 12px 0;
+      letter-spacing: 0.5px;
+    }
+    table.summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #d6d3d1;
+    }
+    table.summary-table th {
+      background: #fafaf9;
+      border: 1px solid #d6d3d1;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 800;
+      text-align: left;
       color: #1c1917;
-      text-transform: uppercase;
     }
-    .tc-box ol {
-      margin: 0;
-      padding-left: 18px;
+    table.summary-table td {
+      border: 1px solid #e7e5e4;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      color: #1c1917;
+      font-weight: 500;
     }
-    .tc-box li {
-      margin-bottom: 4px;
+
+    /* COMMERCIAL TOTALS BOX WITH PROPER LARGE TEXT */
+    .commercial-totals-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
+      margin-bottom: 24px;
+      break-inside: avoid;
     }
-    .totals-box {
-      width: 330px;
+    .commercial-totals-box {
+      width: 420px;
       border: 2px solid #d4af37;
       background: #fff;
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
-    .totals-row {
+    .tot-row {
       display: flex;
       justify-content: space-between;
-      padding: 10px 14px;
+      align-items: center;
+      padding: 11px 18px;
       border-bottom: 1px solid #f5f5f4;
-      font-size: 13.5px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #292524;
     }
-    .totals-row.grand {
+    .tot-row.discount {
+      color: #dc2626;
+      background: #fef2f2;
+      font-weight: 800;
+      font-size: 15.5px;
+    }
+    .tot-row.grand {
       background: #faf6ed;
       border-top: 2px solid #d4af37;
       border-bottom: none;
       font-weight: 900;
-      font-size: 17px;
+      font-size: 21px;
       color: #9e7b1d;
+      padding: 14px 18px;
     }
+    .tot-row.grand .tot-val {
+      font-size: 22px;
+      font-weight: 900;
+    }
+    .tot-words-bar {
+      background: #faf6ed;
+      padding: 6px 18px 12px 18px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 600;
+      color: #78716c;
+      border-top: 1px dashed #e7e5e4;
+    }
+
+    /* TERMS & CONDITIONS ON NEW PAGES MATCHING IMAGE 5 & 6 */
+    .tc-page-container {
+      page-break-before: always;
+      break-before: page;
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 2px dashed #d6d3d1;
+    }
+    .tc-section-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #a83232;
+      margin: 0 0 14px 0;
+      letter-spacing: 0.5px;
+    }
+    .accent-bar-title {
+      border-left: 4px solid #a83232;
+      padding-left: 12px;
+      font-size: 17px;
+      font-weight: 900;
+      color: #a83232;
+      margin: 20px 0 12px 0;
+    }
+    table.payment-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #d6d3d1;
+      margin-bottom: 22px;
+      font-size: 13px;
+    }
+    table.payment-table th {
+      background: #fafaf9;
+      border: 1px solid #d6d3d1;
+      padding: 9px 14px;
+      font-weight: 800;
+      color: #1c1917;
+    }
+    table.payment-table td {
+      border: 1px solid #e7e5e4;
+      padding: 9px 14px;
+      color: #1c1917;
+    }
+    .bank-card {
+      border: 1px solid #e7e5e4;
+      border-left: 4px solid #a83232;
+      padding: 14px 18px;
+      background: #fafaf9;
+      border-radius: 6px;
+      margin-bottom: 22px;
+    }
+    .bank-card h4 {
+      margin: 0 0 8px 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: #a83232;
+    }
+    .bank-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+      font-size: 13px;
+      color: #292524;
+      font-weight: 600;
+    }
+    .tc-list {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #292524;
+    }
+    .tc-list li {
+      margin-bottom: 8px;
+    }
+    .tc-note-box {
+      background: #fef2f2;
+      border-left: 4px solid #a83232;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #991b1b;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+    .specs-subheading {
+      font-size: 15px;
+      font-weight: 900;
+      color: #a83232;
+      margin: 18px 0 8px 0;
+    }
+
     .signatures-row {
       display: flex;
       justify-content: space-between;
@@ -665,6 +1061,7 @@ export const printBOQQuotation = (boq) => {
     .footer-bar strong {
       color: #9e7b1d;
     }
+
     @media print {
       body {
         margin: 0;
@@ -679,26 +1076,39 @@ export const printBOQQuotation = (boq) => {
       .no-print {
         display: none !important;
       }
+      .tc-page-container {
+        page-break-before: always;
+        break-before: page;
+        border-top: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="no-print" style="background: #292524; color: #fff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 999;">
-    <div>
-      <span style="font-weight: 800; font-size: 13px;">VELORA Luxury BOQ Estimate Print Preview</span>
-      <span style="color: #a8a29e; font-size: 11px; margin-left: 10px;">Select Destination as "Save as PDF" to download high-resolution PDF</span>
+  <div class="no-print" style="background: #1c1917; color: #fff; padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <span style="font-weight: 900; font-size: 14px; color: #d4af37; letter-spacing: 0.5px;">VELORA INTERIOR ESTIMATE & BOQ</span>
+      <span style="color: #a8a29e; font-size: 12px;">| Print or Select "Save as PDF"</span>
     </div>
-    <div style="display: flex; gap: 8px;">
-      <button onclick="window.print()" style="background: #9e7b1d; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer;">
-        Print / Save as PDF
+
+    <!-- Live In-Preview T&C Toggle Switch -->
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f5f5f4; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #292524; padding: 6px 12px; border-radius: 8px; border: 1px solid #44403c; user-select: none;">
+        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #d4af37; cursor: pointer;" />
+        <span>Include Terms & Conditions (T&C) Pages</span>
+      </label>
+
+      <button onclick="window.print()" style="background: #9e7b1d; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
+        Print / Save PDF
       </button>
-      <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+      <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;">
         Close
       </button>
     </div>
   </div>
 
   <div class="page-container">
+    <!-- Brand Header -->
     <div class="header-row">
       <div class="client-box">
         <h4>Prepared for</h4>
@@ -719,10 +1129,12 @@ export const printBOQQuotation = (boq) => {
       </div>
     </div>
 
+    <!-- Central ESTIMATE Banner -->
     <div class="title-banner">
       <h2>INTERIOR ESTIMATE & QUOTATION</h2>
     </div>
 
+    <!-- Space-by-Space Tables matching Image 1 to 4 -->
     ${spaces.map((space) => {
       const sItems = (space.items && space.items.length > 0) ? space.items : [
         { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
@@ -734,13 +1146,13 @@ export const printBOQQuotation = (boq) => {
           <table class="item-table">
             <thead>
               <tr>
-                <th style="width: 30px;">SN</th>
+                <th style="width: 32px;">SN</th>
                 <th style="text-align: left;">Item Description & Specification</th>
-                <th style="width: 70px;">Image</th>
+                <th style="width: 80px;">Ref.</th>
                 <th style="width: 55px;">UOM</th>
-                <th style="width: 75px; text-align: right;">Unit Rate</th>
-                <th style="width: 35px;">Qty</th>
-                <th style="width: 85px; text-align: right;">Price</th>
+                <th style="width: 85px; text-align: right;">Unit Rate</th>
+                <th style="width: 38px;">Qty</th>
+                <th style="width: 95px; text-align: right;">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -764,12 +1176,12 @@ export const printBOQQuotation = (boq) => {
                       ${dims ? `<div class="item-specs">${dims}</div>` : ""}
                     </td>
                     <td style="text-align: center;">
-                      ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Image" onerror="this.style.display='none'" />` : `<div class="no-img">Image</div>`}
+                      ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Image" onerror="this.style.display='none'" />` : `<div class="no-img">Ref. Image</div>`}
                     </td>
-                    <td style="text-align: center;">${it.uom || it.unit || "Sq. Ft"}</td>
-                    <td style="text-align: right; font-weight: 600;">₹ ${(rate).toLocaleString("en-IN")}</td>
-                    <td style="text-align: center; font-weight: 600;">${qty}</td>
-                    <td style="text-align: right; font-weight: 800;">₹ ${(amt).toLocaleString("en-IN")}</td>
+                    <td style="text-align: center; font-weight: 600;">${it.uom || it.unit || "Sq. Ft"}</td>
+                    <td style="text-align: right; font-weight: 700;">₹ ${(rate).toLocaleString("en-IN")}</td>
+                    <td style="text-align: center; font-weight: 700;">${qty}</td>
+                    <td style="text-align: right; font-weight: 900;">₹ ${(amt).toLocaleString("en-IN")}</td>
                   </tr>
                 `;
               }).join("")}
@@ -779,44 +1191,176 @@ export const printBOQQuotation = (boq) => {
       `;
     }).join("")}
 
-    <div class="bottom-section">
-      <div class="tc-box">
-        <h5>TERMS & CONDITIONS</h5>
-        <ol>
-          <li>18% GST Extra Applicable.</li>
-          <li>Full Payment to be Cleared Before the Work Completion.</li>
-          <li>Goods Once Sold will not be Taken back or Exchanged.</li>
-          <li>NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.</li>
-          <li>The Company hold no Responsibility on the Fabric on any product.</li>
-          <li>The Company has full Rights to amend the Rates at any point of the Project before completion.</li>
-          <li>Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.</li>
-        </ol>
-        <p style="margin-top: 6px; font-weight: 700; color: #292524;">*T&C is Well Read and Accepted. Thank You</p>
-      </div>
+    <!-- SUMMARY SECTION MATCHING IMAGE 4 & 5 -->
+    <div class="summary-section">
+      <h3 class="summary-header">Summary</h3>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th style="width: 50px; text-align: center;">SN</th>
+            <th>Area</th>
+            <th style="width: 110px; text-align: center;">Quantity</th>
+            <th style="width: 170px; text-align: right;">Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${spaces.map((sp, idx) => {
+            let sSum = 0;
+            (sp.items || []).forEach((it) => {
+              sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+            });
+            if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+            const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
 
-      <div class="totals-box">
-        <div class="totals-row grand" style="padding: 12px 14px; font-size: 13px;">
-          <span>TOTAL ESTIMATE AMOUNT</span>
-          <span>₹ ${spacesSubtotal.toLocaleString("en-IN")}</span>
+            return `
+              <tr>
+                <td style="text-align: center; font-weight: 800;">${idx + 1}</td>
+                <td style="font-weight: 800; text-transform: uppercase;">${sp.name}</td>
+                <td style="text-align: center; font-weight: 800;">${count}</td>
+                <td style="text-align: right; font-weight: 900;">₹ ${sSum.toLocaleString("en-IN")}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- COMMERCIAL TOTALS BOX WITH PROPER LARGE TEXT MATCHING IMAGE 5 -->
+    <div class="commercial-totals-wrap">
+      <div class="commercial-totals-box">
+        <div class="tot-row">
+          <span>Total</span>
+          <span style="font-size: 17px; font-weight: 900;">₹ ${spacesSubtotal.toLocaleString("en-IN")}</span>
+        </div>
+        ${discountAmount > 0 ? `
+          <div class="tot-row discount">
+            <span>Discount</span>
+            <span style="font-size: 17px; font-weight: 900;">- ₹ ${discountAmount.toLocaleString("en-IN")}</span>
+          </div>
+        ` : ""}
+        ${gstTotal > 0 ? `
+          <div class="tot-row">
+            <span>GST (${gstPercent}%)</span>
+            <span style="font-size: 17px; font-weight: 900;">₹ ${gstTotal.toLocaleString("en-IN")}</span>
+          </div>
+        ` : ""}
+        <div class="tot-row grand">
+          <span>Grand Total</span>
+          <span class="tot-val">₹ ${grandTotal.toLocaleString("en-IN")}</span>
+        </div>
+        <div class="tot-words-bar">
+          ${numberToWordsIN(grandTotal)}
         </div>
       </div>
     </div>
 
-    <div class="signatures-row">
-      <div>
-        <p>Client Acceptance Sign: ___________________________</p>
+    <!-- DEDICATED TERMS & CONDITIONS PAGES MATCHING IMAGE 5 & 6 -->
+    <!-- STARTS ON A CLEAN NEW PAGE! -->
+    <div id="tc-page-section" class="tc-page-container" style="${includeTerms ? '' : 'display: none;'}">
+      <!-- 1. Payment Plan Table -->
+      <h3 class="tc-section-title">Payment Plan</h3>
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Milestone</th>
+            <th style="width: 110px; text-align: center;">Percent</th>
+            <th style="width: 170px; text-align: right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${milestones.map((m) => `
+            <tr>
+              <td style="font-weight: 700;">${m.milestone}</td>
+              <td style="text-align: center; font-weight: 800;">${m.percent}%</td>
+              <td style="text-align: right; font-weight: 900;">₹ ${m.amount.toLocaleString("en-IN")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <!-- 2. Bank Account Details -->
+      <div class="bank-card">
+        <h4>Bank Account Details</h4>
+        <div class="bank-grid">
+          <div>Account Holder: <strong>${tcTemplate.bankDetails.accountHolder}</strong></div>
+          <div>Account Number: <strong>${tcTemplate.bankDetails.accountNumber}</strong></div>
+          <div>IFSC: <strong>${tcTemplate.bankDetails.ifsc}</strong></div>
+          <div>Branch: <strong>${tcTemplate.bankDetails.branch}</strong></div>
+          <div>Account Type: <strong>${tcTemplate.bankDetails.accountType}</strong></div>
+        </div>
       </div>
-      <div style="text-align: right;">
-        <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
-        <p style="margin: 25px 0 0 0;">Authorized Signatory</p>
+
+      <!-- 3. Terms and Conditions (16 Clauses) -->
+      <div class="accent-bar-title">Terms and Conditions</div>
+      <ol class="tc-list">
+        ${tcTemplate.termsList.map((item) => `
+          <li><strong>${item.title ? `${item.title}: ` : ""}</strong>${item.text}</li>
+        `).join("")}
+      </ol>
+
+      <div class="tc-note-box">
+        ${tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )"}
+      </div>
+
+      <!-- 4. Material Details -->
+      <div class="accent-bar-title" style="margin-top: 24px;">Material Details:</div>
+      <ol class="tc-list">
+        ${tcTemplate.materialDetails.map((mat) => `
+          <li><strong>${mat.title}: </strong>${mat.text}</li>
+        `).join("")}
+      </ol>
+
+      <!-- 5. Warranty Details -->
+      <div class="accent-bar-title" style="margin-top: 24px;">WARRANTY Details:</div>
+      <ol class="tc-list">
+        ${tcTemplate.warrantyDetails.map((wText) => `
+          <li>${wText}</li>
+        `).join("")}
+      </ol>
+
+      <!-- Signatures Row inside T&C -->
+      <div class="signatures-row">
+        <div>
+          <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
+        </div>
+      </div>
+
+      <div class="footer-bar">
+        <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
+        <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
       </div>
     </div>
 
-    <div class="footer-bar">
-      <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
-      <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+    <!-- Signatures Row when T&C is excluded -->
+    <div id="standalone-signatures" style="${includeTerms ? 'display: none;' : 'display: block;'}">
+      <div class="signatures-row">
+        <div>
+          <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
+        <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+      </div>
     </div>
   </div>
+
+  <script>
+    window.toggleTerms = function(show) {
+      var tcEl = document.getElementById('tc-page-section');
+      var standaloneSig = document.getElementById('standalone-signatures');
+      if (tcEl) tcEl.style.display = show ? 'block' : 'none';
+      if (standaloneSig) standaloneSig.style.display = show ? 'none' : 'block';
+    };
+  </script>
 </body>
 </html>
   `;

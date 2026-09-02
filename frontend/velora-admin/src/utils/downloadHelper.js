@@ -135,7 +135,7 @@ export const generateClientSideBOQPdf = async (boq) => {
 
   // Center Red/Maroon ESTIMATE Title matching Image 1 & 2
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(168, 50, 50); // Maroon from Image 1
   doc.text("INTERIOR ESTIMATE & QUOTATION", 297.5, 122, { align: "center" });
 
@@ -147,21 +147,21 @@ export const generateClientSideBOQPdf = async (boq) => {
 
   // Space-by-Space Tables matching Image 1
   spaces.forEach((space) => {
-    if (currentY > 670) {
+    if (currentY > 660) {
       doc.addPage();
       currentY = 40;
     }
 
     // Space Banner Bar (e.g. LIVING ROOM in maroon / bronze)
     doc.setFillColor(254, 242, 242);
-    doc.rect(40, currentY, 515, 23, "F");
+    doc.rect(40, currentY, 515, 26, "F");
     doc.setDrawColor(168, 50, 50);
-    doc.rect(40, currentY, 515, 23, "S");
+    doc.rect(40, currentY, 515, 26, "S");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(13);
     doc.setTextColor(168, 50, 50);
-    doc.text(space.name.toUpperCase(), 48, currentY + 16);
+    doc.text(space.name.toUpperCase(), 48, currentY + 18);
 
     const spaceItems = (space.items && space.items.length > 0) ? space.items : [
       { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
@@ -195,7 +195,7 @@ export const generateClientSideBOQPdf = async (boq) => {
     });
 
     autoTable(doc, {
-      startY: currentY + 23,
+      startY: currentY + 26,
       margin: { left: 40, right: 40 },
       head: [["SN", "Item Description & Specification", "Image", "UOM", "Unit Rate", "Qty", "Price"]],
       body: tableRows,
@@ -203,34 +203,34 @@ export const generateClientSideBOQPdf = async (boq) => {
       headStyles: {
         fillColor: [250, 246, 237],
         textColor: [28, 25, 23],
-        fontSize: 9,
+        fontSize: 10,
         fontStyle: "bold",
         lineWidth: 0.5,
         lineColor: [200, 200, 200],
-        cellPadding: 5
+        cellPadding: 6
       },
       bodyStyles: {
-        fontSize: 8.5,
-        textColor: [30, 30, 30],
+        fontSize: 9.5,
+        textColor: [25, 25, 25],
         lineColor: [215, 215, 215],
         lineWidth: 0.5,
         valign: "middle",
-        cellPadding: 5
+        cellPadding: 6
       },
       columnStyles: {
         0: { cellWidth: 26, halign: "center", fontStyle: "bold" },
-        1: { cellWidth: 232 },
-        2: { cellWidth: 62, halign: "center" },
-        3: { cellWidth: 38, halign: "center" },
-        4: { cellWidth: 55, halign: "right" },
+        1: { cellWidth: 224 },
+        2: { cellWidth: 68, halign: "center" },
+        3: { cellWidth: 38, halign: "center", fontStyle: "bold" },
+        4: { cellWidth: 58, halign: "right", fontStyle: "bold" },
         5: { cellWidth: 26, halign: "center", fontStyle: "bold" },
-        6: { cellWidth: 76, halign: "right", fontStyle: "bold" }
+        6: { cellWidth: 75, halign: "right", fontStyle: "bold" }
       },
       didDrawCell: (data) => {
         if (data.section === "body" && data.column.index === 2 && data.cell.raw?.img) {
           try {
             const pad = 4;
-            const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 52);
+            const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 60);
             const x = data.cell.x + (data.cell.width - size) / 2;
             const y = data.cell.y + (data.cell.height - size) / 2;
             doc.addImage(data.cell.raw.img, "JPEG", x, y, size, size);
@@ -241,19 +241,19 @@ export const generateClientSideBOQPdf = async (boq) => {
       }
     });
 
-    currentY = doc.lastAutoTable.finalY + 16;
+    currentY = doc.lastAutoTable.finalY + 18;
   });
 
   // Check if summary and T&C need new page
-  if (currentY > 500) {
+  if (currentY > 480) {
     doc.addPage();
     currentY = 40;
   }
 
   // Commercial Total Box (Clean Client Quotation without discount/GST split)
-  const summaryStartX = 310;
-  const summaryWidth = 245;
-  const rowHeight = 26;
+  const summaryStartX = 300;
+  const summaryWidth = 255;
+  const rowHeight = 30;
 
   doc.setFillColor(250, 246, 237);
   doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "FD");
@@ -262,17 +262,17 @@ export const generateClientSideBOQPdf = async (boq) => {
   doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10.5);
+  doc.setFontSize(12);
   doc.setTextColor(158, 123, 29);
-  doc.text("TOTAL ESTIMATE AMOUNT", summaryStartX + 10, currentY + 17);
-  doc.text(`Rs. ${spacesSubtotal.toLocaleString("en-IN")}`, summaryStartX + summaryWidth - 10, currentY + 17, { align: "right" });
+  doc.text("TOTAL ESTIMATE AMOUNT", summaryStartX + 10, currentY + 19);
+  doc.text(`Rs. ${spacesSubtotal.toLocaleString("en-IN")}`, summaryStartX + summaryWidth - 10, currentY + 19, { align: "right" });
 
   const sumY = currentY + rowHeight;
 
   // Terms & Conditions Header & 7 Points matching Image 2
   let tcY = currentY;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
+  doc.setFontSize(10);
   doc.setTextColor(28, 25, 23);
   doc.text("TERMS & CONDITIONS", 40, tcY + 12);
   tcY += 20;
@@ -289,8 +289,8 @@ export const generateClientSideBOQPdf = async (boq) => {
   ];
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(70, 70, 70);
+  doc.setFontSize(8);
+  doc.setTextColor(60, 60, 60);
 
   termsList.forEach((t) => {
     const lines = doc.splitTextToSize(t, 260);
@@ -428,24 +428,25 @@ export const printBOQQuotation = (boq) => {
   <meta charset="UTF-8">
   <title>Estimate_${boqNumber}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
     @page {
       size: A4;
       margin: 8mm 10mm;
     }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #1c1917;
       margin: 0;
       padding: 0;
-      font-size: 13px;
-      line-height: 1.45;
+      font-size: 14.5px;
+      line-height: 1.5;
       background: #fff;
+      -webkit-font-smoothing: antialiased;
     }
     .page-container {
-      max-width: 900px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 12px;
+      padding: 14px;
       box-sizing: border-box;
       border: 1px solid #e7e5e4;
       position: relative;
@@ -454,40 +455,42 @@ export const printBOQQuotation = (boq) => {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 14px;
-      padding-bottom: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 1px solid #e7e5e4;
     }
     .client-box h4 {
       margin: 0 0 3px 0;
-      font-size: 11px;
+      font-size: 12px;
       color: #78716c;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-weight: 700;
     }
     .client-box h2 {
       margin: 0 0 5px 0;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 900;
       color: #0c0a09;
     }
     .client-box p {
       margin: 3px 0;
-      font-size: 12.5px;
+      font-size: 13.5px;
       color: #44403c;
+      font-weight: 500;
     }
     .brand-box {
       text-align: right;
     }
     .brand-box h1 {
       margin: 0;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       color: #9e7b1d;
       letter-spacing: 0.5px;
     }
     .brand-box .tagline {
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 800;
       color: #78716c;
       letter-spacing: 1px;
@@ -495,98 +498,100 @@ export const printBOQQuotation = (boq) => {
     }
     .brand-box p {
       margin: 1px 0;
-      font-size: 11.5px;
+      font-size: 12.5px;
       color: #57534e;
     }
     .title-banner {
       text-align: center;
-      margin: 14px 0 16px 0;
+      margin: 16px 0 20px 0;
     }
     .title-banner h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       color: #a83232;
       letter-spacing: 1.5px;
     }
     .space-block {
-      margin-bottom: 18px;
+      margin-bottom: 22px;
       break-inside: avoid;
     }
     .space-title-bar {
       background: #fef2f2;
-      border: 1.5px solid #a83232;
+      border: 2px solid #a83232;
       color: #a83232;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 900;
-      padding: 8px 14px;
+      padding: 10px 16px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      border-radius: 6px 6px 0 0;
     }
     table.item-table {
       width: 100%;
       border-collapse: collapse;
       border: 1px solid #d6d3d1;
       border-top: none;
-      font-size: 12px;
+      font-size: 13.5px;
     }
     table.item-table th {
       background: #fafaf9;
       border: 1px solid #d6d3d1;
-      padding: 8px 10px;
-      font-size: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
       font-weight: 800;
       text-align: center;
-      color: #292524;
+      color: #1c1917;
     }
     table.item-table td {
       border: 1px solid #e7e5e4;
-      padding: 8px 10px;
+      padding: 10px 12px;
       vertical-align: middle;
-      color: #292524;
+      color: #1c1917;
     }
     .item-name {
       font-weight: 900;
-      font-size: 14px;
+      font-size: 16px;
       color: #0c0a09;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
     .item-cat {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       color: #78716c;
       margin-bottom: 4px;
     }
     .item-desc {
-      font-size: 12px;
-      color: #44403c;
+      font-size: 13.5px;
+      color: #292524;
       margin-bottom: 4px;
-      line-height: 1.4;
+      line-height: 1.5;
     }
     .item-specs {
-      font-size: 11px;
-      color: #78716c;
+      font-size: 12px;
+      color: #57534e;
+      font-weight: 500;
     }
     .ref-img {
-      width: 65px;
-      height: 65px;
+      width: 75px;
+      height: 75px;
       object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #e7e5e4;
+      border-radius: 8px;
+      border: 1px solid #d6d3d1;
       display: block;
       margin: 0 auto;
     }
     .no-img {
-      width: 65px;
-      height: 65px;
+      width: 75px;
+      height: 75px;
       background: #f5f5f4;
       border: 1px dashed #d6d3d1;
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 800;
       color: #a8a29e;
       margin: 0 auto;
       text-align: center;
@@ -594,64 +599,66 @@ export const printBOQQuotation = (boq) => {
     .bottom-section {
       display: flex;
       justify-content: space-between;
-      gap: 24px;
-      margin-top: 18px;
+      gap: 26px;
+      margin-top: 20px;
       break-inside: avoid;
     }
     .tc-box {
       flex: 1;
-      font-size: 10.5px;
-      color: #57534e;
-      line-height: 1.45;
+      font-size: 12px;
+      color: #44403c;
+      line-height: 1.5;
     }
     .tc-box h5 {
-      margin: 0 0 6px 0;
-      font-size: 12px;
+      margin: 0 0 8px 0;
+      font-size: 13px;
       font-weight: 900;
       color: #1c1917;
       text-transform: uppercase;
     }
     .tc-box ol {
       margin: 0;
-      padding-left: 16px;
+      padding-left: 18px;
     }
     .tc-box li {
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
     .totals-box {
-      width: 310px;
-      border: 1.5px solid #d4af37;
+      width: 330px;
+      border: 2px solid #d4af37;
       background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
     }
     .totals-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-bottom: 1px solid #f5f5f4;
-      font-size: 12px;
+      font-size: 13.5px;
     }
     .totals-row.grand {
       background: #faf6ed;
-      border-top: 1.5px solid #d4af37;
+      border-top: 2px solid #d4af37;
       border-bottom: none;
       font-weight: 900;
-      font-size: 15px;
+      font-size: 17px;
       color: #9e7b1d;
     }
     .signatures-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 35px;
-      padding-top: 12px;
-      font-size: 12px;
+      margin-top: 40px;
+      padding-top: 14px;
+      font-size: 13px;
       break-inside: avoid;
     }
     .footer-bar {
-      margin-top: 24px;
-      padding-top: 10px;
-      border-top: 1px solid #d4af37;
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 1.5px solid #d4af37;
       text-align: center;
-      font-size: 10px;
+      font-size: 11px;
       color: #78716c;
       break-inside: avoid;
     }

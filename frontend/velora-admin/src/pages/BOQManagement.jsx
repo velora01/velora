@@ -155,29 +155,38 @@ export default function BOQManagement() {
     { name: "Puja Room", roomTotal: 0, items: [] }
   ];
 
-  // Helper to check if an enquiry already has a saved BOQ in boqList
+  // Helper to check if an enquiry already has a saved BOQ in boqList or persistent storage
   const hasSavedBOQ = useCallback(
     (enquiry) => {
-      if (!enquiry || !boqList || boqList.length === 0) return false;
-      return boqList.some((b) => {
-        // Match by Enquiry Number
-        if (b.enquiryNo && enquiry.enquiryNo && b.enquiryNo.trim().toLowerCase() === enquiry.enquiryNo.trim().toLowerCase()) {
-          return true;
-        }
-        // Match by Lead/Enquiry ID reference
-        if (b.lead && enquiry._id && String(b.lead) === String(enquiry._id)) return true;
-        if (b.enquiryId && enquiry._id && String(b.enquiryId) === String(enquiry._id)) return true;
-        if (b._id && enquiry._id && String(b._id) === String(enquiry._id)) return true;
+      if (!enquiry) return false;
+      const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
+      const allBOQs = [...localBOQs, ...(boqList || [])];
 
-        // Match by client phone (numbers only)
+      const eNo = (enquiry.enquiryNo || "").trim().toLowerCase();
+      const eName = (enquiry.name || "").trim().toLowerCase();
+      const eId = String(enquiry._id || "");
+      const ePhone = (enquiry.phone || "").replace(/\D/g, "");
+
+      // Check explicit used tracker
+      if (eNo && usedEnqNos.some((u) => u && u.toLowerCase() === eNo)) return true;
+      if (eId && usedEnqNos.includes(eId)) return true;
+      if (eName && usedEnqNos.some((u) => u && u.toLowerCase() === eName)) return true;
+
+      // Check all BOQs
+      return allBOQs.some((b) => {
+        const bNo = (b.enquiryNo || "").trim().toLowerCase();
+        if (eNo && bNo && eNo === bNo) return true;
+        if (b.lead && eId && String(b.lead) === eId) return true;
+        if (b.enquiryId && eId && String(b.enquiryId) === eId) return true;
+        if (b._id && eId && String(b._id) === eId) return true;
+
         const bPhone = (b.clientPhone || "").replace(/\D/g, "");
-        const ePhone = (enquiry.phone || "").replace(/\D/g, "");
         if (bPhone && ePhone && bPhone.length >= 7 && bPhone === ePhone) return true;
 
-        // Match by client name
-        if (b.clientName && enquiry.name && b.clientName.trim().toLowerCase() === enquiry.name.trim().toLowerCase()) {
-          return true;
-        }
+        const bName = (b.clientName || "").trim().toLowerCase();
+        if (bName && eName && bName === eName) return true;
+
         return false;
       });
     },
@@ -206,8 +215,20 @@ export default function BOQManagement() {
     );
     localStorage.setItem("velora_custom_boqs", JSON.stringify(updatedLocal));
 
+    // Remove from persistent used enquiry tracker so it becomes available for New BOQ again
+    const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
+    const updatedUsed = usedEnqNos.filter(
+      (u) =>
+        u &&
+        u.toLowerCase() !== (boqToDelete.enquiryNo || "").toLowerCase() &&
+        u !== String(boqToDelete.lead || "") &&
+        u.toLowerCase() !== (boqToDelete.clientName || "").toLowerCase()
+    );
+    localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
+
     setBoqList((prev) => prev.filter((b) => b._id !== boqToDelete._id && b.enquiryNo !== boqToDelete.enquiryNo));
     setPagination((p) => ({ ...p, total: Math.max(0, p.total - 1) }));
+    fetchAvailableEnquiries();
     setSuccessToast(`BOQ for ${boqToDelete.clientName} deleted. Enquiry is now available for New BOQ creation.`);
     setTimeout(() => setSuccessToast(""), 4000);
   };
@@ -309,14 +330,15 @@ export default function BOQManagement() {
     const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
 
     try {
-      const res = await erpApi.getBOQs({ search, page: pagination.page, limit: pagination.limit });
+      const res = await erpApi.getBOQs({ search, page: pagination.page, limit: 100 });
       const apiList = res?.success && res.data ? res.data : [];
-      const combined = [...localBOQs, ...apiList, ...(apiList.length === 0 ? mockList : [])];
+      // localBOQs take highest priority, followed by apiList, and reference mockList
+      const combined = [...localBOQs, ...apiList, ...mockList];
       
       const uniqueMap = new Map();
       combined.forEach((item) => {
-        const key = item.enquiryNo || item._id || item.boqNumber;
-        if (!uniqueMap.has(key)) {
+        const key = (item.enquiryNo || item._id || item.boqNumber || "").toLowerCase().trim();
+        if (key && !uniqueMap.has(key)) {
           uniqueMap.set(key, item);
         }
       });
@@ -324,16 +346,16 @@ export default function BOQManagement() {
       setBoqList(mergedList);
       setPagination((p) => ({
         ...p,
-        total: res?.pagination?.total || mergedList.length,
-        pages: res?.pagination?.pages || 1
+        total: mergedList.length,
+        pages: 1
       }));
     } catch {
       // Fallback mock BOQ list merged with localBOQs
       const combined = [...localBOQs, ...mockList];
       const uniqueMap = new Map();
       combined.forEach((item) => {
-        const key = item.enquiryNo || item._id || item.boqNumber;
-        if (!uniqueMap.has(key)) {
+        const key = (item.enquiryNo || item._id || item.boqNumber || "").toLowerCase().trim();
+        if (key && !uniqueMap.has(key)) {
           uniqueMap.set(key, item);
         }
       });
@@ -1346,6 +1368,28 @@ export default function BOQManagement() {
       );
       localStorage.setItem("velora_custom_boqs", JSON.stringify([savedBoq, ...filteredLocal]));
 
+      // Persistently record this enquiry as used so it never appears in "+ New BOQ" modal
+      const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
+      const updatedUsed = Array.from(
+        new Set([
+          ...usedEnqNos,
+          savedBoq.enquiryNo,
+          savedBoq.lead,
+          savedBoq.clientName
+        ].filter(Boolean))
+      );
+      localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
+
+      // Immediately remove used enquiry from active state
+      setEnquiryList((prev) =>
+        prev.filter(
+          (e) =>
+            (e.enquiryNo || "").toLowerCase() !== (savedBoq.enquiryNo || "").toLowerCase() &&
+            e._id !== savedBoq.lead &&
+            (e.name || "").toLowerCase() !== (savedBoq.clientName || "").toLowerCase()
+        )
+      );
+
       setBoqList((prev) => {
         const idx = prev.findIndex((b) => b._id === savedBoq._id || b.enquiryNo === savedBoq.enquiryNo);
         if (idx >= 0) {
@@ -1393,6 +1437,28 @@ export default function BOQManagement() {
         (b) => b._id !== fallbackSaved._id && b.enquiryNo !== fallbackSaved.enquiryNo
       );
       localStorage.setItem("velora_custom_boqs", JSON.stringify([fallbackSaved, ...filteredLocal]));
+
+      // Persistently record this enquiry as used so it never appears in "+ New BOQ" modal
+      const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
+      const updatedUsed = Array.from(
+        new Set([
+          ...usedEnqNos,
+          fallbackSaved.enquiryNo,
+          fallbackSaved.lead,
+          fallbackSaved.clientName
+        ].filter(Boolean))
+      );
+      localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
+
+      // Immediately remove used enquiry from active state
+      setEnquiryList((prev) =>
+        prev.filter(
+          (e) =>
+            (e.enquiryNo || "").toLowerCase() !== (fallbackSaved.enquiryNo || "").toLowerCase() &&
+            e._id !== fallbackSaved.lead &&
+            (e.name || "").toLowerCase() !== (fallbackSaved.clientName || "").toLowerCase()
+        )
+      );
 
       setBoqList((prev) => {
         const idx = prev.findIndex((b) => b._id === fallbackSaved._id || b.enquiryNo === fallbackSaved.enquiryNo);
@@ -3352,46 +3418,46 @@ export default function BOQManagement() {
               </div>
 
               {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
-              <div className="text-center py-1">
-                <h3 className="text-2xl font-black text-[#A83232] tracking-widest uppercase">
+              <div className="text-center py-2">
+                <h3 className="text-2xl sm:text-3xl font-black text-[#A83232] tracking-wider uppercase font-serif sm:font-sans">
                   INTERIOR ESTIMATE & QUOTATION
                 </h3>
               </div>
 
               {/* Space-by-Space Tables matching Image 1 */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {(quotationBOQ.spaces || []).map((space, sIdx) => {
                   const sItems = (space.items && space.items.length > 0) ? space.items : [
                     { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
                   ];
 
                   return (
-                    <div key={sIdx} className="border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
+                    <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
                       {/* Space Maroon Title Bar matching Image 1 */}
-                      <div className="bg-[#FEF2F2] border-b border-[#A83232] px-4 py-2.5 flex items-center justify-between">
-                        <span className="font-black text-sm text-[#A83232] uppercase tracking-wider">
+                      <div className="bg-[#FEF2F2] border-b-2 border-[#A83232] px-5 py-3 flex items-center justify-between">
+                        <span className="font-black text-base sm:text-lg text-[#A83232] uppercase tracking-wider">
                           {space.name}
                         </span>
-                        <span className="font-black text-xs text-[#A83232] font-mono">
+                        <span className="font-black text-sm sm:text-base text-[#A83232] font-mono">
                           Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
                         </span>
                       </div>
 
                       {/* Items Table matching Image 1 Columns */}
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead className="bg-[#FAF9F5] border-b border-stone-300 text-[11px] font-bold text-stone-800">
+                      <table className="w-full text-left border-collapse text-sm">
+                        <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
                           <tr>
-                            <th className="py-2.5 px-3 w-10 text-center">SN</th>
-                            <th className="py-2.5 px-3 min-w-[260px]">Item Description & Specification</th>
-                            <th className="py-2.5 px-3 w-24 text-center">Image</th>
-                            <th className="py-2.5 px-3 w-20 text-center">UOM</th>
-                            <th className="py-2.5 px-3 w-28 text-right">Unit Rate</th>
-                            <th className="py-2.5 px-2 w-14 text-center">Qty</th>
-                            <th className="py-2.5 px-4 w-32 text-right">Price</th>
+                            <th className="py-3 px-3 w-12 text-center">SN</th>
+                            <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>
+                            <th className="py-3 px-3 w-28 text-center">Image</th>
+                            <th className="py-3 px-3 w-24 text-center">UOM</th>
+                            <th className="py-3 px-3 w-32 text-right">Unit Rate</th>
+                            <th className="py-3 px-2 w-16 text-center">Qty</th>
+                            <th className="py-3 px-4 w-36 text-right">Price</th>
                           </tr>
                         </thead>
 
-                        <tbody className="divide-y divide-stone-200 text-stone-800">
+                        <tbody className="divide-y divide-stone-200 text-stone-900">
                           {sItems.map((it, itIdx) => {
                             const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
                             const rate = Number(it.rate) || 0;
@@ -3402,50 +3468,50 @@ export default function BOQManagement() {
                               : "";
 
                             return (
-                              <tr key={itIdx} className="hover:bg-amber-50/20">
-                                <td className="py-3 px-3 text-center font-bold text-stone-500">
+                              <tr key={itIdx} className="hover:bg-amber-50/30 transition">
+                                <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
                                   {itIdx + 1}
                                 </td>
-                                <td className="py-3 px-3 space-y-1">
-                                  <h5 className="font-black text-stone-900 text-xs sm:text-sm">{it.name || "Custom Component"}</h5>
-                                  <p className="text-[10.5px] font-bold text-stone-500">
+                                <td className="py-3.5 px-4 space-y-1.5">
+                                  <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
+                                  <p className="text-xs font-bold text-stone-500">
                                     {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: {it.packageVariant || "Standard"}
                                   </p>
-                                  <p className="text-xs text-stone-700 leading-relaxed">
+                                  <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
                                     {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
                                   </p>
-                                  <p className="text-[10px] text-stone-500 font-semibold">
+                                  <p className="text-xs text-stone-600 font-semibold">
                                     Hardware (Channels, fittings): Onyx / Ebco / Hettich
                                   </p>
                                   {dims && (
-                                    <p className="text-[10px] text-stone-600 font-mono font-medium">
+                                    <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
                                       {dims}
                                     </p>
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center align-middle">
+                                <td className="py-3.5 px-2 text-center align-middle">
                                   {imgUrl ? (
                                     <img
                                       src={imgUrl}
                                       alt={it.name}
-                                      className="w-14 h-14 object-cover rounded-lg border border-stone-300 mx-auto shadow-2xs"
+                                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
                                     />
                                   ) : (
-                                    <div className="w-14 h-14 bg-stone-100 border border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 mx-auto text-[9px] font-bold">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
                                       <span>Image</span>
                                     </div>
                                   )}
                                 </td>
-                                <td className="py-3 px-3 text-center text-stone-700 font-medium">
+                                <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
                                   {it.uom || it.unit || "Sq. Ft"}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono font-bold text-stone-800">
+                                <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
                                   ₹{rate.toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-3 px-2 text-center font-bold text-stone-900">
+                                <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
                                   {qty}
                                 </td>
-                                <td className="py-3 px-4 text-right font-mono font-black text-stone-950">
+                                <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
                                   ₹{amt.toLocaleString("en-IN")}
                                 </td>
                               </tr>

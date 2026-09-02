@@ -1358,14 +1358,8 @@ export default function BOQManagement() {
 
       setViewMode("list");
       setActiveBOQ(null);
-
-      // Open Post-Save Modal with Print Invoice & View Client Profile
-      setSavedSuccessModal({
-        boq: savedBoq,
-        client: syncedClient,
-        invoice: syncedInvoice
-      });
-      setSuccessToast(`BOQ for ${savedBoq.clientName} (${savedBoq.enquiryNo}) saved successfully!`);
+      setSavedSuccessModal(null);
+      setSuccessToast(`Quotation for ${savedBoq.clientName} (${savedBoq.enquiryNo}) saved successfully! Download PDF enabled.`);
       setTimeout(() => setSuccessToast(""), 4000);
     } catch {
       const fallbackSaved = {
@@ -1411,13 +1405,9 @@ export default function BOQManagement() {
       });
 
       setViewMode("list");
-      setSavedSuccessModal({
-        boq: fallbackSaved,
-        client: { name: fallbackSaved.clientName, phone: fallbackSaved.clientPhone, email: fallbackSaved.clientEmail },
-        invoice: invoiceData
-      });
       setActiveBOQ(null);
-      setSuccessToast(`BOQ for ${fallbackSaved.clientName} (${fallbackSaved.enquiryNo}) saved successfully!`);
+      setSavedSuccessModal(null);
+      setSuccessToast(`Quotation for ${fallbackSaved.clientName} (${fallbackSaved.enquiryNo}) saved successfully! Download PDF enabled.`);
       setTimeout(() => setSuccessToast(""), 4000);
     }
   };
@@ -1501,6 +1491,34 @@ export default function BOQManagement() {
       return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     } catch {
       return dateStr;
+    }
+  };
+
+  // Dedicated helper to ensure downloading quotation PDF works for any row in the list
+  const handleDownloadRowBOQ = async (row, e) => {
+    if (e) e.stopPropagation();
+    try {
+      setSuccessToast(`Generating Quotation PDF for ${row.clientName}...`);
+      let fullBOQ = row;
+      // If spaces or items are not loaded on summary row, retrieve from API or localStorage
+      if (!row.spaces || row.spaces.length === 0 || !row.spaces[0]?.items) {
+        try {
+          const res = await erpApi.getBOQById(row._id);
+          if (res?.success && res.data) {
+            fullBOQ = res.data;
+          }
+        } catch {
+          const localList = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+          const found = localList.find((b) => b._id === row._id || b.enquiryNo === row.enquiryNo);
+          if (found) fullBOQ = found;
+        }
+      }
+      await downloadBOQPdf(fullBOQ);
+      setSuccessToast(`Quotation PDF downloaded!`);
+      setTimeout(() => setSuccessToast(""), 3000);
+    } catch (err) {
+      console.error(err);
+      downloadBOQPdf(row);
     }
   };
 
@@ -1622,43 +1640,41 @@ export default function BOQManagement() {
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => printInvoice(row)}
-                            title="Print Invoice for this BOQ"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer"
-                          >
-                            <Printer size={13} />
-                            <span>Print Invoice</span>
-                          </button>
-                          <button
-                            onClick={() => navigate("/clients")}
-                            title="View Client Section"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer"
-                          >
-                            <User size={13} />
-                            <span>Client Profile</span>
-                          </button>
+                        <div className="flex items-center justify-center gap-2">
+                          {/* Preview Quotation Symbol */}
                           <button
                             onClick={() => handleOpenQuotationModal(row)}
-                            title="Generate & View Official Quotation"
-                            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            title="Preview Quotation"
+                            className="p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
                           >
-                            <FileText size={14} />
+                            <Eye size={16} />
                           </button>
+
+                          {/* Edit BOQ Symbol */}
                           <button
                             onClick={() => handleOpenBuilder(row)}
-                            title="Edit Space & Components"
-                            className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            title="Edit BOQ"
+                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={16} />
                           </button>
+
+                          {/* Download PDF Symbol */}
+                          <button
+                            onClick={(e) => handleDownloadRowBOQ(row, e)}
+                            title="Download Quotation PDF"
+                            className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                          >
+                            <Download size={16} />
+                          </button>
+
+                          {/* Delete BOQ Symbol */}
                           <button
                             onClick={(e) => handleDeleteBOQ(row, e)}
                             title="Delete this BOQ"
                             className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -2548,134 +2564,45 @@ export default function BOQManagement() {
           </table>
         </div>
 
-        {/* Commercial Summary, Discount & GST Card */}
-        <div className="bg-[#FAF9F5] border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#EAE3D2]">
-            <div>
-              <h4 className="text-sm font-black text-stone-900">Commercial Summary, Discount & Taxes</h4>
-              <p className="text-xs text-stone-500">Real-time discount deduction, CGST / SGST breakdown and grand total</p>
+        {/* Clean Quotation Summary & Save Action Bar */}
+        <div className="bg-[#FAF9F5] border border-[#EAE3D2] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Quotation Value:</span>
+              <span className="text-xl font-black text-[#9E7B1D] font-mono">
+                ₹{(activeBOQ?.subtotal || activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleOpenQuotationModal(activeBOQ)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-white hover:bg-amber-50 border border-amber-300 rounded-xl transition cursor-pointer"
-              >
-                <FileText size={14} />
-                <span>View Quotation</span>
-              </button>
-              <button
-                onClick={() => printBOQQuotation(activeBOQ)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition cursor-pointer"
-              >
-                <Printer size={14} />
-                <span>Print / Save PDF</span>
-              </button>
-              <button
-                onClick={handleSaveBOQ}
-                className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
-              >
-                <Save size={14} />
-                <span>Save BOQ</span>
-              </button>
-            </div>
+            <p className="text-xs text-stone-500">
+              Includes {activeBOQ?.spaces?.length || 0} spaces with custom materials & craftsmanship
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
-            {/* Subtotal */}
-            <div className="p-3 bg-white rounded-xl border border-[#EAE3D2] space-y-1">
-              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">1. Space Scope Subtotal</span>
-              <span className="text-base font-black text-stone-900 font-mono block">₹{(activeBOQ?.subtotal || 0).toLocaleString("en-IN")}</span>
-              <span className="text-[10px] text-stone-400">Sum of {activeBOQ?.spaces?.length || 0} rooms</span>
-            </div>
-
-            {/* Discount Controls */}
-            <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">2. Discount</span>
-                <div className="flex items-center bg-white border border-emerald-200 rounded-md p-0.5 text-[10px]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = { ...activeBOQ, discountType: "amount" };
-                      setActiveBOQ(recalculateBOQ(updated));
-                    }}
-                    className={`px-1.5 py-0.5 rounded font-bold ${activeBOQ?.discountType !== "percent" ? "bg-emerald-600 text-white" : "text-stone-600"}`}
-                  >
-                    ₹
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = { ...activeBOQ, discountType: "percent" };
-                      setActiveBOQ(recalculateBOQ(updated));
-                    }}
-                    className={`px-1.5 py-0.5 rounded font-bold ${activeBOQ?.discountType === "percent" ? "bg-emerald-600 text-white" : "text-stone-600"}`}
-                  >
-                    %
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={activeBOQ?.discountValue || ""}
-                  onChange={(e) => {
-                    const updated = { ...activeBOQ, discountValue: Number(e.target.value) || 0 };
-                    setActiveBOQ(recalculateBOQ(updated));
-                  }}
-                  className="w-full h-8 px-2 bg-white border border-emerald-300 rounded-lg text-xs font-bold text-emerald-950 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
-              <span className="text-[10px] text-emerald-700 font-bold font-mono block">
-                - ₹{(activeBOQ?.discountAmount || 0).toLocaleString("en-IN")} deducted
-              </span>
-            </div>
-
-            {/* Final Taxable Subtotal */}
-            <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">3. Final Taxable Amt</span>
-              <span className="text-base font-black text-stone-900 font-mono block">
-                ₹{(activeBOQ?.taxableAmount !== undefined ? activeBOQ.taxableAmount : (activeBOQ?.subtotal || 0)).toLocaleString("en-IN")}
-              </span>
-              <span className="text-[10px] text-stone-400">Net after discount</span>
-            </div>
-
-            {/* GST Breakdown */}
-            <div className="p-3 bg-sky-50/60 rounded-xl border border-sky-200 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider">4. GST</span>
-                <select
-                  value={activeBOQ?.gstPercent !== undefined ? activeBOQ.gstPercent : 18}
-                  onChange={(e) => {
-                    const updated = { ...activeBOQ, gstPercent: Number(e.target.value) };
-                    setActiveBOQ(recalculateBOQ(updated));
-                  }}
-                  className="text-[10px] font-bold bg-white border border-sky-300 rounded px-1.5 py-0.5 text-sky-900 cursor-pointer"
-                >
-                  <option value={18}>18% (Standard)</option>
-                  <option value={12}>12%</option>
-                  <option value={5}>5%</option>
-                  <option value={0}>0% (Exempt)</option>
-                </select>
-              </div>
-              <span className="text-base font-black text-sky-950 font-mono block">
-                ₹{(activeBOQ?.gstTotal || 0).toLocaleString("en-IN")}
-              </span>
-              <span className="text-[10px] text-sky-700 font-medium block">
-                CGST: ₹{(activeBOQ?.cgstAmount || 0).toLocaleString("en-IN")} • SGST: ₹{(activeBOQ?.sgstAmount || 0).toLocaleString("en-IN")}
-              </span>
-            </div>
-
-            {/* Grand Total */}
-            <div className="p-3 bg-gradient-to-br from-amber-50 via-amber-100/70 to-amber-200/50 rounded-xl border-2 border-amber-300 space-y-1 shadow-xs">
-              <span className="text-[11px] font-black text-amber-900 uppercase tracking-wider block">5. Grand Total</span>
-              <span className="text-lg font-black text-[#9E7B1D] font-mono block">
-                ₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}
-              </span>
-              <span className="text-[10px] text-amber-800 font-semibold">Includes All Specs & Taxes</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleOpenQuotationModal(activeBOQ)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-white hover:bg-amber-50 border border-amber-300 rounded-xl transition cursor-pointer"
+            >
+              <Eye size={14} />
+              <span>Preview Quotation</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadBOQPdf(activeBOQ)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition cursor-pointer"
+            >
+              <Download size={14} />
+              <span>Download PDF</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveBOQ}
+              className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+            >
+              <Save size={14} />
+              <span>Save BOQ</span>
+            </button>
           </div>
         </div>
       </div>
@@ -3427,7 +3354,7 @@ export default function BOQManagement() {
               {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
               <div className="text-center py-1">
                 <h3 className="text-2xl font-black text-[#A83232] tracking-widest uppercase">
-                  ESTIMATE
+                  INTERIOR ESTIMATE & QUOTATION
                 </h3>
               </div>
 
@@ -3455,8 +3382,8 @@ export default function BOQManagement() {
                         <thead className="bg-[#FAF9F5] border-b border-stone-300 text-[11px] font-bold text-stone-800">
                           <tr>
                             <th className="py-2.5 px-3 w-10 text-center">SN</th>
-                            <th className="py-2.5 px-3 min-w-[260px]">Item Description</th>
-                            <th className="py-2.5 px-3 w-24 text-center">Ref.</th>
+                            <th className="py-2.5 px-3 min-w-[260px]">Item Description & Specification</th>
+                            <th className="py-2.5 px-3 w-24 text-center">Image</th>
                             <th className="py-2.5 px-3 w-20 text-center">UOM</th>
                             <th className="py-2.5 px-3 w-28 text-right">Unit Rate</th>
                             <th className="py-2.5 px-2 w-14 text-center">Qty</th>
@@ -3505,7 +3432,7 @@ export default function BOQManagement() {
                                     />
                                   ) : (
                                     <div className="w-14 h-14 bg-stone-100 border border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 mx-auto text-[9px] font-bold">
-                                      <span>CAD Ref</span>
+                                      <span>Image</span>
                                     </div>
                                   )}
                                 </td>
@@ -3548,32 +3475,14 @@ export default function BOQManagement() {
                   <p className="font-bold text-stone-800 pt-1">*T&C is Well Read and Accepted. Thank You</p>
                 </div>
 
-                {/* Commercial Totals Box matching Image 2 */}
+                {/* Commercial Totals Box */}
                 <div className="border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
                   <div className="divide-y divide-stone-200 text-xs">
-                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-700">
-                      <span className="font-bold">TOTAL</span>
-                      <span className="font-bold font-mono">₹{(quotationBOQ.subtotal || quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between p-2.5 bg-white text-emerald-800">
-                      <span className="font-bold">DISCOUNT</span>
-                      <span className="font-bold font-mono">- ₹{(quotationBOQ.discountAmount || 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-900">
-                      <span className="font-black">FINAL AMT</span>
-                      <span className="font-black font-mono">₹{(quotationBOQ.taxableAmount !== undefined ? quotationBOQ.taxableAmount : (quotationBOQ.subtotal || quotationBOQ.grandTotal || 0)).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between p-2.5 bg-white text-stone-700">
-                      <span>CGST ({((quotationBOQ.gstPercent || 18) / 2)}%)</span>
-                      <span className="font-mono">₹{(quotationBOQ.cgstAmount || 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-700">
-                      <span>SGST ({((quotationBOQ.gstPercent || 18) / 2)}%)</span>
-                      <span className="font-mono">₹{(quotationBOQ.sgstAmount || 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between p-3 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37] text-sm">
-                      <span className="font-black">TOTAL AMT</span>
-                      <span className="font-black font-mono">₹{(quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
+                    <div className="flex justify-between p-4 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37] text-sm">
+                      <span className="font-black">TOTAL ESTIMATE AMOUNT</span>
+                      <span className="font-black font-mono text-base">
+                        ₹{(quotationBOQ.subtotal || quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}
+                      </span>
                     </div>
                   </div>
                 </div>

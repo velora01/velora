@@ -98,70 +98,70 @@ export const generateClientSideBOQPdf = async (boq) => {
 
   // Header Left: Prepared For matching Image 1
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
+  doc.setFontSize(10);
   doc.setTextColor(120, 113, 108);
   doc.text("Prepared for", 40, 42);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
+  doc.setFontSize(15);
   doc.setTextColor(28, 25, 23);
-  doc.text(clientName, 40, 57);
+  doc.text(clientName, 40, 58);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
+  doc.setFontSize(9.5);
   doc.setTextColor(87, 83, 78);
-  doc.text(`Project: ${siteLocation}`, 40, 70);
-  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 40, 81);
-  doc.text(formattedDate, 40, clientPhone ? 92 : 81);
+  doc.text(`Project: ${siteLocation}`, 40, 72);
+  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 40, 84);
+  doc.text(formattedDate, 40, clientPhone ? 96 : 84);
 
   // Header Right: Velora Antaraal Branding matching Image 2
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
+  doc.setFontSize(16);
   doc.setTextColor(158, 123, 29); // Dark gold
   doc.text("VELORA ANTARAAL", 555, 42, { align: "right" });
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
+  doc.setFontSize(9);
   doc.setTextColor(120, 113, 108);
-  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 555, 53, { align: "right" });
+  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 555, 54, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
+  doc.setFontSize(8.5);
   doc.setTextColor(87, 83, 78);
-  doc.text("Shop No.242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,", 555, 64, { align: "right" });
-  doc.text("Wakad, Pune-411057, Maharashtra", 555, 74, { align: "right" });
-  doc.text("+91 86055 26603 / 9284664507", 555, 84, { align: "right" });
-  doc.text("info@velora.family | https://velora.family", 555, 94, { align: "right" });
+  doc.text("Shop No.242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,", 555, 66, { align: "right" });
+  doc.text("Wakad, Pune-411057, Maharashtra", 555, 77, { align: "right" });
+  doc.text("+91 86055 26603 / 9284664507", 555, 88, { align: "right" });
+  doc.text("info@velora.family | https://velora.family", 555, 99, { align: "right" });
 
   // Center Red/Maroon ESTIMATE Title matching Image 1 & 2
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
+  doc.setFontSize(16);
   doc.setTextColor(168, 50, 50); // Maroon from Image 1
-  doc.text("ESTIMATE", 297.5, 118, { align: "center" });
+  doc.text("INTERIOR ESTIMATE & QUOTATION", 297.5, 122, { align: "center" });
 
   doc.setDrawColor(234, 227, 210);
   doc.setLineWidth(0.75);
-  doc.line(40, 126, 555, 126);
+  doc.line(40, 130, 555, 130);
 
-  let currentY = 136;
+  let currentY = 140;
 
   // Space-by-Space Tables matching Image 1
   spaces.forEach((space) => {
-    if (currentY > 680) {
+    if (currentY > 670) {
       doc.addPage();
       currentY = 40;
     }
 
     // Space Banner Bar (e.g. LIVING ROOM in maroon / bronze)
     doc.setFillColor(254, 242, 242);
-    doc.rect(40, currentY, 515, 20, "F");
+    doc.rect(40, currentY, 515, 23, "F");
     doc.setDrawColor(168, 50, 50);
-    doc.rect(40, currentY, 515, 20, "S");
+    doc.rect(40, currentY, 515, 23, "S");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
+    doc.setFontSize(11);
     doc.setTextColor(168, 50, 50);
-    doc.text(space.name.toUpperCase(), 48, currentY + 14);
+    doc.text(space.name.toUpperCase(), 48, currentY + 16);
 
     const spaceItems = (space.items && space.items.length > 0) ? space.items : [
       { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
@@ -169,7 +169,7 @@ export const generateClientSideBOQPdf = async (boq) => {
 
     const tableRows = spaceItems.map((item, idx) => {
       const name = item.name || "Interior Component";
-      const spaceCategory = `${space.name.toUpperCase()} - >${space.name.toUpperCase()} - Category: ${item.typeVariant || "Wood Work"}, Sub Category: ${item.packageVariant || "Standard"}`;
+      const spaceCategory = `${space.name.toUpperCase()} > ${space.name.toUpperCase()} - Category: ${item.typeVariant || "Wood Work"}, Sub Category: ${item.packageVariant || "Standard"}`;
       const description = item.description || `Providing and Installation ${item.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`;
       const dims = (item.lengthFt || item.heightFt)
         ? `Dimension 1: ${item.lengthFt || 0}ft ${item.lengthIn ? `${item.lengthIn}in` : ""}\nDimension 2: ${item.heightFt || 0}ft ${item.heightIn ? `${item.heightIn}in` : ""}${item.depthFt ? `\nDepth: ${item.depthFt}ft` : ""}`
@@ -195,40 +195,42 @@ export const generateClientSideBOQPdf = async (boq) => {
     });
 
     autoTable(doc, {
-      startY: currentY + 20,
+      startY: currentY + 23,
       margin: { left: 40, right: 40 },
-      head: [["SN", "Item Description", "Ref.", "UOM", "Unit Rate", "Qty", "Price"]],
+      head: [["SN", "Item Description & Specification", "Image", "UOM", "Unit Rate", "Qty", "Price"]],
       body: tableRows,
       theme: "grid",
       headStyles: {
-        fillColor: [255, 255, 255],
+        fillColor: [250, 246, 237],
         textColor: [28, 25, 23],
-        fontSize: 7.5,
+        fontSize: 9,
         fontStyle: "bold",
         lineWidth: 0.5,
-        lineColor: [200, 200, 200]
+        lineColor: [200, 200, 200],
+        cellPadding: 5
       },
       bodyStyles: {
-        fontSize: 6.8,
-        textColor: [40, 40, 40],
+        fontSize: 8.5,
+        textColor: [30, 30, 30],
         lineColor: [215, 215, 215],
         lineWidth: 0.5,
-        valign: "middle"
+        valign: "middle",
+        cellPadding: 5
       },
       columnStyles: {
-        0: { cellWidth: 24, halign: "center" },
-        1: { cellWidth: 235 },
-        2: { cellWidth: 60, halign: "center" },
-        3: { cellWidth: 42, halign: "center" },
-        4: { cellWidth: 54, halign: "right" },
-        5: { cellWidth: 26, halign: "center" },
-        6: { cellWidth: 74, halign: "right", fontStyle: "bold" }
+        0: { cellWidth: 26, halign: "center", fontStyle: "bold" },
+        1: { cellWidth: 232 },
+        2: { cellWidth: 62, halign: "center" },
+        3: { cellWidth: 38, halign: "center" },
+        4: { cellWidth: 55, halign: "right" },
+        5: { cellWidth: 26, halign: "center", fontStyle: "bold" },
+        6: { cellWidth: 76, halign: "right", fontStyle: "bold" }
       },
       didDrawCell: (data) => {
         if (data.section === "body" && data.column.index === 2 && data.cell.raw?.img) {
           try {
             const pad = 4;
-            const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 48);
+            const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 52);
             const x = data.cell.x + (data.cell.width - size) / 2;
             const y = data.cell.y + (data.cell.height - size) / 2;
             doc.addImage(data.cell.raw.img, "JPEG", x, y, size, size);
@@ -239,51 +241,41 @@ export const generateClientSideBOQPdf = async (boq) => {
       }
     });
 
-    currentY = doc.lastAutoTable.finalY + 14;
+    currentY = doc.lastAutoTable.finalY + 16;
   });
 
   // Check if summary and T&C need new page
-  if (currentY > 520) {
+  if (currentY > 500) {
     doc.addPage();
     currentY = 40;
   }
 
-  // Commercial Totals Table matching Image 2
-  const summaryStartX = 330;
-  const summaryWidth = 225;
-  const rowHeight = 14;
+  // Commercial Total Box (Clean Client Quotation without discount/GST split)
+  const summaryStartX = 310;
+  const summaryWidth = 245;
+  const rowHeight = 26;
 
-  const totalsData = [
-    ["TOTAL", `Rs. ${spacesSubtotal.toLocaleString("en-IN")}`],
-    ["DISCOUNT", `Rs. ${discountAmount.toLocaleString("en-IN")}`],
-    ["FINAL AMT", `Rs. ${taxableAmount.toLocaleString("en-IN")}`],
-    [`CGST (${gstPercent / 2}%)`, `Rs. ${cgstAmount.toLocaleString("en-IN")}`],
-    [`SGST (${gstPercent / 2}%)`, `Rs. ${sgstAmount.toLocaleString("en-IN")}`],
-    ["TOTAL AMT", `Rs. ${grandTotal.toLocaleString("en-IN")}`]
-  ];
+  doc.setFillColor(250, 246, 237);
+  doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "FD");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1.2);
+  doc.rect(summaryStartX, currentY, summaryWidth, rowHeight, "S");
 
-  let sumY = currentY;
-  totalsData.forEach(([label, val], idx) => {
-    const isFinal = idx === totalsData.length - 1;
-    doc.setFillColor(isFinal ? 250 : 255, isFinal ? 246 : 255, isFinal ? 237 : 255);
-    doc.rect(summaryStartX, sumY, summaryWidth, rowHeight, "FD");
-    doc.setDrawColor(200, 200, 200);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(158, 123, 29);
+  doc.text("TOTAL ESTIMATE AMOUNT", summaryStartX + 10, currentY + 17);
+  doc.text(`Rs. ${spacesSubtotal.toLocaleString("en-IN")}`, summaryStartX + summaryWidth - 10, currentY + 17, { align: "right" });
 
-    doc.setFont("helvetica", isFinal ? "bold" : "normal");
-    doc.setFontSize(isFinal ? 8.5 : 7.5);
-    doc.setTextColor(isFinal ? 158 : 60, isFinal ? 123 : 60, isFinal ? 29 : 60);
-    doc.text(label, summaryStartX + 8, sumY + 10);
-    doc.text(val, summaryStartX + summaryWidth - 8, sumY + 10, { align: "right" });
-    sumY += rowHeight;
-  });
+  const sumY = currentY + rowHeight;
 
   // Terms & Conditions Header & 7 Points matching Image 2
   let tcY = currentY;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
+  doc.setFontSize(9.5);
   doc.setTextColor(28, 25, 23);
-  doc.text("TERMS & CONDITIONS", 40, tcY + 10);
-  tcY += 18;
+  doc.text("TERMS & CONDITIONS", 40, tcY + 12);
+  tcY += 20;
 
   const termsList = [
     "1. 18% GST Extra Applicable.",
@@ -297,19 +289,19 @@ export const generateClientSideBOQPdf = async (boq) => {
   ];
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.2);
-  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(7.5);
+  doc.setTextColor(70, 70, 70);
 
   termsList.forEach((t) => {
-    const lines = doc.splitTextToSize(t, 275);
+    const lines = doc.splitTextToSize(t, 260);
     doc.text(lines, 40, tcY);
-    tcY += (lines.length * 8) + 2;
+    tcY += (lines.length * 9.5) + 2;
   });
 
-  const nextSectionY = Math.max(sumY, tcY) + 20;
+  const nextSectionY = Math.max(sumY, tcY) + 22;
 
   // Signatures Section matching Image 2
-  if (nextSectionY > 740) {
+  if (nextSectionY > 730) {
     doc.addPage();
     currentY = 40;
   } else {
@@ -317,26 +309,26 @@ export const generateClientSideBOQPdf = async (boq) => {
   }
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
+  doc.setFontSize(9);
   doc.setTextColor(60, 60, 60);
-  doc.text("Client Signature: _______________________", 40, currentY + 15);
+  doc.text("Client Signature: _______________________", 40, currentY + 16);
 
   doc.setFont("helvetica", "bold");
-  doc.text("For VELORA ANTARAAL", 555, currentY + 15, { align: "right" });
+  doc.text("For VELORA ANTARAAL", 555, currentY + 16, { align: "right" });
   doc.setFont("helvetica", "normal");
-  doc.text("Authorized Signatory", 555, currentY + 35, { align: "right" });
+  doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
 
   // Footer matching Image 2
   doc.setDrawColor(212, 175, 55);
-  doc.line(40, 790, 555, 790);
+  doc.line(40, 788, 555, 788);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(6.5);
+  doc.setFontSize(7.5);
   doc.setTextColor(158, 123, 29);
   doc.text("SPACES WITHIN, DESIGNED BEAUTIFULLY", 297.5, 802, { align: "center" });
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.5);
+  doc.setFontSize(7.5);
   doc.setTextColor(100, 100, 100);
   doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
 
@@ -436,23 +428,24 @@ export const printBOQQuotation = (boq) => {
   <meta charset="UTF-8">
   <title>Estimate_${boqNumber}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     @page {
       size: A4;
-      margin: 10mm 12mm;
+      margin: 8mm 10mm;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #1c1917;
       margin: 0;
       padding: 0;
-      font-size: 11px;
-      line-height: 1.4;
+      font-size: 13px;
+      line-height: 1.45;
       background: #fff;
     }
     .page-container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 10px;
+      padding: 12px;
       box-sizing: border-box;
       border: 1px solid #e7e5e4;
       position: relative;
@@ -461,71 +454,72 @@ export const printBOQQuotation = (boq) => {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #f5f5f4;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e7e5e4;
     }
     .client-box h4 {
-      margin: 0 0 2px 0;
-      font-size: 10px;
+      margin: 0 0 3px 0;
+      font-size: 11px;
       color: #78716c;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .client-box h2 {
-      margin: 0 0 4px 0;
-      font-size: 16px;
+      margin: 0 0 5px 0;
+      font-size: 20px;
       font-weight: 900;
       color: #0c0a09;
     }
     .client-box p {
-      margin: 2px 0;
-      font-size: 11px;
-      color: #57534e;
+      margin: 3px 0;
+      font-size: 12.5px;
+      color: #44403c;
     }
     .brand-box {
       text-align: right;
     }
     .brand-box h1 {
       margin: 0;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 900;
       color: #9e7b1d;
       letter-spacing: 0.5px;
     }
     .brand-box .tagline {
-      font-size: 9px;
-      font-weight: 700;
+      font-size: 10.5px;
+      font-weight: 800;
       color: #78716c;
       letter-spacing: 1px;
       margin: 2px 0 4px 0;
     }
     .brand-box p {
       margin: 1px 0;
-      font-size: 10px;
+      font-size: 11.5px;
       color: #57534e;
     }
     .title-banner {
       text-align: center;
-      margin: 10px 0 14px 0;
+      margin: 14px 0 16px 0;
     }
     .title-banner h2 {
       margin: 0;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 900;
       color: #a83232;
       letter-spacing: 1.5px;
     }
     .space-block {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       break-inside: avoid;
     }
     .space-title-bar {
       background: #fef2f2;
-      border: 1px solid #a83232;
+      border: 1.5px solid #a83232;
       color: #a83232;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 900;
-      padding: 6px 12px;
+      padding: 8px 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -534,63 +528,65 @@ export const printBOQQuotation = (boq) => {
       border-collapse: collapse;
       border: 1px solid #d6d3d1;
       border-top: none;
-      font-size: 10px;
+      font-size: 12px;
     }
     table.item-table th {
       background: #fafaf9;
       border: 1px solid #d6d3d1;
-      padding: 6px 8px;
-      font-size: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
       font-weight: 800;
       text-align: center;
       color: #292524;
     }
     table.item-table td {
       border: 1px solid #e7e5e4;
-      padding: 6px 8px;
+      padding: 8px 10px;
       vertical-align: middle;
       color: #292524;
     }
     .item-name {
       font-weight: 900;
-      font-size: 11px;
+      font-size: 14px;
       color: #0c0a09;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
     .item-cat {
-      font-size: 9.5px;
+      font-size: 11px;
+      font-weight: 600;
       color: #78716c;
       margin-bottom: 4px;
     }
     .item-desc {
-      font-size: 9.5px;
+      font-size: 12px;
       color: #44403c;
-      margin-bottom: 3px;
-      line-height: 1.35;
+      margin-bottom: 4px;
+      line-height: 1.4;
     }
     .item-specs {
-      font-size: 9px;
+      font-size: 11px;
       color: #78716c;
     }
     .ref-img {
-      width: 55px;
-      height: 55px;
+      width: 65px;
+      height: 65px;
       object-fit: cover;
-      border-radius: 4px;
+      border-radius: 6px;
       border: 1px solid #e7e5e4;
       display: block;
       margin: 0 auto;
     }
     .no-img {
-      width: 55px;
-      height: 55px;
+      width: 65px;
+      height: 65px;
       background: #f5f5f4;
       border: 1px dashed #d6d3d1;
-      border-radius: 4px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 10px;
+      font-weight: 700;
       color: #a8a29e;
       margin: 0 auto;
       text-align: center;
@@ -598,64 +594,64 @@ export const printBOQQuotation = (boq) => {
     .bottom-section {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
-      margin-top: 14px;
+      gap: 24px;
+      margin-top: 18px;
       break-inside: avoid;
     }
     .tc-box {
       flex: 1;
-      font-size: 8.5px;
+      font-size: 10.5px;
       color: #57534e;
-      line-height: 1.35;
+      line-height: 1.45;
     }
     .tc-box h5 {
       margin: 0 0 6px 0;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 900;
       color: #1c1917;
       text-transform: uppercase;
     }
     .tc-box ol {
       margin: 0;
-      padding-left: 14px;
+      padding-left: 16px;
     }
     .tc-box li {
       margin-bottom: 3px;
     }
     .totals-box {
-      width: 250px;
-      border: 1px solid #d6d3d1;
+      width: 310px;
+      border: 1.5px solid #d4af37;
       background: #fff;
     }
     .totals-row {
       display: flex;
       justify-content: space-between;
-      padding: 5px 10px;
+      padding: 8px 12px;
       border-bottom: 1px solid #f5f5f4;
-      font-size: 10px;
+      font-size: 12px;
     }
     .totals-row.grand {
       background: #faf6ed;
-      border-top: 1px solid #d4af37;
+      border-top: 1.5px solid #d4af37;
       border-bottom: none;
       font-weight: 900;
-      font-size: 12px;
+      font-size: 15px;
       color: #9e7b1d;
     }
     .signatures-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 30px;
-      padding-top: 10px;
-      font-size: 10px;
+      margin-top: 35px;
+      padding-top: 12px;
+      font-size: 12px;
       break-inside: avoid;
     }
     .footer-bar {
-      margin-top: 20px;
-      padding-top: 8px;
+      margin-top: 24px;
+      padding-top: 10px;
       border-top: 1px solid #d4af37;
       text-align: center;
-      font-size: 8.5px;
+      font-size: 10px;
       color: #78716c;
       break-inside: avoid;
     }
@@ -717,7 +713,7 @@ export const printBOQQuotation = (boq) => {
     </div>
 
     <div class="title-banner">
-      <h2>ESTIMATE</h2>
+      <h2>INTERIOR ESTIMATE & QUOTATION</h2>
     </div>
 
     ${spaces.map((space) => {
@@ -732,8 +728,8 @@ export const printBOQQuotation = (boq) => {
             <thead>
               <tr>
                 <th style="width: 30px;">SN</th>
-                <th style="text-align: left;">Item Description</th>
-                <th style="width: 70px;">Ref.</th>
+                <th style="text-align: left;">Item Description & Specification</th>
+                <th style="width: 70px;">Image</th>
                 <th style="width: 55px;">UOM</th>
                 <th style="width: 75px; text-align: right;">Unit Rate</th>
                 <th style="width: 35px;">Qty</th>
@@ -755,13 +751,13 @@ export const printBOQQuotation = (boq) => {
                     <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
                     <td>
                       <div class="item-name">${it.name || "Custom Component"}</div>
-                      <div class="item-cat">${space.name.toUpperCase()} - >${space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}</div>
+                      <div class="item-cat">${space.name.toUpperCase()} &gt; ${space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}</div>
                       <div class="item-desc">${it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}</div>
                       <div class="item-specs">Hardware (Channels, fittings): Onyx / Ebco / Hettich</div>
                       ${dims ? `<div class="item-specs">${dims}</div>` : ""}
                     </td>
                     <td style="text-align: center;">
-                      ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Ref" onerror="this.style.display='none'" />` : `<div class="no-img">CAD Ref</div>`}
+                      ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Image" onerror="this.style.display='none'" />` : `<div class="no-img">Image</div>`}
                     </td>
                     <td style="text-align: center;">${it.uom || it.unit || "Sq. Ft"}</td>
                     <td style="text-align: right; font-weight: 600;">₹ ${(rate).toLocaleString("en-IN")}</td>
@@ -792,29 +788,9 @@ export const printBOQQuotation = (boq) => {
       </div>
 
       <div class="totals-box">
-        <div class="totals-row">
-          <span>TOTAL</span>
-          <strong>₹ ${spacesSubtotal.toLocaleString("en-IN")}</strong>
-        </div>
-        <div class="totals-row">
-          <span>DISCOUNT</span>
-          <strong style="color: #15803d;">- ₹ ${discountAmount.toLocaleString("en-IN")}</strong>
-        </div>
-        <div class="totals-row">
-          <span>FINAL AMT</span>
-          <strong>₹ ${taxableAmount.toLocaleString("en-IN")}</strong>
-        </div>
-        <div class="totals-row">
-          <span>CGST (${gstPercent / 2}%)</span>
-          <span>₹ ${cgstAmount.toLocaleString("en-IN")}</span>
-        </div>
-        <div class="totals-row">
-          <span>SGST (${gstPercent / 2}%)</span>
-          <span>₹ ${sgstAmount.toLocaleString("en-IN")}</span>
-        </div>
-        <div class="totals-row grand">
-          <span>TOTAL AMT</span>
-          <span>₹ ${grandTotal.toLocaleString("en-IN")}</span>
+        <div class="totals-row grand" style="padding: 12px 14px; font-size: 13px;">
+          <span>TOTAL ESTIMATE AMOUNT</span>
+          <span>₹ ${spacesSubtotal.toLocaleString("en-IN")}</span>
         </div>
       </div>
     </div>
@@ -950,7 +926,7 @@ export const generateClientSideInvoicePdf = (invoice) => {
   doc.rect(40, startY + 16, 255, 75, "S");
   doc.rect(300, startY + 16, 255, 75, "S");
 
-  doc.setFontSize(7);
+  doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(51, 65, 85);
 
@@ -1086,22 +1062,24 @@ export const generateClientSideInvoicePdf = (invoice) => {
     headStyles: {
       fillColor: [67, 120, 240],
       textColor: [255, 255, 255],
-      fontSize: 7,
-      fontStyle: "bold"
+      fontSize: 8.5,
+      fontStyle: "bold",
+      cellPadding: 4
     },
     bodyStyles: {
-      fontSize: 7,
-      textColor: [30, 41, 59]
+      fontSize: 8,
+      textColor: [30, 41, 59],
+      cellPadding: 4
     },
     columnStyles: {
-      0: { cellWidth: 35, halign: "center" },
+      0: { cellWidth: 35, halign: "center", fontStyle: "bold" },
       1: { cellWidth: 160 },
       2: { cellWidth: 55, halign: "center" },
       3: { cellWidth: 40, halign: "center" },
       4: { cellWidth: 30, halign: "center" },
       5: { cellWidth: 60, halign: "right" },
       6: { cellWidth: 55, halign: "center" },
-      7: { cellWidth: 80, halign: "right" }
+      7: { cellWidth: 80, halign: "right", fontStyle: "bold" }
     }
   });
 

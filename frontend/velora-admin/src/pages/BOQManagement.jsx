@@ -146,115 +146,191 @@ export default function BOQManagement() {
     { name: "Puja Room", roomTotal: 0, items: [] }
   ];
 
+  // Helper to check if an enquiry already has a saved BOQ in boqList
+  const hasSavedBOQ = useCallback(
+    (enquiry) => {
+      if (!enquiry || !boqList || boqList.length === 0) return false;
+      return boqList.some((b) => {
+        // Match by Enquiry Number
+        if (b.enquiryNo && enquiry.enquiryNo && b.enquiryNo.trim().toLowerCase() === enquiry.enquiryNo.trim().toLowerCase()) {
+          return true;
+        }
+        // Match by Lead/Enquiry ID reference
+        if (b.lead && enquiry._id && String(b.lead) === String(enquiry._id)) return true;
+        if (b.enquiryId && enquiry._id && String(b.enquiryId) === String(enquiry._id)) return true;
+        if (b._id && enquiry._id && String(b._id) === String(enquiry._id)) return true;
+
+        // Match by client phone (numbers only)
+        const bPhone = (b.clientPhone || "").replace(/\D/g, "");
+        const ePhone = (enquiry.phone || "").replace(/\D/g, "");
+        if (bPhone && ePhone && bPhone.length >= 7 && bPhone === ePhone) return true;
+
+        // Match by client name
+        if (b.clientName && enquiry.name && b.clientName.trim().toLowerCase() === enquiry.name.trim().toLowerCase()) {
+          return true;
+        }
+        return false;
+      });
+    },
+    [boqList]
+  );
+
+  // Delete BOQ handler
+  const handleDeleteBOQ = async (boqToDelete, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to delete BOQ for ${boqToDelete.clientName} (${boqToDelete.enquiryNo || boqToDelete.boqNumber})?`)) {
+      return;
+    }
+
+    try {
+      if (boqToDelete._id && !boqToDelete._id.startsWith("boq_") && !boqToDelete._id.startsWith("temp_")) {
+        await erpApi.deleteBOQ(boqToDelete._id);
+      }
+    } catch {
+      // Ignore API delete error
+    }
+
+    // Remove from local storage
+    const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+    const updatedLocal = existingLocal.filter(
+      (b) => b._id !== boqToDelete._id && b.enquiryNo !== boqToDelete.enquiryNo
+    );
+    localStorage.setItem("velora_custom_boqs", JSON.stringify(updatedLocal));
+
+    setBoqList((prev) => prev.filter((b) => b._id !== boqToDelete._id && b.enquiryNo !== boqToDelete.enquiryNo));
+    setPagination((p) => ({ ...p, total: Math.max(0, p.total - 1) }));
+    setSuccessToast(`BOQ for ${boqToDelete.clientName} deleted. Enquiry is now available for New BOQ creation.`);
+    setTimeout(() => setSuccessToast(""), 4000);
+  };
+
   // Fetch BOQ List
   const fetchBOQList = useCallback(async () => {
     setLoadingList(true);
+    const mockList = [
+      {
+        _id: "boq18",
+        enquiryNo: "ENQ-2026-018",
+        enquiryDate: "2026-08-08",
+        clientName: "Rajeev Singhal",
+        clientEmail: "rajeev.s@example.com",
+        clientPhone: "89482 74553",
+        numberOfSpaces: 10,
+        grandTotal: 3964567,
+        spaces: defaultStandardSpaces
+      },
+      {
+        _id: "boq17",
+        enquiryNo: "ENQ-2026-017",
+        enquiryDate: "2026-07-11",
+        clientName: "Rasid sir",
+        clientEmail: "rasid@example.com",
+        clientPhone: "84128 52592",
+        numberOfSpaces: 1,
+        grandTotal: 185000,
+        spaces: [{ name: "Showroom Front", roomTotal: 185000, items: [] }]
+      },
+      {
+        _id: "boq16",
+        enquiryNo: "ENQ-2026-016",
+        enquiryDate: "2026-06-21",
+        clientName: "Meenakshi Krishnani",
+        clientEmail: "meenakshi@example.com",
+        clientPhone: "91671 35606",
+        numberOfSpaces: 5,
+        grandTotal: 1450000,
+        spaces: []
+      },
+      {
+        _id: "boq15",
+        enquiryNo: "ENQ-2026-015",
+        enquiryDate: "2026-06-18",
+        clientName: "Khushi",
+        clientEmail: "khushi@example.com",
+        clientPhone: "73551 23408",
+        numberOfSpaces: 1,
+        grandTotal: 95000,
+        spaces: []
+      },
+      {
+        _id: "boq14",
+        enquiryNo: "ENQ-2026-014",
+        enquiryDate: "2026-05-25",
+        clientName: "Akash Jain",
+        clientEmail: "abc@gmail.com",
+        clientPhone: "89778 99643",
+        numberOfSpaces: 8,
+        grandTotal: 2200000,
+        spaces: []
+      },
+      {
+        _id: "boq13",
+        enquiryNo: "ENQ-2026-013",
+        enquiryDate: "2026-08-13",
+        clientName: "PREM SHUKLA",
+        clientEmail: "PREMSHUKLA@GMAIL.COM",
+        clientPhone: "78000 20496",
+        numberOfSpaces: 1,
+        grandTotal: 4500000,
+        spaces: []
+      },
+      {
+        _id: "boq12",
+        enquiryNo: "ENQ-2026-012",
+        enquiryDate: "2026-05-19",
+        clientName: "Dr Saurabh",
+        clientEmail: "abc@gmail.com",
+        clientPhone: "77090 19535",
+        numberOfSpaces: 2,
+        grandTotal: 850000,
+        spaces: []
+      },
+      {
+        _id: "boq11",
+        enquiryNo: "ENQ-2026-011",
+        enquiryDate: "2026-04-28",
+        clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
+        clientEmail: "contact@wiprolincraft.com",
+        clientPhone: "96323 00992",
+        numberOfSpaces: 1,
+        grandTotal: 12000000,
+        spaces: []
+      }
+    ];
+
+    const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+
     try {
       const res = await erpApi.getBOQs({ search, page: pagination.page, limit: pagination.limit });
-      if (res?.success) {
-        setBoqList(res.data || []);
-        if (res.pagination) {
-          setPagination((p) => ({
-            ...p,
-            total: res.pagination.total || 0,
-            pages: res.pagination.pages || 1
-          }));
+      const apiList = res?.success && res.data ? res.data : [];
+      const combined = [...localBOQs, ...apiList, ...(apiList.length === 0 ? mockList : [])];
+      
+      const uniqueMap = new Map();
+      combined.forEach((item) => {
+        const key = item.enquiryNo || item._id || item.boqNumber;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
         }
-      }
+      });
+      const mergedList = Array.from(uniqueMap.values());
+      setBoqList(mergedList);
+      setPagination((p) => ({
+        ...p,
+        total: res?.pagination?.total || mergedList.length,
+        pages: res?.pagination?.pages || 1
+      }));
     } catch {
-      // Fallback mock BOQ list (Screenshot 1)
-      const mockList = [
-        {
-          _id: "boq18",
-          enquiryNo: "ENQ-2026-018",
-          enquiryDate: "2026-08-08",
-          clientName: "Rajeev Singhal",
-          clientEmail: "rajeev.s@example.com",
-          clientPhone: "89482 74553",
-          numberOfSpaces: 10,
-          grandTotal: 3964567,
-          spaces: defaultStandardSpaces
-        },
-        {
-          _id: "boq17",
-          enquiryNo: "ENQ-2026-017",
-          enquiryDate: "2026-07-11",
-          clientName: "Rasid sir",
-          clientEmail: "rasid@example.com",
-          clientPhone: "84128 52592",
-          numberOfSpaces: 1,
-          grandTotal: 185000,
-          spaces: [{ name: "Showroom Front", roomTotal: 185000, items: [] }]
-        },
-        {
-          _id: "boq16",
-          enquiryNo: "ENQ-2026-016",
-          enquiryDate: "2026-06-21",
-          clientName: "Meenakshi Krishnani",
-          clientEmail: "meenakshi@example.com",
-          clientPhone: "91671 35606",
-          numberOfSpaces: 5,
-          grandTotal: 1450000,
-          spaces: []
-        },
-        {
-          _id: "boq15",
-          enquiryNo: "ENQ-2026-015",
-          enquiryDate: "2026-06-18",
-          clientName: "Khushi",
-          clientEmail: "khushi@example.com",
-          clientPhone: "73551 23408",
-          numberOfSpaces: 1,
-          grandTotal: 95000,
-          spaces: []
-        },
-        {
-          _id: "boq14",
-          enquiryNo: "ENQ-2026-014",
-          enquiryDate: "2026-05-25",
-          clientName: "Akash Jain",
-          clientEmail: "abc@gmail.com",
-          clientPhone: "89778 99643",
-          numberOfSpaces: 8,
-          grandTotal: 2200000,
-          spaces: []
-        },
-        {
-          _id: "boq13",
-          enquiryNo: "ENQ-2026-013",
-          enquiryDate: "2026-08-13",
-          clientName: "PREM SHUKLA",
-          clientEmail: "PREMSHUKLA@GMAIL.COM",
-          clientPhone: "78000 20496",
-          numberOfSpaces: 1,
-          grandTotal: 4500000,
-          spaces: []
-        },
-        {
-          _id: "boq12",
-          enquiryNo: "ENQ-2026-012",
-          enquiryDate: "2026-05-19",
-          clientName: "Dr Saurabh",
-          clientEmail: "abc@gmail.com",
-          clientPhone: "77090 19535",
-          numberOfSpaces: 2,
-          grandTotal: 850000,
-          spaces: []
-        },
-        {
-          _id: "boq11",
-          enquiryNo: "ENQ-2026-011",
-          enquiryDate: "2026-04-28",
-          clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
-          clientEmail: "contact@wiprolincraft.com",
-          clientPhone: "96323 00992",
-          numberOfSpaces: 1,
-          grandTotal: 12000000,
-          spaces: []
+      // Fallback mock BOQ list merged with localBOQs
+      const combined = [...localBOQs, ...mockList];
+      const uniqueMap = new Map();
+      combined.forEach((item) => {
+        const key = item.enquiryNo || item._id || item.boqNumber;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
         }
-      ];
-      setBoqList(mockList);
-      setPagination((p) => ({ ...p, total: mockList.length }));
+      });
+      const mergedList = Array.from(uniqueMap.values());
+      setBoqList(mergedList);
+      setPagination((p) => ({ ...p, total: mergedList.length }));
     } finally {
       setLoadingList(false);
     }
@@ -443,18 +519,19 @@ export default function BOQManagement() {
     setIsMeasurementModalOpen(true);
   };
 
-  // When user selects Measurement Unit (Feet.inch / Millimeter) -> DIRECTLY Open full BOQ UI!
-  const handleConfirmMeasurementUnit = async () => {
+  // When user selects Measurement Unit (Feet.inch / Millimeter) -> Open builder in draft mode
+  const handleConfirmMeasurementUnit = () => {
     const enquiry = pendingSelectedEnquiry || { name: "Client", enquiryNo: `ENQ-2026-019` };
     const randomSuffix = Math.floor(100 + Math.random() * 900);
     const boqNumber = `BOQ-2026-${randomSuffix}`;
     const enquiryNo = enquiry.enquiryNo || `ENQ-2026-${randomSuffix}`;
 
-    // Create BOQ populated with all standard spaces & components ready to use
+    // Create BOQ draft populated with standard spaces ready to customize
     const newBOQ = {
-      _id: `boq_${Date.now()}`,
+      _id: `temp_${Date.now()}`,
       boqNumber,
       enquiryNo,
+      lead: enquiry._id,
       enquiryDate: enquiry.enquiryDate || new Date().toISOString().split("T")[0],
       clientName: enquiry.name || "Client",
       clientEmail: enquiry.email || "",
@@ -464,27 +541,16 @@ export default function BOQManagement() {
       subtotal: 0,
       gstTotal: 0,
       grandTotal: 0,
-      spaces: JSON.parse(JSON.stringify(defaultStandardSpaces))
+      spaces: JSON.parse(JSON.stringify(defaultStandardSpaces)),
+      isDraft: true
     };
 
-    // Save to Backend API & update local list
-    try {
-      const res = await erpApi.createBOQ(newBOQ);
-      if (res?.data) {
-        newBOQ._id = res.data._id;
-      }
-    } catch {
-      // Keep local newBOQ
-    }
-
-    setBoqList((prev) => [newBOQ, ...prev.filter((b) => b.enquiryNo !== enquiryNo)]);
-    setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
     setActiveBOQ(newBOQ);
     setActiveSpaceIdx(0);
     setIsMeasurementModalOpen(false);
     setPendingSelectedEnquiry(null);
     setViewMode("builder");
-    setSuccessToast(`BOQ created for ${enquiry.name}!`);
+    setSuccessToast(`Draft BOQ initialized for ${enquiry.name}. Add items and click Save!`);
     setTimeout(() => setSuccessToast(""), 3500);
   };
 
@@ -1169,18 +1235,33 @@ export default function BOQManagement() {
     setActiveSpaceIdx(Math.max(0, activeSpaceIdx - 1));
   };
 
-  // Save BOQ to API & return to list view
+  // Back to list with draft alert
+  const handleBackToList = () => {
+    if (activeBOQ?.isDraft) {
+      if (window.confirm("You have an unsaved draft BOQ. Would you like to save it before leaving?")) {
+        handleSaveBOQ();
+        return;
+      }
+    }
+    setActiveBOQ(null);
+    setViewMode("list");
+  };
+
+  // Save BOQ to API, persist in localStorage, and update saved boqList
   const handleSaveBOQ = async () => {
     if (!activeBOQ) return;
     try {
+      const payloadToSave = { ...activeBOQ, isDraft: false };
       let res = null;
       if (activeBOQ._id && !activeBOQ._id.startsWith("temp_") && !activeBOQ._id.startsWith("boq_")) {
-        res = await erpApi.updateBOQ(activeBOQ._id, activeBOQ);
+        res = await erpApi.updateBOQ(activeBOQ._id, payloadToSave);
       } else {
-        res = await erpApi.createBOQ(activeBOQ);
+        res = await erpApi.createBOQ(payloadToSave);
       }
 
-      const savedBoq = res?.data || activeBOQ;
+      const savedBoq = { ...(res?.data || payloadToSave), isDraft: false };
+      if (res?.data?._id) savedBoq._id = res.data._id;
+
       const syncedClient = res?.client || {
         name: savedBoq.clientName,
         phone: savedBoq.clientPhone,
@@ -1208,6 +1289,13 @@ export default function BOQManagement() {
         )
       };
 
+      // Persist in localStorage for instant synchronization across views & reloads
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const filteredLocal = existingLocal.filter(
+        (b) => b._id !== savedBoq._id && b.enquiryNo !== savedBoq.enquiryNo
+      );
+      localStorage.setItem("velora_custom_boqs", JSON.stringify([savedBoq, ...filteredLocal]));
+
       setBoqList((prev) => {
         const idx = prev.findIndex((b) => b._id === savedBoq._id || b.enquiryNo === savedBoq.enquiryNo);
         if (idx >= 0) {
@@ -1218,7 +1306,6 @@ export default function BOQManagement() {
         return [savedBoq, ...prev];
       });
 
-      fetchBOQList();
       setViewMode("list");
       setActiveBOQ(null);
 
@@ -1228,16 +1315,23 @@ export default function BOQManagement() {
         client: syncedClient,
         invoice: syncedInvoice
       });
+      setSuccessToast(`BOQ for ${savedBoq.clientName} (${savedBoq.enquiryNo}) saved successfully!`);
+      setTimeout(() => setSuccessToast(""), 4000);
     } catch {
+      const fallbackSaved = {
+        ...activeBOQ,
+        _id: activeBOQ._id && !activeBOQ._id.startsWith("temp_") ? activeBOQ._id : `boq_${Date.now()}`,
+        isDraft: false
+      };
       const invoiceData = {
-        invoiceNumber: `VLA-INV-${activeBOQ.boqNumber ? activeBOQ.boqNumber.replace(/^BOQ-?/i, "") : "2026-018"}`,
-        clientName: activeBOQ.clientName,
-        clientPhone: activeBOQ.clientPhone,
-        clientEmail: activeBOQ.clientEmail,
-        grandTotal: activeBOQ.grandTotal,
-        subtotal: activeBOQ.subtotal || Math.round((activeBOQ.grandTotal || 0) / 1.18),
-        gstTotal: activeBOQ.gstTotal || Math.round((activeBOQ.grandTotal || 0) - (activeBOQ.grandTotal || 0) / 1.18),
-        items: (activeBOQ.spaces || []).flatMap((sp) =>
+        invoiceNumber: `VLA-INV-${fallbackSaved.boqNumber ? fallbackSaved.boqNumber.replace(/^BOQ-?/i, "") : "2026-018"}`,
+        clientName: fallbackSaved.clientName,
+        clientPhone: fallbackSaved.clientPhone,
+        clientEmail: fallbackSaved.clientEmail,
+        grandTotal: fallbackSaved.grandTotal,
+        subtotal: fallbackSaved.subtotal || Math.round((fallbackSaved.grandTotal || 0) / 1.18),
+        gstTotal: fallbackSaved.gstTotal || Math.round((fallbackSaved.grandTotal || 0) - (fallbackSaved.grandTotal || 0) / 1.18),
+        items: (fallbackSaved.spaces || []).flatMap((sp) =>
           (sp.items || []).map((it) => ({
             productName: it.name,
             category: sp.name,
@@ -1249,23 +1343,32 @@ export default function BOQManagement() {
         )
       };
 
+      // Persist in localStorage
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const filteredLocal = existingLocal.filter(
+        (b) => b._id !== fallbackSaved._id && b.enquiryNo !== fallbackSaved.enquiryNo
+      );
+      localStorage.setItem("velora_custom_boqs", JSON.stringify([fallbackSaved, ...filteredLocal]));
+
       setBoqList((prev) => {
-        const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
+        const idx = prev.findIndex((b) => b._id === fallbackSaved._id || b.enquiryNo === fallbackSaved.enquiryNo);
         if (idx >= 0) {
           const copy = [...prev];
-          copy[idx] = activeBOQ;
+          copy[idx] = fallbackSaved;
           return copy;
         }
-        return [activeBOQ, ...prev];
+        return [fallbackSaved, ...prev];
       });
 
       setViewMode("list");
       setSavedSuccessModal({
-        boq: activeBOQ,
-        client: { name: activeBOQ.clientName, phone: activeBOQ.clientPhone, email: activeBOQ.clientEmail },
+        boq: fallbackSaved,
+        client: { name: fallbackSaved.clientName, phone: fallbackSaved.clientPhone, email: fallbackSaved.clientEmail },
         invoice: invoiceData
       });
       setActiveBOQ(null);
+      setSuccessToast(`BOQ for ${fallbackSaved.clientName} (${fallbackSaved.enquiryNo}) saved successfully!`);
+      setTimeout(() => setSuccessToast(""), 4000);
     }
   };
 
@@ -1324,11 +1427,14 @@ export default function BOQManagement() {
     });
   }, [libraryComponents, currentSpace, componentSearch, relevantComponents]);
 
-  // Filtered Enquiries in Modal
+  // Filtered Enquiries in Modal: ONLY show enquiries that do NOT already have a saved BOQ
   const filteredEnquiries = useMemo(() => {
-    if (!clientSearchQuery) return enquiryList;
-    const q = clientSearchQuery.toLowerCase();
-    return enquiryList.filter(
+    // Exclude any enquiry that already has a saved BOQ in boqList
+    const unassigned = enquiryList.filter((enquiry) => !hasSavedBOQ(enquiry));
+
+    if (!clientSearchQuery || !clientSearchQuery.trim()) return unassigned;
+    const q = clientSearchQuery.toLowerCase().trim();
+    return unassigned.filter(
       (c) =>
         c.name?.toLowerCase().includes(q) ||
         c.phone?.toLowerCase().includes(q) ||
@@ -1336,7 +1442,7 @@ export default function BOQManagement() {
         c.enquiryNo?.toLowerCase().includes(q) ||
         c.projectType?.toLowerCase().includes(q)
     );
-  }, [enquiryList, clientSearchQuery]);
+  }, [enquiryList, hasSavedBOQ, clientSearchQuery]);
 
   // Format Date Helper
   const formatDate = (dateStr) => {
@@ -1497,6 +1603,13 @@ export default function BOQManagement() {
                           >
                             <Edit2 size={14} />
                           </button>
+                          <button
+                            onClick={(e) => handleDeleteBOQ(row, e)}
+                            title="Delete this BOQ"
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1585,10 +1698,15 @@ export default function BOQManagement() {
                 />
               </div>
 
-              {/* Subtitle: Select Enquiry to continue */}
-              <p className="text-center text-xs font-semibold text-stone-600">
-                Select Enquiry to continue
-              </p>
+              {/* Subtitle & Available Count Badge */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-stone-800">
+                  Select Enquiry to continue
+                </span>
+                <span className="text-[10.5px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                  {filteredEnquiries.length} Available without BOQ
+                </span>
+              </div>
 
               {/* Enquiry Cards List */}
               <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
@@ -1612,12 +1730,41 @@ export default function BOQManagement() {
                         {enquiry.enquiryNo || "ENQ-2026-019"}
                       </p>
                     </div>
+
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">
+                      Select →
+                    </span>
                   </div>
                 ))}
 
                 {filteredEnquiries.length === 0 && (
-                  <div className="p-6 text-center text-stone-400 bg-stone-50 rounded-xl border border-stone-200 text-xs">
-                    No matching enquiries found.
+                  <div className="p-6 text-center text-stone-500 bg-stone-50 rounded-2xl border border-stone-200 text-xs space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 text-[#9E7B1D] flex items-center justify-center mx-auto">
+                      <CheckCircle2 size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-stone-900">
+                        {clientSearchQuery ? `No enquiries found matching "${clientSearchQuery}"` : "All enquiries already have saved BOQs!"}
+                      </p>
+                      <p className="text-[11px] text-stone-500 mt-1">
+                        {clientSearchQuery
+                          ? "Try searching by another name, email or phone."
+                          : "Create a new enquiry in the Enquiry section to create a new BOQ."}
+                      </p>
+                    </div>
+                    {!clientSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSelectClientModalOpen(false);
+                          navigate("/enquiry");
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 font-black text-xs rounded-xl shadow-xs transition hover:opacity-95 cursor-pointer"
+                      >
+                        <Plus size={14} />
+                        <span>Go to Enquiry Section</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -1730,7 +1877,7 @@ export default function BOQManagement() {
         {/* Left: Back button & Category tabs */}
         <div className="flex items-center gap-4 flex-wrap">
           <button
-            onClick={() => setViewMode("list")}
+            onClick={handleBackToList}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-blue-600 bg-stone-50 hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-stone-200 transition cursor-pointer"
           >
             <ArrowLeft size={14} />

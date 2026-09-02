@@ -387,7 +387,8 @@ export default function EnquiryManagement() {
       setTimeout(() => setSuccessToast(""), 4000);
     } catch (err) {
       // Fallback local persistence if backend is offline
-      const generatedEnquiryNo = `ENQ-2026-019`;
+      const randomNum = Math.floor(100 + Math.random() * 900);
+      const generatedEnquiryNo = formData.enquiryNo || `ENQ-2026-${String(randomNum).padStart(3, "0")}`;
       const createdItem = { ...formData, enquiryNo: generatedEnquiryNo, _id: `local_${Date.now()}` };
       const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
       localStorage.setItem("velora_custom_enquiries", JSON.stringify([createdItem, ...existingLocal]));

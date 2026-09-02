@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
-import { downloadBOQPdf, downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
+import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation } from "../utils/downloadHelper";
 
 const STANDARD_SPACE_SUGGESTIONS = [
   "Living Room",
@@ -127,6 +127,15 @@ export default function BOQManagement() {
   // New Space modal state
   const [isAddSpaceOpen, setIsAddSpaceOpen] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
+
+  // Description Edit Popup Modal State (Spacious modal with quick specs)
+  const [descriptionModal, setDescriptionModal] = useState({
+    isOpen: false,
+    itemIdx: null,
+    itemName: "",
+    description: "",
+    spaceName: ""
+  });
 
   // Select Enquiry Modal State (matching user reference screenshot)
   const [isSelectClientModalOpen, setIsSelectClientModalOpen] = useState(false);
@@ -599,18 +608,18 @@ export default function BOQManagement() {
     );
   }, [libraryComponents, componentSearch, currentSpace]);
 
-  // Recalculate Sqft, Amount, Space Total and Grand Total
+  // Recalculate Sqft, Amount, Space Total, Discount, Taxable Amt, GST (CGST+SGST) and Grand Total
   const recalculateBOQ = (updatedBOQ) => {
-    let grand = 0;
-    const spaces = updatedBOQ.spaces.map((sp) => {
+    let spacesSubtotal = 0;
+    const spaces = (updatedBOQ.spaces || []).map((sp) => {
       let spaceSum = 0;
-      const items = sp.items.map((item) => {
+      const items = (sp.items || []).map((item) => {
         const l = (Number(item.lengthFt) || 0) + (Number(item.lengthIn) || 0) / 12;
         const h = (Number(item.heightFt) || 0) + (Number(item.heightIn) || 0) / 12;
         const qty = Number(item.qty) || 1;
         const rate = Number(item.rate) || 0;
 
-        let calculatedSqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : item.sqft || 1;
+        let calculatedSqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : Number(item.sqft) || 1;
         if (calculatedSqft <= 0) calculatedSqft = 1;
 
         let amount = Math.round(calculatedSqft * rate);
@@ -619,16 +628,57 @@ export default function BOQManagement() {
         spaceSum += amount;
         return { ...item, sqft: calculatedSqft, amount };
       });
-      grand += spaceSum;
+      spacesSubtotal += spaceSum;
       return { ...sp, roomTotal: spaceSum, items };
     });
+
+    const discountType = updatedBOQ.discountType || "amount";
+    const discountValue = Number(updatedBOQ.discountValue || 0);
+    const discountAmount = discountType === "percent"
+      ? Math.round(spacesSubtotal * (discountValue / 100))
+      : Math.min(spacesSubtotal, Math.round(discountValue));
+
+    const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
+    const gstPercent = updatedBOQ.gstPercent !== undefined ? Number(updatedBOQ.gstPercent) : 18;
+    const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+    const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+    const gstTotal = cgstAmount + sgstAmount;
+    const grandTotal = taxableAmount + gstTotal;
 
     return {
       ...updatedBOQ,
       spaces,
       numberOfSpaces: spaces.length,
-      grandTotal: grand
+      subtotal: spacesSubtotal,
+      discountType,
+      discountValue,
+      discountAmount,
+      taxableAmount,
+      gstPercent,
+      cgstAmount,
+      sgstAmount,
+      gstTotal,
+      grandTotal
     };
+  };
+
+  // Open Description Popup Modal
+  const handleOpenDescriptionModal = (itemIdx, item) => {
+    setDescriptionModal({
+      isOpen: true,
+      itemIdx,
+      itemName: item.name || "Component",
+      description: item.description || "",
+      spaceName: currentSpace?.name || "Room"
+    });
+  };
+
+  // Save Description from Popup Modal
+  const handleSaveDescriptionModal = () => {
+    if (descriptionModal.itemIdx !== null && activeBOQ) {
+      handleUpdateItemField(descriptionModal.itemIdx, "description", descriptionModal.description);
+    }
+    setDescriptionModal({ isOpen: false, itemIdx: null, itemName: "", description: "", spaceName: "" });
   };
 
   // Update item field in active space
@@ -2192,298 +2242,443 @@ export default function BOQManagement() {
           </div>
         </div>
 
-        {/* 100% Extended Component Calculation Table */}
+        {/* 100% Extended Component Calculation Table with Enhanced Spacious CRM Typography */}
         <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl bg-white shadow-2xs">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-[11px] font-bold text-stone-700">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-xs font-extrabold text-stone-700">
               <tr>
-                <th className="py-2.5 px-2 w-8 text-center text-stone-400"></th>
-                <th className="py-2.5 px-3 min-w-[150px]">Component Name</th>
-                <th className="py-2.5 px-2 w-28">Package / Variant</th>
-                <th className="py-2.5 px-2 w-28">Type</th>
-                <th className="py-2.5 px-2 text-center w-20">Length (ft/in)</th>
-                <th className="py-2.5 px-2 text-center w-20">Height (ft/in)</th>
-                <th className="py-2.5 px-2 text-center w-20">Depth (ft/in)</th>
-                <th className="py-2.5 px-2 text-center w-14">Qty</th>
-                <th className="py-2.5 px-3 min-w-[160px]">Specification / Description</th>
-                <th className="py-2.5 px-2 text-right w-16">Sq.ft</th>
-                <th className="py-2.5 px-2 text-right w-24">Rate (sq.ft)</th>
-                <th className="py-2.5 px-3 text-right w-28">Amount</th>
-                <th className="py-2.5 px-2 text-center w-16">Action</th>
+                <th className="py-3 px-2 w-8 text-center text-stone-400"></th>
+                <th className="py-3 px-3 min-w-[170px]">Component Name</th>
+                <th className="py-3 px-2 w-32">Package / Variant</th>
+                <th className="py-3 px-2 w-32">Type</th>
+                <th className="py-3 px-2 text-center w-28">Length (ft / in)</th>
+                <th className="py-3 px-2 text-center w-28">Height (ft / in)</th>
+                <th className="py-3 px-2 text-center w-28">Depth (ft / in)</th>
+                <th className="py-3 px-2 text-center w-16">Qty</th>
+                <th className="py-3 px-3 min-w-[210px]">Specification & Description</th>
+                <th className="py-3 px-2 text-right w-20">Sq.ft</th>
+                <th className="py-3 px-2 text-right w-28">Rate (₹)</th>
+                <th className="py-3 px-3 text-right w-32">Amount (₹)</th>
+                <th className="py-3 px-2 text-center w-16">Action</th>
               </tr>
             </thead>
 
-              <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-800">
-                {!currentSpace?.items || currentSpace.items.length === 0 ? (
-                  <tr>
-                    <td colSpan={13} className="py-10 text-center text-stone-400 text-xs">
-                      No components added in {currentSpace?.name || "this space"}. Pick any component from the left palette to add.
-                    </td>
-                  </tr>
-                ) : (
-                  currentSpace.items.map((item, idx) => {
-                    const matchedComp = libraryComponents.find(
-                      (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
-                    );
-                    const itemVariants = matchedComp?.selectedVariants?.length
-                      ? matchedComp.selectedVariants
-                      : ["Elite", "Premium", "Standard"];
+            <tbody className="divide-y divide-[#F0EBE0] text-xs sm:text-sm text-stone-800">
+              {!currentSpace?.items || currentSpace.items.length === 0 ? (
+                <tr>
+                  <td colSpan={13} className="py-12 text-center text-stone-400 text-sm">
+                    No components added in {currentSpace?.name || "this space"}. Pick any component from the search bar above to add.
+                  </td>
+                </tr>
+              ) : (
+                currentSpace.items.map((item, idx) => {
+                  const matchedComp = libraryComponents.find(
+                    (c) => c.name?.toLowerCase().trim() === item.name?.toLowerCase().trim()
+                  );
+                  const itemVariants = matchedComp?.selectedVariants?.length
+                    ? matchedComp.selectedVariants
+                    : ["Elite", "Premium", "Standard"];
 
-                    return (
-                      <tr key={idx} className="hover:bg-amber-50/20 transition">
-                        {/* Drag Handle */}
-                        <td className="py-1.5 px-1 text-center text-stone-300">
-                          <GripVertical size={13} className="mx-auto cursor-grab" />
-                        </td>
+                  return (
+                    <tr key={idx} className="hover:bg-amber-50/25 transition">
+                      {/* Drag Handle */}
+                      <td className="py-2.5 px-1 text-center text-stone-300">
+                        <GripVertical size={15} className="mx-auto cursor-grab" />
+                      </td>
 
-                        {/* Name with Image Thumbnail Preview & Direct Upload Option */}
-                        <td className="py-1.5 px-1.5 font-semibold text-stone-900">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            {item.photos && item.photos.length > 0 ? (
-                              <div className="relative group/photo shrink-0">
-                                <div
-                                  onClick={() => handleOpenImagePicker(idx)}
-                                  className="relative w-7 h-7 rounded-md overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
-                                  title={`${item.photos.length} image(s) attached. Click to select/change.`}
-                                >
-                                  <img
-                                    src={item.photos[0]?.url}
-                                    alt="thumb"
-                                    className="w-full h-full object-cover"
-                                  />
-                                  {item.photos.length > 1 && (
-                                    <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[7.5px] px-0.5 font-bold rounded-tl">
-                                      {item.photos.length}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Hover Quick Add Extra Photo */}
-                                <label
-                                  className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
-                                  title="Upload additional photo for this item"
-                                >
-                                  {uploadingRowIdx === idx ? (
-                                    <Loader2 size={8} className="animate-spin" />
-                                  ) : (
-                                    <Plus size={8} />
-                                  )}
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    disabled={uploadingRowIdx === idx}
-                                    onChange={(e) => {
-                                      if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
-                                      e.target.value = null;
-                                    }}
-                                  />
-                                </label>
+                      {/* Name with Image Thumbnail Preview & Direct Upload Option */}
+                      <td className="py-2.5 px-2 font-bold text-stone-900">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {item.photos && item.photos.length > 0 ? (
+                            <div className="relative group/photo shrink-0">
+                              <div
+                                onClick={() => handleOpenImagePicker(idx)}
+                                className="relative w-9 h-9 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
+                                title={`${item.photos.length} image(s) attached. Click to select/change.`}
+                              >
+                                <img
+                                  src={item.photos[0]?.url}
+                                  alt="thumb"
+                                  className="w-full h-full object-cover"
+                                />
+                                {item.photos.length > 1 && (
+                                  <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                    {item.photos.length}
+                                  </span>
+                                )}
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-1 shrink-0">
-                                {/* Direct Instant Upload Button when no image is added */}
-                                <label
-                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded text-[9.5px] font-bold cursor-pointer transition shadow-2xs select-none"
-                                  title="Product image not added. Click to directly upload an image from your device."
-                                >
-                                  {uploadingRowIdx === idx ? (
-                                    <Loader2 size={10} className="animate-spin text-[#9E7B1D]" />
-                                  ) : (
-                                    <Upload size={10} />
-                                  )}
-                                  <span>+ Photo</span>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    disabled={uploadingRowIdx === idx}
-                                    onChange={(e) => {
-                                      if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
-                                      e.target.value = null;
-                                    }}
-                                  />
-                                </label>
-                              </div>
-                            )}
-                            <span className="truncate text-[11px]">{item.name}</span>
-                          </div>
-                        </td>
 
-                        {/* Package / Variant Selector per line item */}
-                        <td className="py-1.5 px-1">
-                          <select
-                            value={item.packageVariant || "Standard"}
-                            onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
-                            className={`w-full h-6 px-1 border rounded text-[10px] font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
-                              ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
-                              : item.packageVariant === "Premium"
-                                ? "bg-sky-50 text-sky-800 border-sky-300"
-                                : item.packageVariant === "Custom"
-                                  ? "bg-purple-50 text-purple-800 border-purple-300"
-                                  : "bg-stone-50 text-stone-800 border-stone-300"
+                              {/* Hover Quick Add Extra Photo */}
+                              <label
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
+                                title="Upload additional photo for this item"
+                              >
+                                {uploadingRowIdx === idx ? (
+                                  <Loader2 size={9} className="animate-spin" />
+                                ) : (
+                                  <Plus size={9} />
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  disabled={uploadingRowIdx === idx}
+                                  onChange={(e) => {
+                                    if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
+                                    e.target.value = null;
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 shrink-0">
+                              {/* Direct Instant Upload Button when no image is added */}
+                              <label
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded-lg text-xs font-bold cursor-pointer transition shadow-2xs select-none"
+                                title="Product image not added. Click to directly upload an image from your device."
+                              >
+                                {uploadingRowIdx === idx ? (
+                                  <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
+                                ) : (
+                                  <Upload size={12} />
+                                )}
+                                <span>+ Photo</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  disabled={uploadingRowIdx === idx}
+                                  onChange={(e) => {
+                                    if (e.target.files?.[0]) handleDirectUploadItemPhoto(idx, e.target.files[0]);
+                                    e.target.value = null;
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          )}
+                          <span className="truncate text-xs sm:text-sm">{item.name}</span>
+                        </div>
+                      </td>
+
+                      {/* Package / Variant Selector per line item */}
+                      <td className="py-2.5 px-1.5">
+                        <select
+                          value={item.packageVariant || "Standard"}
+                          onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
+                          className={`w-full h-8 px-2 border rounded-lg text-xs font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
+                            ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
+                            : item.packageVariant === "Premium"
+                              ? "bg-sky-50 text-sky-800 border-sky-300"
+                              : item.packageVariant === "Custom"
+                                ? "bg-purple-50 text-purple-800 border-purple-300"
+                                : "bg-stone-50 text-stone-800 border-stone-300"
+                            }`}
+                        >
+                          {itemVariants.map((v) => (
+                            <option key={v} value={v}>
+                              {v}
+                            </option>
+                          ))}
+                          <option value="Custom">Custom</option>
+                        </select>
+                      </td>
+
+                      {/* Type */}
+                      <td className="py-2.5 px-1.5">
+                        <input
+                          type="text"
+                          value={item.typeVariant || "Box Standard"}
+                          onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
+                          className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm text-stone-700 font-medium"
+                        />
+                      </td>
+
+                      {/* Length (ft & inch) */}
+                      <td className="py-2.5 px-1.5">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.lengthFt}
+                            onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Length Feet"
+                            placeholder="ft"
+                          />
+                          <input
+                            type="number"
+                            value={item.lengthIn}
+                            onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Length Inches"
+                            placeholder="in"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Height (ft & inch) */}
+                      <td className="py-2.5 px-1.5">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.heightFt}
+                            onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Height Feet"
+                            placeholder="ft"
+                          />
+                          <input
+                            type="number"
+                            value={item.heightIn}
+                            onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Height Inches"
+                            placeholder="in"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Depth (ft & inch) */}
+                      <td className="py-2.5 px-1.5">
+                        <div className="flex items-center gap-1 justify-center">
+                          <input
+                            type="number"
+                            value={item.depthFt}
+                            onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Depth Feet"
+                            placeholder="ft"
+                          />
+                          <input
+                            type="number"
+                            value={item.depthIn}
+                            onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
+                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            title="Depth Inches"
+                            placeholder="in"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Qty */}
+                      <td className="py-2.5 px-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.qty || 1}
+                          onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
+                          className="w-14 h-8 mx-auto text-center bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm font-bold p-0"
+                        />
+                      </td>
+
+                      {/* Description with Dedicated Modal Popup Trigger */}
+                      <td className="py-2.5 px-2">
+                        <div
+                          onClick={() => handleOpenDescriptionModal(idx, item)}
+                          className="group/desc relative flex items-center justify-between gap-1.5 p-1.5 px-2.5 bg-stone-50 hover:bg-amber-50/60 border border-stone-200 hover:border-amber-400 rounded-lg cursor-pointer transition min-h-[36px]"
+                          title="Click to edit full specification & description"
+                        >
+                          <p className="text-xs text-stone-700 line-clamp-2 leading-tight flex-1">
+                            {item.description || "Click to add detailed specs (Plywood, Hardware, Laminate, etc.)"}
+                          </p>
+                          <button
+                            type="button"
+                            className="p-1 bg-white group-hover/desc:bg-[#D4AF37] group-hover/desc:text-stone-950 text-stone-400 rounded-md shadow-2xs transition shrink-0"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Sq.ft (calculated) */}
+                      <td className="py-2.5 px-2 text-right font-mono font-bold text-stone-800 text-xs sm:text-sm">
+                        {item.sqft || 1}
+                      </td>
+
+                      {/* Rate */}
+                      <td className="py-2.5 px-2 text-right">
+                        <input
+                          type="number"
+                          value={item.rate || 0}
+                          onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
+                          className="w-24 h-8 text-right px-2 bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm font-bold text-stone-900"
+                        />
+                      </td>
+
+                      {/* Amount */}
+                      <td className="py-2.5 px-2.5 text-right font-black text-[#9E7B1D] text-xs sm:text-sm font-mono whitespace-nowrap">
+                        ₹{(item.amount || 0).toLocaleString("en-IN")}
+                      </td>
+
+                      {/* Actions: Photo Selector, Minus Delete */}
+                      <td className="py-2.5 px-2 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenImagePicker(idx)}
+                            title={
+                              item.photos?.length
+                                ? `${item.photos.length} image(s) attached. Click to select/change.`
+                                : "Select/Upload Component Images"
+                            }
+                            className={`p-1.5 rounded-lg transition cursor-pointer relative ${item.photos?.length
+                              ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
+                              : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
                               }`}
                           >
-                            {itemVariants.map((v) => (
-                              <option key={v} value={v}>
-                                {v}
-                              </option>
-                            ))}
-                            <option value="Custom">Custom</option>
-                          </select>
-                        </td>
+                            <ImageIcon size={15} />
+                            {item.photos?.length > 0 && (
+                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] text-stone-950 font-extrabold text-[8.5px] rounded-full flex items-center justify-center">
+                                {item.photos.length}
+                              </span>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveItem(idx)}
+                            title="Remove item"
+                            className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                          >
+                            <MinusCircle size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                        {/* Type */}
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="text"
-                            value={item.typeVariant || "Box Standard"}
-                            onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
-                            className="w-full h-6 px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px] text-stone-700"
-                          />
-                        </td>
+        {/* Commercial Summary, Discount & GST Card */}
+        <div className="bg-[#FAF9F5] border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#EAE3D2]">
+            <div>
+              <h4 className="text-sm font-black text-stone-900">Commercial Summary, Discount & Taxes</h4>
+              <p className="text-xs text-stone-500">Real-time discount deduction, CGST / SGST breakdown and grand total</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleOpenQuotationModal(activeBOQ)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-white hover:bg-amber-50 border border-amber-300 rounded-xl transition cursor-pointer"
+              >
+                <FileText size={14} />
+                <span>View Quotation</span>
+              </button>
+              <button
+                onClick={() => printBOQQuotation(activeBOQ)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition cursor-pointer"
+              >
+                <Printer size={14} />
+                <span>Print / Save PDF</span>
+              </button>
+              <button
+                onClick={handleSaveBOQ}
+                className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <Save size={14} />
+                <span>Save BOQ</span>
+              </button>
+            </div>
+          </div>
 
-                        {/* Length (ft & inch) */}
-                        <td className="py-1.5 px-1">
-                          <div className="flex items-center gap-0.5 justify-center">
-                            <input
-                              type="number"
-                              value={item.lengthFt}
-                              onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Feet"
-                            />
-                            <input
-                              type="number"
-                              value={item.lengthIn}
-                              onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Inches"
-                            />
-                          </div>
-                        </td>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+            {/* Subtotal */}
+            <div className="p-3 bg-white rounded-xl border border-[#EAE3D2] space-y-1">
+              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">1. Space Scope Subtotal</span>
+              <span className="text-base font-black text-stone-900 font-mono block">₹{(activeBOQ?.subtotal || 0).toLocaleString("en-IN")}</span>
+              <span className="text-[10px] text-stone-400">Sum of {activeBOQ?.spaces?.length || 0} rooms</span>
+            </div>
 
-                        {/* Height (ft & inch) */}
-                        <td className="py-1.5 px-1">
-                          <div className="flex items-center gap-0.5 justify-center">
-                            <input
-                              type="number"
-                              value={item.heightFt}
-                              onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Feet"
-                            />
-                            <input
-                              type="number"
-                              value={item.heightIn}
-                              onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Inches"
-                            />
-                          </div>
-                        </td>
+            {/* Discount Controls */}
+            <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">2. Discount</span>
+                <div className="flex items-center bg-white border border-emerald-200 rounded-md p-0.5 text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...activeBOQ, discountType: "amount" };
+                      setActiveBOQ(recalculateBOQ(updated));
+                    }}
+                    className={`px-1.5 py-0.5 rounded font-bold ${activeBOQ?.discountType !== "percent" ? "bg-emerald-600 text-white" : "text-stone-600"}`}
+                  >
+                    ₹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...activeBOQ, discountType: "percent" };
+                      setActiveBOQ(recalculateBOQ(updated));
+                    }}
+                    className={`px-1.5 py-0.5 rounded font-bold ${activeBOQ?.discountType === "percent" ? "bg-emerald-600 text-white" : "text-stone-600"}`}
+                  >
+                    %
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={activeBOQ?.discountValue || ""}
+                  onChange={(e) => {
+                    const updated = { ...activeBOQ, discountValue: Number(e.target.value) || 0 };
+                    setActiveBOQ(recalculateBOQ(updated));
+                  }}
+                  className="w-full h-8 px-2 bg-white border border-emerald-300 rounded-lg text-xs font-bold text-emerald-950 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+              <span className="text-[10px] text-emerald-700 font-bold font-mono block">
+                - ₹{(activeBOQ?.discountAmount || 0).toLocaleString("en-IN")} deducted
+              </span>
+            </div>
 
-                        {/* Depth (ft & inch) */}
-                        <td className="py-1.5 px-1">
-                          <div className="flex items-center gap-0.5 justify-center">
-                            <input
-                              type="number"
-                              value={item.depthFt}
-                              onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Feet"
-                            />
-                            <input
-                              type="number"
-                              value={item.depthIn}
-                              onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
-                              className="w-6 h-6 text-center bg-white border border-[#EAE3D2] rounded text-[10px] p-0"
-                              title="Inches"
-                            />
-                          </div>
-                        </td>
+            {/* Final Taxable Subtotal */}
+            <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">3. Final Taxable Amt</span>
+              <span className="text-base font-black text-stone-900 font-mono block">
+                ₹{(activeBOQ?.taxableAmount !== undefined ? activeBOQ.taxableAmount : (activeBOQ?.subtotal || 0)).toLocaleString("en-IN")}
+              </span>
+              <span className="text-[10px] text-stone-400">Net after discount</span>
+            </div>
 
-                        {/* Qty */}
-                        <td className="py-1.5 px-1">
-                          <input
-                            type="number"
-                            min={1}
-                            value={item.qty || 1}
-                            onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
-                            className="w-8 h-6 mx-auto text-center bg-white border border-[#EAE3D2] rounded text-[10.5px] p-0"
-                          />
-                        </td>
+            {/* GST Breakdown */}
+            <div className="p-3 bg-sky-50/60 rounded-xl border border-sky-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider">4. GST</span>
+                <select
+                  value={activeBOQ?.gstPercent !== undefined ? activeBOQ.gstPercent : 18}
+                  onChange={(e) => {
+                    const updated = { ...activeBOQ, gstPercent: Number(e.target.value) };
+                    setActiveBOQ(recalculateBOQ(updated));
+                  }}
+                  className="text-[10px] font-bold bg-white border border-sky-300 rounded px-1.5 py-0.5 text-sky-900 cursor-pointer"
+                >
+                  <option value={18}>18% (Standard)</option>
+                  <option value={12}>12%</option>
+                  <option value={5}>5%</option>
+                  <option value={0}>0% (Exempt)</option>
+                </select>
+              </div>
+              <span className="text-base font-black text-sky-950 font-mono block">
+                ₹{(activeBOQ?.gstTotal || 0).toLocaleString("en-IN")}
+              </span>
+              <span className="text-[10px] text-sky-700 font-medium block">
+                CGST: ₹{(activeBOQ?.cgstAmount || 0).toLocaleString("en-IN")} • SGST: ₹{(activeBOQ?.sgstAmount || 0).toLocaleString("en-IN")}
+              </span>
+            </div>
 
-                        {/* Description */}
-                        <td className="py-1.5 px-1.5">
-                          <input
-                            type="text"
-                            value={item.description || ""}
-                            onChange={(e) => handleUpdateItemField(idx, "description", e.target.value)}
-                            placeholder="Spec notes"
-                            className="w-full h-6 px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px]"
-                          />
-                        </td>
-
-                        {/* Sq.ft (calculated) */}
-                        <td className="py-1.5 px-1 text-right font-mono font-semibold text-stone-700 text-[10.5px]">
-                          {item.sqft || 1}
-                        </td>
-
-                        {/* Rate */}
-                        <td className="py-1.5 px-1 text-right">
-                          <input
-                            type="number"
-                            value={item.rate || 0}
-                            onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
-                            className="w-14 h-6 text-right px-1 bg-white border border-[#EAE3D2] rounded text-[10.5px] font-semibold text-stone-800"
-                          />
-                        </td>
-
-                        {/* Amount */}
-                        <td className="py-1.5 px-1.5 text-right font-black text-[#9E7B1D] text-[11px] whitespace-nowrap">
-                          ₹{(item.amount || 0).toLocaleString("en-IN")}
-                        </td>
-
-                        {/* Actions: Photo Selector, Minus Delete */}
-                        <td className="py-2 px-2 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={() => handleOpenImagePicker(idx)}
-                              title={
-                                item.photos?.length
-                                  ? `${item.photos.length} image(s) attached. Click to select/change.`
-                                  : "Select/Upload Component Images"
-                              }
-                              className={`p-1 rounded-lg transition cursor-pointer relative ${item.photos?.length
-                                ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
-                                : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
-                                }`}
-                            >
-                              <ImageIcon size={14} />
-                              {item.photos?.length > 0 && (
-                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#D4AF37] text-stone-950 font-extrabold text-[8px] rounded-full flex items-center justify-center">
-                                  {item.photos.length}
-                                </span>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleRemoveItem(idx)}
-                              title="Remove item"
-                              className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                            >
-                              <MinusCircle size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+            {/* Grand Total */}
+            <div className="p-3 bg-gradient-to-br from-amber-50 via-amber-100/70 to-amber-200/50 rounded-xl border-2 border-amber-300 space-y-1 shadow-xs">
+              <span className="text-[11px] font-black text-amber-900 uppercase tracking-wider block">5. Grand Total</span>
+              <span className="text-lg font-black text-[#9E7B1D] font-mono block">
+                ₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}
+              </span>
+              <span className="text-[10px] text-amber-800 font-semibold">Includes All Specs & Taxes</span>
+            </div>
           </div>
         </div>
+      </div>
 
       {/* Add New Space Modal with Autocomplete Suggestions */}
       {isAddSpaceOpen && (
@@ -3055,216 +3250,354 @@ export default function BOQManagement() {
       )}
 
       {/* ========================================================================= */}
-      {/* QUOTATION PREVIEW & EXPORT MODAL */}
+      {/* MODAL: EDIT ITEM SPECIFICATION & DESCRIPTION (Spacious Popup Modal) */}
+      {/* ========================================================================= */}
+      {descriptionModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-xl overflow-hidden animate-in zoom-in-95">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+              <div>
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
+                  {descriptionModal.spaceName} • Item Specification
+                </span>
+                <h3 className="font-extrabold text-base text-stone-900">
+                  {descriptionModal.itemName}
+                </h3>
+              </div>
+              <button
+                onClick={() => setDescriptionModal({ isOpen: false, itemIdx: null, itemName: "", description: "", spaceName: "" })}
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Quick Specification Chips to Click & Append */}
+              <div>
+                <span className="text-xs font-bold text-stone-700 block mb-2">
+                  Quick Specifications (Click to add to description):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "18 mm thk Hardcore Triple A grade Okuma face Commercial plywood",
+                    "1.5mm thk Premium Acrylic finish",
+                    "Hardware (Channels, fittings): Onyx / Ebco",
+                    "Soft-close hydraulic hinges",
+                    "Concealed LED Warm Profile lighting",
+                    "0.8mm Inner liner laminate (Off-white)",
+                    "2mm machine pressed PVC edge banding",
+                    "Toughened fluted glass shutters in aluminium profile frame"
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setDescriptionModal((prev) => ({
+                          ...prev,
+                          description: prev.description ? `${prev.description}\n${chip}` : chip
+                        }));
+                      }}
+                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] hover:text-stone-950 border border-amber-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                    >
+                      + {chip.length > 35 ? chip.substring(0, 35) + "..." : chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Large Visible Textarea */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-stone-700">Detailed Specification & Notes</label>
+                  <span className="text-[11px] text-stone-400 font-mono">
+                    {descriptionModal.description?.length || 0} characters
+                  </span>
+                </div>
+                <textarea
+                  rows={6}
+                  value={descriptionModal.description}
+                  onChange={(e) => setDescriptionModal((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter complete material specifications, dimensions, hardware, warranty, and craftsmanship notes..."
+                  className="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-2xl text-sm text-stone-800 focus:bg-white focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-200 font-medium transition leading-relaxed shadow-inner"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDescriptionModal({ isOpen: false, itemIdx: null, itemName: "", description: "", spaceName: "" })}
+                className="px-4 py-2 text-xs font-bold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDescriptionModal}
+                className="px-6 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+              >
+                Save Specification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* QUOTATION PREVIEW & EXPORT MODAL (Exact Matching of User Images 1 & 2) */}
       {/* ========================================================================= */}
       {isQuotationModalOpen && quotationBOQ && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/75 backdrop-blur-xs p-3 sm:p-6 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header Toolbar */}
+            <div className="px-6 py-3.5 border-b border-[#EAE3D2] flex flex-wrap items-center justify-between gap-3 bg-[#FAF9F5]">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-[#9E7B1D]" />
                 <h3 className="font-extrabold text-sm text-stone-900">
-                  Official Project Quotation • {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
+                  Official Estimate & BOQ Quotation • {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
                 </h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => downloadBOQPdf(quotationBOQ)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
-                  title="Download PDF Quotation"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
+                  title="Download Official PDF Quotation"
                 >
-                  <Download size={13} />
+                  <Download size={14} />
                   <span>Download PDF</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 rounded-xl transition cursor-pointer"
+                  onClick={() => printBOQQuotation(quotationBOQ)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 border border-stone-200 rounded-xl transition cursor-pointer"
+                  title="Print or Save as High-Res Vector PDF"
                 >
-                  <Printer size={13} />
-                  <span>Print</span>
+                  <Printer size={14} />
+                  <span>Print / Save PDF</span>
                 </button>
                 <button
                   onClick={() => setIsQuotationModalOpen(false)}
-                  className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+                  className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer ml-1"
                 >
                   <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Printable Quotation Content */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
-              {/* Brand Header */}
-              <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b-2 border-stone-900">
-                <div>
-                  <h1 className="text-xl font-black tracking-tight text-[#9E7B1D]">VELORA LUXURY INTERIORS</h1>
-                  <p className="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">
-                    Bespoke Turnkey Residential & Commercial Interiors
-                  </p>
-                  <p className="text-[11px] text-stone-600 mt-1">
-                    Pune & Mumbai • info@velorainteriors.com • +91 98765 43210
-                  </p>
-                </div>
-
-                <div className="text-right space-y-0.5">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase block">Quotation Reference</span>
-                  <span className="text-sm font-black font-mono text-stone-900 block">
-                    {quotationBOQ.boqNumber || "QUOTATION"}
-                  </span>
-                  <span className="text-[11px] text-stone-500 font-medium block">
-                    Date: {new Date(quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Client & Project Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF9F5] p-4 rounded-2xl border border-[#EAE3D2]">
-                <div>
-                  <span className="text-[10px] text-stone-400 font-bold uppercase block mb-1">Quotation Prepared For:</span>
-                  <p className="font-extrabold text-stone-900 text-sm">{quotationBOQ.clientName || "Valued Client"}</p>
+            {/* Printable Quotation Sheet matching Image 1 & 2 */}
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
+              {/* Brand Header matching Image 2 & Image 1 */}
+              <div className="flex flex-wrap items-start justify-between gap-6 pb-4 border-b border-stone-200">
+                {/* Left: Prepared For */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Prepared for</span>
+                  <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
+                  <p className="text-xs text-stone-600 font-medium">Project: {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
                   {quotationBOQ.clientPhone && (
-                    <p className="text-stone-600">Phone: {quotationBOQ.clientPhone}</p>
+                    <p className="text-xs text-stone-600 font-medium">Phone: {quotationBOQ.clientPhone}</p>
                   )}
-                  {quotationBOQ.clientEmail && (
-                    <p className="text-stone-600">Email: {quotationBOQ.clientEmail}</p>
-                  )}
-                </div>
-
-                <div className="sm:text-right space-y-1">
-                  <span className="text-[10px] text-stone-400 font-bold uppercase block">Specification Package:</span>
-                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
-                    {quotationBOQ.activePackage || "Standard"} Luxury Package
-                  </span>
-                  <p className="text-stone-500 text-[11px]">
-                    Valid for: <b>30 Calendar Days</b>
+                  <p className="text-xs text-stone-500">
+                    Date: {new Date(quotationBOQ.enquiryDate || quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
                   </p>
                 </div>
+
+                {/* Right: Velora Antaraal Branding from Image 2 */}
+                <div className="text-right space-y-1">
+                  <h1 className="text-2xl font-black text-[#9E7B1D] tracking-wide">VELORA ANTARAAL</h1>
+                  <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
+                    INTERIOR DESIGN | DÉCOR | RETAIL
+                  </p>
+                  <p className="text-[11px] text-stone-600">
+                    Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road, Wakad, Pune-411057
+                  </p>
+                  <p className="text-[11px] text-stone-600 font-semibold">
+                    +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
+                  </p>
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
+                    Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
+                  </span>
+                </div>
               </div>
 
-              {/* Itemized Space Breakdown */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
-                  Scope of Work & Space Breakdown
-                </h4>
+              {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
+              <div className="text-center py-1">
+                <h3 className="text-2xl font-black text-[#A83232] tracking-widest uppercase">
+                  ESTIMATE
+                </h3>
+              </div>
 
-                {(quotationBOQ.spaces || []).map((space, sIdx) => (
-                  <div key={sIdx} className="border border-[#EAE3D2] rounded-xl overflow-hidden shadow-2xs">
-                    <div className="bg-[#FAF9F5] px-4 py-2 flex items-center justify-between border-b border-[#EAE3D2]">
-                      <span className="font-extrabold text-stone-900">{space.name}</span>
-                      <span className="font-black text-[#9E7B1D]">
-                        ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
-                      </span>
-                    </div>
+              {/* Space-by-Space Tables matching Image 1 */}
+              <div className="space-y-6">
+                {(quotationBOQ.spaces || []).map((space, sIdx) => {
+                  const sItems = (space.items && space.items.length > 0) ? space.items : [
+                    { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
+                  ];
 
-                    <table className="w-full text-left text-[11px] border-collapse">
-                      <thead className="bg-stone-50 text-stone-500 font-semibold border-b border-stone-200">
-                        <tr>
-                          <th className="py-2 px-3">Item Name</th>
-                          <th className="py-2 px-2">Type / Spec</th>
-                          <th className="py-2 px-2 text-center">Dimensions</th>
-                          <th className="py-2 px-2 text-right">Sq.ft</th>
-                          <th className="py-2 px-2 text-center">Qty</th>
-                          <th className="py-2 px-2 text-right">Rate</th>
-                          <th className="py-2 px-3 text-right">Amount (₹)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-100 text-stone-700">
-                        {(!space.items || space.items.length === 0) ? (
+                  return (
+                    <div key={sIdx} className="border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
+                      {/* Space Maroon Title Bar matching Image 1 */}
+                      <div className="bg-[#FEF2F2] border-b border-[#A83232] px-4 py-2.5 flex items-center justify-between">
+                        <span className="font-black text-sm text-[#A83232] uppercase tracking-wider">
+                          {space.name}
+                        </span>
+                        <span className="font-black text-xs text-[#A83232] font-mono">
+                          Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+
+                      {/* Items Table matching Image 1 Columns */}
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead className="bg-[#FAF9F5] border-b border-stone-300 text-[11px] font-bold text-stone-800">
                           <tr>
-                            <td className="py-2 px-3 font-semibold text-stone-900">
-                              {space.roomTotal > 0 ? `${space.name} Turnkey Scope & Fitout` : `${space.name} Space`}
-                            </td>
-                            <td className="py-2 px-2 text-stone-600">Standard Spec</td>
-                            <td className="py-2 px-2 text-center text-stone-500">-</td>
-                            <td className="py-2 px-2 text-right font-mono">1</td>
-                            <td className="py-2 px-2 text-center">1</td>
-                            <td className="py-2 px-2 text-right font-mono">
-                              ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
-                            </td>
-                            <td className="py-2 px-3 text-right font-bold text-stone-900">
-                              ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
-                            </td>
+                            <th className="py-2.5 px-3 w-10 text-center">SN</th>
+                            <th className="py-2.5 px-3 min-w-[260px]">Item Description</th>
+                            <th className="py-2.5 px-3 w-24 text-center">Ref.</th>
+                            <th className="py-2.5 px-3 w-20 text-center">UOM</th>
+                            <th className="py-2.5 px-3 w-28 text-right">Unit Rate</th>
+                            <th className="py-2.5 px-2 w-14 text-center">Qty</th>
+                            <th className="py-2.5 px-4 w-32 text-right">Price</th>
                           </tr>
-                        ) : (
-                          space.items.map((it, itIdx) => (
-                            <tr key={itIdx}>
-                              <td className="py-2 px-3 font-semibold text-stone-900">{it.name}</td>
-                              <td className="py-2 px-2 text-stone-600">{it.typeVariant || "Box"}</td>
-                              <td className="py-2 px-2 text-center text-stone-500">
-                                {it.lengthFt ? `${it.lengthFt}ft ${it.lengthIn || 0}in x ${it.heightFt || 0}ft` : "-"}
-                              </td>
-                              <td className="py-2 px-2 text-right font-mono">{it.sqft || 1}</td>
-                              <td className="py-2 px-2 text-center">{it.qty || 1}</td>
-                              <td className="py-2 px-2 text-right font-mono">₹{(it.rate || 0).toLocaleString("en-IN")}</td>
-                              <td className="py-2 px-3 text-right font-bold text-stone-900">
-                                ₹{(it.amount || 0).toLocaleString("en-IN")}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
+                        </thead>
+
+                        <tbody className="divide-y divide-stone-200 text-stone-800">
+                          {sItems.map((it, itIdx) => {
+                            const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
+                            const rate = Number(it.rate) || 0;
+                            const qty = Number(it.qty) || 1;
+                            const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
+                            const dims = (it.lengthFt || it.heightFt)
+                              ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
+                              : "";
+
+                            return (
+                              <tr key={itIdx} className="hover:bg-amber-50/20">
+                                <td className="py-3 px-3 text-center font-bold text-stone-500">
+                                  {itIdx + 1}
+                                </td>
+                                <td className="py-3 px-3 space-y-1">
+                                  <h5 className="font-black text-stone-900 text-xs sm:text-sm">{it.name || "Custom Component"}</h5>
+                                  <p className="text-[10.5px] font-bold text-stone-500">
+                                    {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: {it.packageVariant || "Standard"}
+                                  </p>
+                                  <p className="text-xs text-stone-700 leading-relaxed">
+                                    {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
+                                  </p>
+                                  <p className="text-[10px] text-stone-500 font-semibold">
+                                    Hardware (Channels, fittings): Onyx / Ebco / Hettich
+                                  </p>
+                                  {dims && (
+                                    <p className="text-[10px] text-stone-600 font-mono font-medium">
+                                      {dims}
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="py-3 px-2 text-center align-middle">
+                                  {imgUrl ? (
+                                    <img
+                                      src={imgUrl}
+                                      alt={it.name}
+                                      className="w-14 h-14 object-cover rounded-lg border border-stone-300 mx-auto shadow-2xs"
+                                    />
+                                  ) : (
+                                    <div className="w-14 h-14 bg-stone-100 border border-dashed border-stone-300 rounded-lg flex flex-col items-center justify-center text-stone-400 mx-auto text-[9px] font-bold">
+                                      <span>CAD Ref</span>
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="py-3 px-3 text-center text-stone-700 font-medium">
+                                  {it.uom || it.unit || "Sq. Ft"}
+                                </td>
+                                <td className="py-3 px-3 text-right font-mono font-bold text-stone-800">
+                                  ₹{rate.toLocaleString("en-IN")}
+                                </td>
+                                <td className="py-3 px-2 text-center font-bold text-stone-900">
+                                  {qty}
+                                </td>
+                                <td className="py-3 px-4 text-right font-mono font-black text-stone-950">
+                                  ₹{amt.toLocaleString("en-IN")}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Commercial Summary Box */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                {/* Milestone Payment Terms */}
-                <div className="p-4 bg-[#FAF9F5] rounded-2xl border border-[#EAE3D2] space-y-2">
-                  <h5 className="font-extrabold text-stone-900 text-xs">Payment Milestone Schedule</h5>
-                  <div className="space-y-1.5 text-[11px] text-stone-700">
-                    <div className="flex justify-between border-b border-stone-200 pb-1">
-                      <span>1. Booking & Design Sign-off (50%):</span>
-                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.5).toLocaleString("en-IN")}</span>
+              {/* Bottom Commercial Totals & Terms & Conditions matching Image 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-stone-200">
+                {/* Terms & Conditions matching Image 2 */}
+                <div className="space-y-2 text-[10.5px] text-stone-600">
+                  <h5 className="font-extrabold text-stone-900 uppercase text-xs">TERMS & CONDITIONS</h5>
+                  <ol className="list-decimal pl-4 space-y-1 leading-tight">
+                    <li>18% GST Extra Applicable.</li>
+                    <li>Full Payment to be Cleared Before the Work Completion.</li>
+                    <li>Goods Once Sold will not be Taken back or Exchanged.</li>
+                    <li>NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.</li>
+                    <li>The Company hold no Responsibility on the Fabric on any product.</li>
+                    <li>The Company has full Rights to amend the Rates at any point of the Project before completion.</li>
+                    <li>Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.</li>
+                  </ol>
+                  <p className="font-bold text-stone-800 pt-1">*T&C is Well Read and Accepted. Thank You</p>
+                </div>
+
+                {/* Commercial Totals Box matching Image 2 */}
+                <div className="border border-stone-300 rounded-xl overflow-hidden shadow-2xs">
+                  <div className="divide-y divide-stone-200 text-xs">
+                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-700">
+                      <span className="font-bold">TOTAL</span>
+                      <span className="font-bold font-mono">₹{(quotationBOQ.subtotal || quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between border-b border-stone-200 pb-1">
-                      <span>2. Production Commencement (40%):</span>
-                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.4).toLocaleString("en-IN")}</span>
+                    <div className="flex justify-between p-2.5 bg-white text-emerald-800">
+                      <span className="font-bold">DISCOUNT</span>
+                      <span className="font-bold font-mono">- ₹{(quotationBOQ.discountAmount || 0).toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>3. Handover & Final Snag (10%):</span>
-                      <span className="font-bold">₹{Math.round((quotationBOQ.grandTotal || 0) * 0.1).toLocaleString("en-IN")}</span>
+                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-900">
+                      <span className="font-black">FINAL AMT</span>
+                      <span className="font-black font-mono">₹{(quotationBOQ.taxableAmount !== undefined ? quotationBOQ.taxableAmount : (quotationBOQ.subtotal || quotationBOQ.grandTotal || 0)).toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between p-2.5 bg-white text-stone-700">
+                      <span>CGST ({((quotationBOQ.gstPercent || 18) / 2)}%)</span>
+                      <span className="font-mono">₹{(quotationBOQ.cgstAmount || 0).toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between p-2.5 bg-stone-50 text-stone-700">
+                      <span>SGST ({((quotationBOQ.gstPercent || 18) / 2)}%)</span>
+                      <span className="font-mono">₹{(quotationBOQ.sgstAmount || 0).toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37] text-sm">
+                      <span className="font-black">TOTAL AMT</span>
+                      <span className="font-black font-mono">₹{(quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Totals */}
-                <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2">
-                  <h5 className="font-extrabold text-stone-900 text-xs">Commercial Summary</h5>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between text-stone-600">
-                      <span>Subtotal (Excl. GST):</span>
-                      <span className="font-bold font-mono">
-                        ₹{Math.round((quotationBOQ.grandTotal || 0) / 1.18).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-stone-600">
-                      <span>Estimated GST (18%):</span>
-                      <span className="font-bold font-mono">
-                        ₹{Math.round((quotationBOQ.grandTotal || 0) - (quotationBOQ.grandTotal || 0) / 1.18).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm font-black text-[#9E7B1D] border-t border-amber-300 pt-1.5">
-                      <span>Grand Total:</span>
-                      <span>₹{(quotationBOQ.grandTotal || 0).toLocaleString("en-IN")}</span>
-                    </div>
-                  </div>
+              {/* Signatures Row matching Image 2 */}
+              <div className="flex justify-between items-end pt-8 pb-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
+                  <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                 </div>
               </div>
 
-              {/* Terms */}
-              <div className="pt-2 text-[10px] text-stone-400 space-y-0.5 border-t border-stone-100">
-                <p>1. Rates quoted are subject to final site measurement verification.</p>
-                <p>2. Delivery timeline: 45 working days from final sign-off of 2D/3D layouts and material selection.</p>
-                <p>3. This is an electronically issued quotation from Velora ERP.</p>
+              {/* Footer matching Image 2 */}
+              <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
+                <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Ganesh, Pune, Maharashtra, India</p>
               </div>
             </div>
 
-            {/* Modal Footer */}
+            {/* Modal Footer Controls */}
             <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <button
@@ -3275,20 +3608,26 @@ export default function BOQManagement() {
                   <span>Download Quotation PDF</span>
                 </button>
                 <button
+                  onClick={() => printBOQQuotation(quotationBOQ)}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print / Save as PDF</span>
+                </button>
+                <button
                   onClick={() => {
                     setIsQuotationModalOpen(false);
-                    // Extract items for invoice
                     const invoiceItems = [];
                     (quotationBOQ.spaces || []).forEach((sp) => {
                       (sp.items || []).forEach((it) => {
                         invoiceItems.push({
                           productName: it.name || "Custom Component",
-                          hsnSac: "HSN/SAC",
+                          hsnSac: "995476",
                           quantity: it.qty || 1,
                           unit: String(it.sqft || it.unit || "1"),
                           rate: it.rate || 0,
-                          gstPercent: 0,
-                          gstAmount: 0,
+                          gstPercent: quotationBOQ.gstPercent || 18,
+                          gstAmount: Math.round((it.amount || 0) * 0.18),
                           total: it.amount || (it.rate * (it.sqft || it.qty || 1))
                         });
                       });
@@ -3303,17 +3642,17 @@ export default function BOQManagement() {
                           clientName: quotationBOQ.clientName,
                           clientEmail: quotationBOQ.clientEmail,
                           clientPhone: quotationBOQ.clientPhone,
-                          subtotal: quotationBOQ.grandTotal || 0,
+                          subtotal: quotationBOQ.taxableAmount || quotationBOQ.subtotal || quotationBOQ.grandTotal || 0,
                           grandTotal: quotationBOQ.grandTotal || 0,
                           items: invoiceItems.length > 0 ? invoiceItems : [
                             {
                               productName: "Turnkey Interior Fitout Scope",
-                              hsnSac: "HSN/SAC",
+                              hsnSac: "995476",
                               quantity: 1,
                               unit: "1",
                               rate: quotationBOQ.grandTotal || 0,
-                              gstPercent: 0,
-                              gstAmount: 0,
+                              gstPercent: 18,
+                              gstAmount: Math.round((quotationBOQ.grandTotal || 0) * 0.18),
                               total: quotationBOQ.grandTotal || 0
                             }
                           ]
@@ -3324,7 +3663,7 @@ export default function BOQManagement() {
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                 >
                   <FileText size={14} />
-                  <span>Convert / Create Tax Invoice</span>
+                  <span>Convert to Tax Invoice</span>
                 </button>
               </div>
 
@@ -3364,9 +3703,9 @@ export default function BOQManagement() {
         </div>
       )}
 
-      {/* BOQ Saved Confirmation Modal (Auto Client & Invoice Synced) */}
+      {/* BOQ Saved Confirmation Modal with View & Download PDF Options */}
       {savedSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 backdrop-blur-xs p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/65 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
             <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 p-6 text-white text-center relative">
               <button
@@ -3380,12 +3719,12 @@ export default function BOQManagement() {
               </div>
               <h3 className="text-xl font-black">BOQ Saved Successfully!</h3>
               <p className="text-amber-100 text-xs mt-1">
-                Client profile & Tax Invoice automatically synchronized & generated.
+                Quotation & Tax Invoice generated. View, print, or download PDF below.
               </p>
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Client profile card */}
+              {/* Client Profile Card */}
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Client Profile</span>
@@ -3409,16 +3748,20 @@ export default function BOQManagement() {
                 </div>
               </div>
 
-              {/* Invoice details card */}
+              {/* Commercial & Invoice details card */}
               <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Tax Invoice</span>
-                  <span className="px-2 py-0.5 bg-amber-200/80 text-amber-900 text-[10px] font-bold rounded-md">{savedSuccessModal.invoice?.invoiceNumber || "Ready to Print"}</span>
+                  <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Estimate & Quotation</span>
+                  <span className="px-2 py-0.5 bg-amber-200/80 text-amber-900 text-[10px] font-bold rounded-md">
+                    {savedSuccessModal.boq?.boqNumber || savedSuccessModal.invoice?.invoiceNumber || "Ready"}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <div>
-                    <p className="font-extrabold text-stone-900 text-sm">Invoice #: {savedSuccessModal.invoice?.invoiceNumber}</p>
-                    <p className="text-xs text-amber-900 font-bold">Grand Total: ₹{(savedSuccessModal.boq?.grandTotal || savedSuccessModal.invoice?.grandTotal || 0).toLocaleString("en-IN")}</p>
+                    <p className="font-extrabold text-stone-900 text-sm">Grand Total (Incl. GST)</p>
+                    <p className="text-sm text-[#9E7B1D] font-black font-mono">
+                      ₹{(savedSuccessModal.boq?.grandTotal || savedSuccessModal.invoice?.grandTotal || 0).toLocaleString("en-IN")}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -3432,17 +3775,44 @@ export default function BOQManagement() {
                 </div>
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5 justify-end">
+              {/* View and Download PDF Action Buttons */}
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
+                  type="button"
+                  onClick={() => {
+                    const targetBOQ = savedSuccessModal.boq;
+                    setSavedSuccessModal(null);
+                    handleOpenQuotationModal(targetBOQ);
+                  }}
+                  className="px-3 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Eye size={14} />
+                  <span>View Quotation</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => downloadBOQPdf(savedSuccessModal.boq)}
-                  className="w-full sm:w-auto px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 bg-stone-100 hover:bg-amber-50 text-[#9E7B1D] border border-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Download size={14} />
-                  <span>Download BOQ PDF</span>
+                  <span>Download PDF</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => printBOQQuotation(savedSuccessModal.boq)}
+                  className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print Preview</span>
+                </button>
+              </div>
+
+              <div className="pt-1 flex justify-end">
                 <button
                   onClick={() => setSavedSuccessModal(null)}
-                  className="w-full sm:w-auto px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-6 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   Done
                 </button>

@@ -20,174 +20,325 @@ export const triggerBlobDownload = (blob, filename) => {
 };
 
 /**
- * Client-Side Luxury BOQ / Quotation PDF Generator (100% Reliable Offline Fallback)
+ * Loads an image URL into a base64 Data URL with fallback handling
  */
-export const generateClientSideBOQPdf = (boq) => {
+export const loadImageDataUrl = (url) => {
+  return new Promise((resolve) => {
+    if (!url || typeof url !== "string") return resolve(null);
+    if (url.startsWith("data:image")) return resolve(url);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width || 120;
+        canvas.height = img.naturalHeight || img.height || 120;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        resolve(dataUrl);
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+};
+
+/**
+ * Client-Side Luxury BOQ / Estimate PDF Generator Matching User Images
+ * (Image 1 Table Structure with Ref. Images + Image 2 Velora Antaraal Theme, Totals & T&C)
+ */
+export const generateClientSideBOQPdf = async (boq) => {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "pt",
     format: "a4"
   });
 
-  const boqNum = boq?.boqNumber || boq?.enquiryNo || "BOQ-QUOTATION";
+  const boqNum = boq?.boqNumber || boq?.enquiryNo || "BOQ-ESTIMATE";
   const clientName = boq?.clientName || "Valued Client";
-  const grandTotal = Number(boq?.grandTotal) || 0;
-  const subtotal = Number(boq?.subtotal) || Math.round(grandTotal / 1.18);
-  const gstTotal = Number(boq?.gstTotal) || (grandTotal - subtotal);
+  const clientPhone = boq?.clientPhone || "";
+  const siteLocation = boq?.siteLocation || boq?.siteAddress || "Wakad, Pune";
+  const issueDate = boq?.enquiryDate || boq?.createdAt || Date.now();
+  const formattedDate = new Date(issueDate).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
 
-  // Brand Header
-  doc.setFillColor(197, 160, 89); // Gold
-  doc.rect(40, 30, 515, 4, "F");
+  const spaces = (boq?.spaces && boq.spaces.length > 0) ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(158, 123, 29); // Dark Gold
-  doc.text("VELORA LUXURY INTERIORS", 40, 55);
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.setTextColor(100, 116, 139);
-  doc.text("Bespoke Designs • Premium Materials • Flawless Execution", 40, 68);
-
-  // Reference & Date Box (Right aligned)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(28, 25, 23);
-  doc.text(`ESTIMATE REF: ${boqNum}`, 555, 55, { align: "right" });
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Date: ${new Date(boq?.createdAt || Date.now()).toLocaleDateString("en-IN")}`, 555, 68, { align: "right" });
-
-  // Client Details Card
-  doc.setFillColor(250, 249, 245);
-  doc.roundedRect(40, 82, 515, 50, 6, 6, "F");
-  doc.setDrawColor(234, 227, 210);
-  doc.roundedRect(40, 82, 515, 50, 6, 6, "S");
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(28, 25, 23);
-  doc.text(`CLIENT: ${clientName.toUpperCase()}`, 50, 98);
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Phone: ${boq?.clientPhone || "N/A"} | Email: ${boq?.clientEmail || "N/A"}`, 50, 112);
-  doc.text(`Package: ${boq?.activePackage || "Standard"} Luxury | Status: ${boq?.status || "Draft"}`, 50, 124);
-
-  let currentY = 145;
-
-  // Space & Item Tables
-  const spaces = (boq?.spaces && boq.spaces.length > 0) ? boq.spaces : [{ name: "Space Scope", roomTotal: grandTotal, items: [] }];
-
-  spaces.forEach((space) => {
-    // Space Heading
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(158, 123, 29);
-    doc.text(`${space.name.toUpperCase()} (Total: Rs. ${(space.roomTotal || 0).toLocaleString("en-IN")})`, 40, currentY);
-    currentY += 8;
-
-    const tableRows = (space.items || []).map((item) => {
-      const name = item.name || item.itemName || "Interior Component";
-      const spec = item.typeVariant || item.material || "Standard";
-      const dims = item.lengthFt ? `${item.lengthFt}ft ${item.lengthIn || 0}in x ${item.heightFt || 0}ft` : "-";
-      const sqft = item.sqft || 1;
-      const qty = item.qty || item.quantity || 1;
-      const rate = Math.round(item.rate || item.price || 0);
-      const amount = Math.round(item.amount || (rate * (item.sqft || qty)));
-
-      return [name, spec, dims, String(sqft), String(qty), `Rs. ${rate.toLocaleString("en-IN")}`, `Rs. ${amount.toLocaleString("en-IN")}`];
+  let spacesSubtotal = 0;
+  spaces.forEach((sp) => {
+    let sSum = 0;
+    (sp.items || []).forEach((it) => {
+      sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
     });
-
-    if (tableRows.length === 0) {
-      tableRows.push(["Scope Item", "Custom Specification", "-", "1", "1", `Rs. ${(space.roomTotal || 0).toLocaleString("en-IN")}`, `Rs. ${(space.roomTotal || 0).toLocaleString("en-IN")}`]);
-    }
-
-    autoTable(doc, {
-      startY: currentY,
-      margin: { left: 40, right: 40 },
-      head: [["Item Description", "Type / Spec", "Dimensions", "Sq.ft", "Qty", "Rate", "Amount"]],
-      body: tableRows,
-      theme: "striped",
-      headStyles: {
-        fillColor: [30, 41, 59],
-        textColor: [255, 255, 255],
-        fontSize: 7.5,
-        fontStyle: "bold"
-      },
-      bodyStyles: {
-        fontSize: 7,
-        textColor: [51, 65, 85]
-      },
-      columnStyles: {
-        0: { cellWidth: 160 },
-        1: { cellWidth: 100 },
-        2: { cellWidth: 75, halign: "center" },
-        3: { cellWidth: 35, halign: "right" },
-        4: { cellWidth: 25, halign: "center" },
-        5: { cellWidth: 55, halign: "right" },
-        6: { cellWidth: 65, halign: "right", fontStyle: "bold" }
-      }
-    });
-
-    currentY = doc.lastAutoTable.finalY + 18;
+    if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+    spacesSubtotal += sSum;
   });
 
-  // Summary & Milestone Box (Check if we need a new page)
-  if (currentY > 640) {
-    doc.addPage();
-    currentY = 50;
+  const discountType = boq?.discountType || "amount";
+  const discountValue = Number(boq?.discountValue || 0);
+  const discountAmount = Number(boq?.discountAmount) || (discountType === "percent" ? Math.round(spacesSubtotal * (discountValue / 100)) : Math.min(spacesSubtotal, Math.round(discountValue)));
+  const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
+  const gstPercent = boq?.gstPercent !== undefined ? Number(boq.gstPercent) : 18;
+  const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+  const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+  const gstTotal = cgstAmount + sgstAmount;
+  const grandTotal = Number(boq?.grandTotal) || (taxableAmount + gstTotal);
+
+  // Pre-load all line item images into base64
+  for (const space of spaces) {
+    for (const item of (space.items || [])) {
+      const imgUrl = (item.photos && item.photos[0]?.url) || item.image || item.photos?.[0] || "";
+      if (imgUrl && !item._base64) {
+        item._base64 = await loadImageDataUrl(imgUrl);
+      }
+    }
   }
 
- 
-
-  // Commercial Summary Card
-  doc.setFillColor(250, 246, 237);
-  doc.roundedRect(40, currentY, 515, 70, 6, 6, "F");
-  doc.setDrawColor(212, 175, 55);
-  doc.roundedRect(40, currentY, 515, 70, 6, 6, "S");
+  // Header Left: Prepared For matching Image 1
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(120, 113, 108);
+  doc.text("Prepared for", 40, 42);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(13);
   doc.setTextColor(28, 25, 23);
-  doc.text("COMMERCIAL SUMMARY", 55, currentY + 16);
+  doc.text(clientName, 40, 57);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Subtotal (Excl. GST): Rs. ${Math.round(subtotal).toLocaleString("en-IN")}`, 55, currentY + 32);
-  doc.text(`Estimated GST (18%): Rs. ${Math.round(gstTotal).toLocaleString("en-IN")}`, 55, currentY + 45);
+  doc.setFontSize(8.5);
+  doc.setTextColor(87, 83, 78);
+  doc.text(`Project: ${siteLocation}`, 40, 70);
+  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 40, 81);
+  doc.text(formattedDate, 40, clientPhone ? 92 : 81);
+
+  // Header Right: Velora Antaraal Branding matching Image 2
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(158, 123, 29); // Dark gold
+  doc.text("VELORA ANTARAAL", 555, 42, { align: "right" });
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(158, 123, 29);
-  doc.text(`GRAND TOTAL: Rs. ${Math.round(grandTotal).toLocaleString("en-IN")}`, 55, currentY + 60);
-
-  // Payment Schedule & Terms
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(28, 25, 23);
-  doc.text("PAYMENT MILESTONES:", 320, currentY + 16);
+  doc.setFontSize(7.5);
+  doc.setTextColor(120, 113, 108);
+  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 555, 53, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`1. Booking Advance (50%): Rs. ${Math.round(grandTotal * 0.5).toLocaleString("en-IN")}`, 320, currentY + 30);
-  doc.text(`2. Production (40%): Rs. ${Math.round(grandTotal * 0.4).toLocaleString("en-IN")}`, 320, currentY + 42);
-  doc.text(`3. Handover (10%): Rs. ${Math.round(grandTotal * 0.1).toLocaleString("en-IN")}`, 320, currentY + 54);
+  doc.setTextColor(87, 83, 78);
+  doc.text("Shop No.242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,", 555, 64, { align: "right" });
+  doc.text("Wakad, Pune-411057, Maharashtra", 555, 74, { align: "right" });
+  doc.text("+91 86055 26603 / 9284664507", 555, 84, { align: "right" });
+  doc.text("info@velora.family | https://velora.family", 555, 94, { align: "right" });
 
-  // Footer Note
-  doc.setFontSize(7);
-  doc.setTextColor(148, 163, 184);
-  doc.text(
-    "Electronically generated Quotation by Velora Luxury Interiors ERP. Valid for 30 days from issue.",
-    297.5,
-    810,
-    { align: "center" }
-  );
+  // Center Red/Maroon ESTIMATE Title matching Image 1 & 2
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.setTextColor(168, 50, 50); // Maroon from Image 1
+  doc.text("ESTIMATE", 297.5, 118, { align: "center" });
+
+  doc.setDrawColor(234, 227, 210);
+  doc.setLineWidth(0.75);
+  doc.line(40, 126, 555, 126);
+
+  let currentY = 136;
+
+  // Space-by-Space Tables matching Image 1
+  spaces.forEach((space) => {
+    if (currentY > 680) {
+      doc.addPage();
+      currentY = 40;
+    }
+
+    // Space Banner Bar (e.g. LIVING ROOM in maroon / bronze)
+    doc.setFillColor(254, 242, 242);
+    doc.rect(40, currentY, 515, 20, "F");
+    doc.setDrawColor(168, 50, 50);
+    doc.rect(40, currentY, 515, 20, "S");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(168, 50, 50);
+    doc.text(space.name.toUpperCase(), 48, currentY + 14);
+
+    const spaceItems = (space.items && space.items.length > 0) ? space.items : [
+      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
+    ];
+
+    const tableRows = spaceItems.map((item, idx) => {
+      const name = item.name || "Interior Component";
+      const spaceCategory = `${space.name.toUpperCase()} - >${space.name.toUpperCase()} - Category: ${item.typeVariant || "Wood Work"}, Sub Category: ${item.packageVariant || "Standard"}`;
+      const description = item.description || `Providing and Installation ${item.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`;
+      const dims = (item.lengthFt || item.heightFt)
+        ? `Dimension 1: ${item.lengthFt || 0}ft ${item.lengthIn ? `${item.lengthIn}in` : ""}\nDimension 2: ${item.heightFt || 0}ft ${item.heightIn ? `${item.heightIn}in` : ""}${item.depthFt ? `\nDepth: ${item.depthFt}ft` : ""}`
+        : "-";
+      const hardware = `Hardware (Channels, fittings): Onyx / Ebco`;
+
+      const fullDesc = `${name}\n\n${spaceCategory}\n${description}\n${hardware}\n${dims}`;
+
+      const uom = item.uom || item.unit || "Sq. Ft";
+      const rate = Number(item.rate) || 0;
+      const qty = Number(item.qty) || 1;
+      const amount = Number(item.amount) || (rate * (Number(item.sqft) || qty));
+
+      return [
+        String(idx + 1),
+        fullDesc,
+        { content: "", img: item._base64 },
+        uom,
+        `Rs. ${rate.toLocaleString("en-IN")}`,
+        String(qty),
+        `Rs. ${amount.toLocaleString("en-IN")}`
+      ];
+    });
+
+    autoTable(doc, {
+      startY: currentY + 20,
+      margin: { left: 40, right: 40 },
+      head: [["SN", "Item Description", "Ref.", "UOM", "Unit Rate", "Qty", "Price"]],
+      body: tableRows,
+      theme: "grid",
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [28, 25, 23],
+        fontSize: 7.5,
+        fontStyle: "bold",
+        lineWidth: 0.5,
+        lineColor: [200, 200, 200]
+      },
+      bodyStyles: {
+        fontSize: 6.8,
+        textColor: [40, 40, 40],
+        lineColor: [215, 215, 215],
+        lineWidth: 0.5,
+        valign: "middle"
+      },
+      columnStyles: {
+        0: { cellWidth: 24, halign: "center" },
+        1: { cellWidth: 235 },
+        2: { cellWidth: 60, halign: "center" },
+        3: { cellWidth: 42, halign: "center" },
+        4: { cellWidth: 54, halign: "right" },
+        5: { cellWidth: 26, halign: "center" },
+        6: { cellWidth: 74, halign: "right", fontStyle: "bold" }
+      },
+      didDrawCell: (data) => {
+        if (data.section === "body" && data.column.index === 2 && data.cell.raw?.img) {
+          try {
+            const pad = 4;
+            const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 48);
+            const x = data.cell.x + (data.cell.width - size) / 2;
+            const y = data.cell.y + (data.cell.height - size) / 2;
+            doc.addImage(data.cell.raw.img, "JPEG", x, y, size, size);
+          } catch (e) {
+            // fallback
+          }
+        }
+      }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 14;
+  });
+
+  // Check if summary and T&C need new page
+  if (currentY > 520) {
+    doc.addPage();
+    currentY = 40;
+  }
+
+  // Commercial Totals Table matching Image 2
+  const summaryStartX = 330;
+  const summaryWidth = 225;
+  const rowHeight = 14;
+
+  const totalsData = [
+    ["TOTAL", `Rs. ${spacesSubtotal.toLocaleString("en-IN")}`],
+    ["DISCOUNT", `Rs. ${discountAmount.toLocaleString("en-IN")}`],
+    ["FINAL AMT", `Rs. ${taxableAmount.toLocaleString("en-IN")}`],
+    [`CGST (${gstPercent / 2}%)`, `Rs. ${cgstAmount.toLocaleString("en-IN")}`],
+    [`SGST (${gstPercent / 2}%)`, `Rs. ${sgstAmount.toLocaleString("en-IN")}`],
+    ["TOTAL AMT", `Rs. ${grandTotal.toLocaleString("en-IN")}`]
+  ];
+
+  let sumY = currentY;
+  totalsData.forEach(([label, val], idx) => {
+    const isFinal = idx === totalsData.length - 1;
+    doc.setFillColor(isFinal ? 250 : 255, isFinal ? 246 : 255, isFinal ? 237 : 255);
+    doc.rect(summaryStartX, sumY, summaryWidth, rowHeight, "FD");
+    doc.setDrawColor(200, 200, 200);
+
+    doc.setFont("helvetica", isFinal ? "bold" : "normal");
+    doc.setFontSize(isFinal ? 8.5 : 7.5);
+    doc.setTextColor(isFinal ? 158 : 60, isFinal ? 123 : 60, isFinal ? 29 : 60);
+    doc.text(label, summaryStartX + 8, sumY + 10);
+    doc.text(val, summaryStartX + summaryWidth - 8, sumY + 10, { align: "right" });
+    sumY += rowHeight;
+  });
+
+  // Terms & Conditions Header & 7 Points matching Image 2
+  let tcY = currentY;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(28, 25, 23);
+  doc.text("TERMS & CONDITIONS", 40, tcY + 10);
+  tcY += 18;
+
+  const termsList = [
+    "1. 18% GST Extra Applicable.",
+    "2. Full Payment to be Cleared Before the Work Completion.",
+    "3. Goods Once Sold will not be Taken back or Exchanged.",
+    "4. NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.",
+    "5. The Company hold no Responsibility on the Fabric on any product.",
+    "6. The Company has full Rights to amend the Rates at any point of the Project before completion.",
+    "7. Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.",
+    "*T&C is Well Read and Accepted. Thank You"
+  ];
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.2);
+  doc.setTextColor(80, 80, 80);
+
+  termsList.forEach((t) => {
+    const lines = doc.splitTextToSize(t, 275);
+    doc.text(lines, 40, tcY);
+    tcY += (lines.length * 8) + 2;
+  });
+
+  const nextSectionY = Math.max(sumY, tcY) + 20;
+
+  // Signatures Section matching Image 2
+  if (nextSectionY > 740) {
+    doc.addPage();
+    currentY = 40;
+  } else {
+    currentY = nextSectionY;
+  }
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(60, 60, 60);
+  doc.text("Client Signature: _______________________", 40, currentY + 15);
+
+  doc.setFont("helvetica", "bold");
+  doc.text("For VELORA ANTARAAL", 555, currentY + 15, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.text("Authorized Signatory", 555, currentY + 35, { align: "right" });
+
+  // Footer matching Image 2
+  doc.setDrawColor(212, 175, 55);
+  doc.line(40, 790, 555, 790);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.setTextColor(158, 123, 29);
+  doc.text("SPACES WITHIN, DESIGNED BEAUTIFULLY", 297.5, 802, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
 
   doc.save(`${boqNum}.pdf`);
 };
@@ -202,7 +353,7 @@ export const downloadBOQPdf = async (boqOrId, customFilename) => {
   // Instant client-side generation if full BOQ object is passed
   if (typeof boqOrId === "object" && (boqOrId.clientName || boqOrId.spaces || boqOrId.boqNumber)) {
     try {
-      generateClientSideBOQPdf(boqOrId);
+      await generateClientSideBOQPdf(boqOrId);
       return;
     } catch (err) {
       console.warn("Client side BOQ PDF error, trying backend:", err);
@@ -230,7 +381,466 @@ export const downloadBOQPdf = async (boqOrId, customFilename) => {
 
   // Fallback: Generate Client-side PDF immediately
   const boqData = typeof boqOrId === "object" ? boqOrId : { boqNumber: String(id), clientName: "Valued Client", grandTotal: 3964567 };
-  generateClientSideBOQPdf(boqData);
+  await generateClientSideBOQPdf(boqData);
+};
+
+/**
+ * Direct High-Resolution Print / Save as PDF Function Matching Image 1 & 2
+ */
+export const printBOQQuotation = (boq) => {
+  if (!boq) return;
+
+  const clientName = boq.clientName || "Valued Client";
+  const clientPhone = boq.clientPhone || "-";
+  const clientEmail = boq.clientEmail || "-";
+  const siteLocation = boq.siteLocation || boq.siteAddress || "Wakad, Pune";
+  const boqNumber = boq.boqNumber || boq.enquiryNo || "BOQ-ESTIMATE";
+  const formattedDate = new Date(boq.enquiryDate || boq.createdAt || Date.now()).toLocaleDateString("en-IN", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric"
+  });
+
+  const spaces = boq.spaces && boq.spaces.length > 0 ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
+
+  let spacesSubtotal = 0;
+  spaces.forEach((sp) => {
+    let sSum = 0;
+    (sp.items || []).forEach((it) => {
+      sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+    });
+    if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+    spacesSubtotal += sSum;
+  });
+
+  const discountType = boq.discountType || "amount";
+  const discountValue = Number(boq.discountValue || 0);
+  const discountAmount = Number(boq.discountAmount) || (discountType === "percent" ? Math.round(spacesSubtotal * (discountValue / 100)) : Math.min(spacesSubtotal, Math.round(discountValue)));
+  const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
+  const gstPercent = boq.gstPercent !== undefined ? Number(boq.gstPercent) : 18;
+  const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+  const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+  const gstTotal = cgstAmount + sgstAmount;
+  const grandTotal = Number(boq.grandTotal) || (taxableAmount + gstTotal);
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("Please allow popups to print / save as PDF.");
+    return;
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Estimate_${boqNumber}</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 10mm 12mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1c1917;
+      margin: 0;
+      padding: 0;
+      font-size: 11px;
+      line-height: 1.4;
+      background: #fff;
+    }
+    .page-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #e7e5e4;
+      position: relative;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f5f5f4;
+    }
+    .client-box h4 {
+      margin: 0 0 2px 0;
+      font-size: 10px;
+      color: #78716c;
+      text-transform: uppercase;
+    }
+    .client-box h2 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 900;
+      color: #0c0a09;
+    }
+    .client-box p {
+      margin: 2px 0;
+      font-size: 11px;
+      color: #57534e;
+    }
+    .brand-box {
+      text-align: right;
+    }
+    .brand-box h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: #9e7b1d;
+      letter-spacing: 0.5px;
+    }
+    .brand-box .tagline {
+      font-size: 9px;
+      font-weight: 700;
+      color: #78716c;
+      letter-spacing: 1px;
+      margin: 2px 0 4px 0;
+    }
+    .brand-box p {
+      margin: 1px 0;
+      font-size: 10px;
+      color: #57534e;
+    }
+    .title-banner {
+      text-align: center;
+      margin: 10px 0 14px 0;
+    }
+    .title-banner h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: #a83232;
+      letter-spacing: 1.5px;
+    }
+    .space-block {
+      margin-bottom: 16px;
+      break-inside: avoid;
+    }
+    .space-title-bar {
+      background: #fef2f2;
+      border: 1px solid #a83232;
+      color: #a83232;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.item-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #d6d3d1;
+      border-top: none;
+      font-size: 10px;
+    }
+    table.item-table th {
+      background: #fafaf9;
+      border: 1px solid #d6d3d1;
+      padding: 6px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+      color: #292524;
+    }
+    table.item-table td {
+      border: 1px solid #e7e5e4;
+      padding: 6px 8px;
+      vertical-align: middle;
+      color: #292524;
+    }
+    .item-name {
+      font-weight: 900;
+      font-size: 11px;
+      color: #0c0a09;
+      margin-bottom: 2px;
+    }
+    .item-cat {
+      font-size: 9.5px;
+      color: #78716c;
+      margin-bottom: 4px;
+    }
+    .item-desc {
+      font-size: 9.5px;
+      color: #44403c;
+      margin-bottom: 3px;
+      line-height: 1.35;
+    }
+    .item-specs {
+      font-size: 9px;
+      color: #78716c;
+    }
+    .ref-img {
+      width: 55px;
+      height: 55px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #e7e5e4;
+      display: block;
+      margin: 0 auto;
+    }
+    .no-img {
+      width: 55px;
+      height: 55px;
+      background: #f5f5f4;
+      border: 1px dashed #d6d3d1;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: #a8a29e;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .bottom-section {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 14px;
+      break-inside: avoid;
+    }
+    .tc-box {
+      flex: 1;
+      font-size: 8.5px;
+      color: #57534e;
+      line-height: 1.35;
+    }
+    .tc-box h5 {
+      margin: 0 0 6px 0;
+      font-size: 10px;
+      font-weight: 900;
+      color: #1c1917;
+      text-transform: uppercase;
+    }
+    .tc-box ol {
+      margin: 0;
+      padding-left: 14px;
+    }
+    .tc-box li {
+      margin-bottom: 3px;
+    }
+    .totals-box {
+      width: 250px;
+      border: 1px solid #d6d3d1;
+      background: #fff;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+      border-bottom: 1px solid #f5f5f4;
+      font-size: 10px;
+    }
+    .totals-row.grand {
+      background: #faf6ed;
+      border-top: 1px solid #d4af37;
+      border-bottom: none;
+      font-weight: 900;
+      font-size: 12px;
+      color: #9e7b1d;
+    }
+    .signatures-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding-top: 10px;
+      font-size: 10px;
+      break-inside: avoid;
+    }
+    .footer-bar {
+      margin-top: 20px;
+      padding-top: 8px;
+      border-top: 1px solid #d4af37;
+      text-align: center;
+      font-size: 8.5px;
+      color: #78716c;
+      break-inside: avoid;
+    }
+    .footer-bar strong {
+      color: #9e7b1d;
+    }
+    @media print {
+      body {
+        margin: 0;
+        background: #fff;
+      }
+      .page-container {
+        border: none;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="background: #292524; color: #fff; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 999;">
+    <div>
+      <span style="font-weight: 800; font-size: 13px;">VELORA Luxury BOQ Estimate Print Preview</span>
+      <span style="color: #a8a29e; font-size: 11px; margin-left: 10px;">Select Destination as "Save as PDF" to download high-resolution PDF</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button onclick="window.print()" style="background: #9e7b1d; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer;">
+        Print / Save as PDF
+      </button>
+      <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <div class="header-row">
+      <div class="client-box">
+        <h4>Prepared for</h4>
+        <h2>${clientName}</h2>
+        <p><strong>Project:</strong> ${siteLocation}</p>
+        ${clientPhone ? `<p><strong>Phone:</strong> ${clientPhone}</p>` : ""}
+        <p><strong>Date:</strong> ${formattedDate}</p>
+        <p><strong>Ref No:</strong> ${boqNumber}</p>
+      </div>
+
+      <div class="brand-box">
+        <h1>VELORA ANTARAAL</h1>
+        <div class="tagline">INTERIOR DESIGN | DÉCOR | RETAIL</div>
+        <p>Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,</p>
+        <p>Wakad, Pune-411057, Maharashtra, India</p>
+        <p>+91 86055 26603 / 9284664507</p>
+        <p>info@velora.family | https://velora.family</p>
+      </div>
+    </div>
+
+    <div class="title-banner">
+      <h2>ESTIMATE</h2>
+    </div>
+
+    ${spaces.map((space) => {
+      const sItems = (space.items && space.items.length > 0) ? space.items : [
+        { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
+      ];
+
+      return `
+        <div class="space-block">
+          <div class="space-title-bar">${space.name}</div>
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th style="width: 30px;">SN</th>
+                <th style="text-align: left;">Item Description</th>
+                <th style="width: 70px;">Ref.</th>
+                <th style="width: 55px;">UOM</th>
+                <th style="width: 75px; text-align: right;">Unit Rate</th>
+                <th style="width: 35px;">Qty</th>
+                <th style="width: 85px; text-align: right;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sItems.map((it, idx) => {
+                const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
+                const rate = Number(it.rate) || 0;
+                const qty = Number(it.qty) || 1;
+                const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
+                const dims = (it.lengthFt || it.heightFt)
+                  ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
+                  : "";
+
+                return `
+                  <tr>
+                    <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
+                    <td>
+                      <div class="item-name">${it.name || "Custom Component"}</div>
+                      <div class="item-cat">${space.name.toUpperCase()} - >${space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}</div>
+                      <div class="item-desc">${it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}</div>
+                      <div class="item-specs">Hardware (Channels, fittings): Onyx / Ebco / Hettich</div>
+                      ${dims ? `<div class="item-specs">${dims}</div>` : ""}
+                    </td>
+                    <td style="text-align: center;">
+                      ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Ref" onerror="this.style.display='none'" />` : `<div class="no-img">CAD Ref</div>`}
+                    </td>
+                    <td style="text-align: center;">${it.uom || it.unit || "Sq. Ft"}</td>
+                    <td style="text-align: right; font-weight: 600;">₹ ${(rate).toLocaleString("en-IN")}</td>
+                    <td style="text-align: center; font-weight: 600;">${qty}</td>
+                    <td style="text-align: right; font-weight: 800;">₹ ${(amt).toLocaleString("en-IN")}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join("")}
+
+    <div class="bottom-section">
+      <div class="tc-box">
+        <h5>TERMS & CONDITIONS</h5>
+        <ol>
+          <li>18% GST Extra Applicable.</li>
+          <li>Full Payment to be Cleared Before the Work Completion.</li>
+          <li>Goods Once Sold will not be Taken back or Exchanged.</li>
+          <li>NO Guarantee / Warranty / Exchange or Refund on Imported items. The Company holds no responsibility post delivery.</li>
+          <li>The Company hold no Responsibility on the Fabric on any product.</li>
+          <li>The Company has full Rights to amend the Rates at any point of the Project before completion.</li>
+          <li>Any Payment made to the sales Person will not be considered. The Clients are requested to make the payments only to the Company account.</li>
+        </ol>
+        <p style="margin-top: 6px; font-weight: 700; color: #292524;">*T&C is Well Read and Accepted. Thank You</p>
+      </div>
+
+      <div class="totals-box">
+        <div class="totals-row">
+          <span>TOTAL</span>
+          <strong>₹ ${spacesSubtotal.toLocaleString("en-IN")}</strong>
+        </div>
+        <div class="totals-row">
+          <span>DISCOUNT</span>
+          <strong style="color: #15803d;">- ₹ ${discountAmount.toLocaleString("en-IN")}</strong>
+        </div>
+        <div class="totals-row">
+          <span>FINAL AMT</span>
+          <strong>₹ ${taxableAmount.toLocaleString("en-IN")}</strong>
+        </div>
+        <div class="totals-row">
+          <span>CGST (${gstPercent / 2}%)</span>
+          <span>₹ ${cgstAmount.toLocaleString("en-IN")}</span>
+        </div>
+        <div class="totals-row">
+          <span>SGST (${gstPercent / 2}%)</span>
+          <span>₹ ${sgstAmount.toLocaleString("en-IN")}</span>
+        </div>
+        <div class="totals-row grand">
+          <span>TOTAL AMT</span>
+          <span>₹ ${grandTotal.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="signatures-row">
+      <div>
+        <p>Client Acceptance Sign: ___________________________</p>
+      </div>
+      <div style="text-align: right;">
+        <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
+        <p style="margin: 25px 0 0 0;">Authorized Signatory</p>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
+      <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 };
 
 /**

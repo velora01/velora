@@ -441,56 +441,36 @@ export default function Projects() {
         return `id_${item._id || item.id || item.projectNumber || item.enquiryNo}`;
       };
 
-      // 4. Combine all into master client list
+      // 4. Combine all into master client list (Custom/Newly created enquiries FIRST at top!)
       const combinedMap = new Map();
 
-      // First add base clients
-      baseEnquiryClients.forEach((client, idx) => {
-        const key = getNormalizedClientKey(client);
-        const customEdits = savedProjectEdits[key] || {};
-        combinedMap.set(key, {
-          ...client,
-          ...customEdits,
-          id: client._id || `PRJ-2026-${String(idx + 1).padStart(3, "0")}`,
-          projectNumber: client.projectNumber || `PRJ-2026-${String(idx + 1).padStart(3, "0")}`,
-          clientName: customEdits.clientName || client.name,
-          clientEmail: customEdits.clientEmail || client.email,
-          clientPhone: customEdits.clientPhone || client.phone,
-          address: customEdits.address || client.siteLocation,
-          status: customEdits.status || client.status || "Yet To Start",
-          progressPercent: customEdits.progressPercent !== undefined ? customEdits.progressPercent : (client.progressPercent || 0),
-          budget: customEdits.budget || client.budget || 2500000,
-          paidAmount: customEdits.paidAmount !== undefined ? customEdits.paidAmount : (client.paidAmount || (client.budget ? client.budget * 0.5 : 1250000))
-        });
-      });
-
-      // Next add custom added leads from Enquiry section
+      // First add custom/newly added leads from Enquiry section so they appear at top
       [...localEnqs, ...apiEnqs].forEach((enq, idx) => {
         const key = getNormalizedClientKey(enq);
         if (key && !combinedMap.has(key)) {
           const customEdits = savedProjectEdits[key] || {};
-          const budgetVal = typeof enq.budget === "number" ? enq.budget : (parseInt(String(enq.budget || "").replace(/\D/g, ""), 10) * 100000 || 2500000);
-          const prjNum = `PRJ-2026-${String(15 + idx).padStart(3, "0")}`;
+          const budgetVal = typeof enq.budget === "number" ? enq.budget : (parseInt(String(enq.budget || "").replace(/\D/g, ""), 10) * 100000 || (enq.estimatedValue ? Number(enq.estimatedValue) : 2500000));
+          const prjNum = enq.projectNumber || (enq.enquiryNo ? enq.enquiryNo.replace("ENQ", "PRJ") : `PRJ-2026-${String(20 + idx).padStart(3, "0")}`);
 
           combinedMap.set(key, {
             id: enq._id || prjNum,
             projectNumber: prjNum,
-            name: enq.name,
-            clientName: enq.name,
+            name: enq.name || enq.clientName || "New Client",
+            clientName: enq.name || enq.clientName || "New Client",
             salutation: enq.salutation || "Mr.",
-            email: enq.email || "client@example.com",
-            clientEmail: enq.email || "client@example.com",
-            phone: enq.phone,
-            clientPhone: enq.phone,
+            email: enq.email || enq.clientEmail || "client@example.com",
+            clientEmail: enq.email || enq.clientEmail || "client@example.com",
+            phone: enq.phone || enq.clientPhone || "",
+            clientPhone: enq.phone || enq.clientPhone || "",
             altPhone: enq.altPhone || "",
             occupation: enq.occupation || "Executive",
             companyName: enq.companyName || "",
-            siteLocation: enq.siteLocation || enq.address || "Pune, Maharashtra",
-            address: enq.siteLocation || enq.address || "Pune, Maharashtra",
+            siteLocation: enq.siteLocation || enq.address || enq.siteAddress || "Pune, Maharashtra",
+            address: enq.siteLocation || enq.address || enq.siteAddress || "Pune, Maharashtra",
             city: enq.city || "Pune",
             projectType: enq.projectType || "Residential",
             projectSubtype: enq.projectSubtype || "Turnkey Fitout",
-            preferredStyle: enq.preferredStyle || "Modern Contemporary",
+            preferredStyle: enq.preferredStyle || enq.stylePreference || "Modern Contemporary",
             status: customEdits.status || "Yet To Start",
             progressPercent: customEdits.progressPercent !== undefined ? customEdits.progressPercent : 0,
             budget: customEdits.budget || budgetVal,
@@ -504,8 +484,30 @@ export default function Projects() {
             projectConsultant: "Velora Lead Consultant",
             serviceEligibility: "1 Year Free Snag Warranty",
             serviceValidTill: new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0],
-            notes: enq.notes || enq.remarks || "Enquiry converted to client project.",
+            notes: enq.notes || enq.remarks || "Enquiry registered in CRM.",
             ...customEdits
+          });
+        }
+      });
+
+      // Then add base standard clients (if not already added)
+      baseEnquiryClients.forEach((client, idx) => {
+        const key = getNormalizedClientKey(client);
+        if (key && !combinedMap.has(key)) {
+          const customEdits = savedProjectEdits[key] || {};
+          combinedMap.set(key, {
+            ...client,
+            ...customEdits,
+            id: client._id || `PRJ-2026-${String(idx + 1).padStart(3, "0")}`,
+            projectNumber: client.projectNumber || `PRJ-2026-${String(idx + 1).padStart(3, "0")}`,
+            clientName: customEdits.clientName || client.name,
+            clientEmail: customEdits.clientEmail || client.email,
+            clientPhone: customEdits.clientPhone || client.phone,
+            address: customEdits.address || client.siteLocation,
+            status: customEdits.status || client.status || "Yet To Start",
+            progressPercent: customEdits.progressPercent !== undefined ? customEdits.progressPercent : (client.progressPercent || 0),
+            budget: customEdits.budget || client.budget || 2500000,
+            paidAmount: customEdits.paidAmount !== undefined ? customEdits.paidAmount : (client.paidAmount || (client.budget ? client.budget * 0.5 : 1250000))
           });
         }
       });
@@ -532,6 +534,16 @@ export default function Projects() {
 
   useEffect(() => {
     loadAllData();
+
+    // Auto-refresh when tab gains focus or localStorage updates
+    const handleSync = () => loadAllData();
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("storage", handleSync);
+
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, []);
 
   // Save project custom edits to localStorage & update list

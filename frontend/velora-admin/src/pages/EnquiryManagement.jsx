@@ -448,6 +448,7 @@ export default function EnquiryManagement() {
           const newKey = getEnquiryKey(createdItem);
           const filtered = existingLocal.filter((it) => getEnquiryKey(it) !== newKey);
           localStorage.setItem("velora_custom_enquiries", JSON.stringify([createdItem, ...filtered]));
+          window.dispatchEvent(new Event("storage"));
         } catch (e) {}
         
         setSuccessToast("New enquiry added successfully!");
@@ -458,6 +459,7 @@ export default function EnquiryManagement() {
       setFormData(initialFormData);
       setWizardStep(1);
       await fetchEnquiries();
+      window.dispatchEvent(new Event("storage"));
       setTimeout(() => setSuccessToast(""), 4000);
     } catch (err) {
       console.error("Error submitting enquiry:", err);

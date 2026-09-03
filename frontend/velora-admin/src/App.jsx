@@ -52,6 +52,7 @@ function App() {
                 <Route path="/library/components" element={<LibraryComponents />} />
                 <Route path="/library/:sub" element={<LibraryComponents />} />
                 <Route path="/invoices" element={<QuotationInvoiceManager />} />
+                <Route path="/invoice" element={<QuotationInvoiceManager />} />
                 <Route path="/factory" element={<ProductionFactory />} />
                 <Route path="/inventory" element={<LibraryComponents />} />
                 <Route path="/installation" element={<InstallationManager />} />

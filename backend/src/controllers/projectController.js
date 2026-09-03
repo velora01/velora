@@ -119,11 +119,6 @@ const SEED_PROJECTS = [
 
 export const getProjects = async (req, res) => {
   try {
-    const count = await Project.countDocuments();
-    if (count === 0) {
-      await Project.insertMany(SEED_PROJECTS);
-    }
-
     const { search = "", stage = "", priority = "", page = 1, limit = 10, sortBy = "createdAt" } = req.query;
     const query = {};
     if (search) query.$or = [{ heading: new RegExp(search, "i") }, { projectNumber: new RegExp(search, "i") }, { clientName: new RegExp(search, "i") }, { address: new RegExp(search, "i") }];

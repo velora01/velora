@@ -55,6 +55,16 @@ export default function QuotationInvoiceManager() {
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
 
+  // Enquiries list state (loaded from Enquiry section)
+  const [enquiriesList, setEnquiriesList] = useState([]);
+  const [loadingEnquiries, setLoadingEnquiries] = useState(false);
+  const [isSelectEnquiryModalOpen, setIsSelectEnquiryModalOpen] = useState(false);
+  const [enquirySearchQuery, setEnquirySearchQuery] = useState("");
+
+  // Invoice Details View Modal State
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewingInvoice, setViewingInvoice] = useState(null);
+
   // BOQ Estimates / Quotations state
   const [boqEstimates, setBoqEstimates] = useState([]);
   const [loadingEstimates, setLoadingEstimates] = useState(false);
@@ -74,157 +84,52 @@ export default function QuotationInvoiceManager() {
   const [quotations, setQuotations] = useState([]);
   const [quotationSearch, setQuotationSearch] = useState("");
 
-
   // Toast Notification
   const [toastMsg, setToastMsg] = useState("");
 
-  // Default initial invoice data
+  // Clean initial invoice template
   const defaultInvoiceForm = {
     _id: null,
-    invoiceNumber: "NCIA003",
-    projectName: "PREM SHUKLA",
-    projectNumber: "PRJ-2026-008",
-    clientId: "VLA-CL-1001",
+    invoiceNumber: "",
+    projectName: "",
+    projectNumber: "",
+    clientId: "",
     invoiceType: "Supply",
-    clientName: "PREM SHUKLA",
-    clientEmail: "PREMSHUKLA@GMAIL.COM",
-    clientPhone: "78000 20496",
-    clientAddress: "402, WAKAD CHOWK, AUNDH HIJNEWADI ROAD, PIMPRI CHINCHWAD, WAKAD, PUNE, MAHARASHTRA, 411057",
+    clientName: "",
+    clientEmail: "",
+    clientPhone: "",
+    clientAddress: "",
     billTo: {
-      name: "PREM SHUKLA",
-      email: "PREMSHUKLA@GMAIL.COM",
-      phone: "78000 20496",
+      name: "",
+      email: "",
+      phone: "",
       gstin: "",
-      address: "402, WAKAD CHOWK, AUNDH HIJNEWADI ROAD, PIMPRI CHINCHWAD, WAKAD, PUNE, MAHARASHTRA, 411057"
+      address: ""
     },
     shipTo: {
       name: "",
       email: "",
-      phone: "74104 10123",
+      phone: "",
       gstin: "",
       address: ""
     },
     sameAsBillTo: true,
     items: [
       {
-        productName: "Queen Size Bed, With Cush",
-        category: "Bedroom",
-        dimensions: "6.5 × 5.5 ft",
-        hsnSac: "HSN/SAC",
+        productName: "",
+        category: "Interior Execution",
+        dimensions: "Standard",
+        hsnSac: "995476",
         quantity: 1,
-        unit: "30",
-        rate: 36000,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 36000
-      },
-      {
-        productName: "King Size Bed Hydrolic",
-        category: "Bedroom",
-        dimensions: "6.5 × 6.5 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "45.5",
-        rate: 64000,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 64000
-      },
-      {
-        productName: "Openable Wardrobe 1",
-        category: "Storage",
-        dimensions: "7.0 × 6.0 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "42.5",
-        rate: 55000,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 55000
-      },
-      {
-        productName: "Openable Wardrobe 2, Study",
-        category: "Storage",
-        dimensions: "8.5 × 7.0 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "59.5",
-        rate: 71400,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 71400
-      },
-      {
-        productName: "Openable Wardrobe 3, Study",
-        category: "Storage",
-        dimensions: "5.0 × 7.0 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "34",
-        rate: 40800,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 40800
-      },
-      {
-        productName: "Study Table",
-        category: "Furniture",
-        dimensions: "8.0 × 2.5 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "56",
-        rate: 67200,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 67200
-      },
-      {
-        productName: "Side Table",
-        category: "Furniture",
-        dimensions: "1.5 × 1.5 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 4,
-        unit: "1.96",
-        rate: 5500,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 22000
-      },
-      {
-        productName: "Dressing",
-        category: "Storage",
-        dimensions: "3.0 × 7.0 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 3,
         unit: "Unit",
-        rate: 21000,
+        rate: 0,
         discount: 0,
-        gstPercent: 0,
+        gstPercent: 18,
         gstAmount: 0,
-        total: 63000
-      },
-      {
-        productName: "Shoe Rack, With Side Sitting",
-        category: "Foyer",
-        dimensions: "4.0 × 3.0 ft",
-        hsnSac: "HSN/SAC",
-        quantity: 1,
-        unit: "12",
-        rate: 14400,
-        discount: 0,
-        gstPercent: 0,
-        gstAmount: 0,
-        total: 14400
+        total: 0
       }
     ],
-    subtotal: 468800,
+    subtotal: 0,
     discountTotal: 0,
     additionalCharges: {
       installation: 0,
@@ -234,12 +139,12 @@ export default function QuotationInvoiceManager() {
       other: 0,
       totalCharges: 0
     },
-    taxPercent: 0,
+    taxPercent: 18,
     gstTotal: 0,
-    grandTotal: 468800,
+    grandTotal: 0,
     paidAmount: 0,
-    balanceDue: 468800,
-    issueDate: "2026-08-13",
+    balanceDue: 0,
+    issueDate: new Date().toISOString().split("T")[0],
     dueDate: "",
     termsAndConditions:
       "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% on material delivery or production clearance.\n3. Balance 10% on completion and final snag handover.",
@@ -249,142 +154,88 @@ export default function QuotationInvoiceManager() {
 
   const [editingInvoice, setEditingInvoice] = useState(defaultInvoiceForm);
 
-  // Load Invoices from Backend
+  // Load Invoices from Backend & Local Storage (No dummy fallback)
   const loadInvoices = async () => {
     setLoadingInvoices(true);
     try {
       const res = await erpApi.getInvoices({ search: invoiceSearch });
-      if (res?.data && res.data.length > 0) {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
         setInvoices(res.data);
+        localStorage.setItem("velora_local_invoices", JSON.stringify(res.data));
       } else {
-        // Fallback default sample list matching Screenshot 1
-        setInvoices([
-          {
-            _id: "inv-1",
-            invoiceNumber: "NCIA003",
-            clientName: "PREM SHUKLA",
-            projectName: "PREM SHUKLA",
-            projectNumber: "PRJ-2026-008",
-            issueDate: "2026-08-13",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 468800,
-            subtotal: 468800,
-            gstTotal: 0,
-            balanceDue: 468800,
-            items: defaultInvoiceForm.items
-          },
-          {
-            _id: "inv-2",
-            invoiceNumber: "NCI005",
-            clientName: "Rashid sir",
-            projectName: "Rashid sir Showroom",
-            projectNumber: "PRJ-2026-005",
-            issueDate: "2026-07-11",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 23364,
-            subtotal: 23364,
-            gstTotal: 0,
-            balanceDue: 23364,
-            items: [{ productName: "Custom Display Units", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 23364, gstPercent: 0, gstAmount: 0, total: 23364 }]
-          },
-          {
-            _id: "inv-3",
-            invoiceNumber: "NCI004",
-            clientName: "Dr Hardik",
-            projectName: "Dr Hardik Clinic Phase 2",
-            projectNumber: "PRJ-2026-004",
-            issueDate: "2026-06-05",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 194000,
-            subtotal: 194000,
-            gstTotal: 0,
-            balanceDue: 194000,
-            items: [{ productName: "Reception Counter & Storage", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 194000, gstPercent: 0, gstAmount: 0, total: 194000 }]
-          },
-          {
-            _id: "inv-4",
-            invoiceNumber: "NCI003",
-            clientName: "Dr Hardik",
-            projectName: "Dr Hardik Consultation Room",
-            projectNumber: "PRJ-2026-004",
-            issueDate: "2026-06-05",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 211000,
-            subtotal: 211000,
-            gstTotal: 0,
-            balanceDue: 211000,
-            items: [{ productName: "Doctor Cabin Acoustic Panels", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 211000, gstPercent: 0, gstAmount: 0, total: 211000 }]
-          },
-          {
-            _id: "inv-5",
-            invoiceNumber: "NCI002",
-            clientName: "Akash Jain",
-            projectName: "Akash Jain 3BHK Residence",
-            projectNumber: "PRJ-2026-002",
-            issueDate: "2026-05-26",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 0,
-            subtotal: 0,
-            gstTotal: 0,
-            balanceDue: 0,
-            items: [{ productName: "Living Room Wall Louvers", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 0, gstPercent: 0, gstAmount: 0, total: 0 }]
-          },
-          {
-            _id: "inv-6",
-            invoiceNumber: "NCI001",
-            clientName: "Dr Saurabh",
-            projectName: "Dr Saurabh Clinic",
-            projectNumber: "PRJ-2026-001",
-            issueDate: "2026-05-19",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 324950,
-            subtotal: 324950,
-            gstTotal: 0,
-            balanceDue: 324950,
-            items: [{ productName: "Waiting Lounge & Partitioning", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 324950, gstPercent: 0, gstAmount: 0, total: 324950 }]
-          },
-          {
-            _id: "inv-7",
-            invoiceNumber: "NCIA002",
-            clientName: "Dr Hardik",
-            projectName: "Dr Hardik Phase 1",
-            projectNumber: "PRJ-2026-004",
-            issueDate: "2026-05-03",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 0,
-            subtotal: 0,
-            gstTotal: 0,
-            balanceDue: 0,
-            items: [{ productName: "Initial Demolition & Framing Advance", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 0, gstPercent: 0, gstAmount: 0, total: 0 }]
-          },
-          {
-            _id: "inv-8",
-            invoiceNumber: "NCIA001",
-            clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
-            projectName: "Wipro Executive Cabin",
-            projectNumber: "PRJ-2026-001",
-            issueDate: "2026-04-30",
-            dueDate: "",
-            taxPercent: 0,
-            grandTotal: 29000,
-            subtotal: 29000,
-            gstTotal: 0,
-            balanceDue: 29000,
-            items: [{ productName: "Executive Ergonomic Desk", hsnSac: "HSN/SAC", quantity: 1, unit: "Unit", rate: 29000, gstPercent: 0, gstAmount: 0, total: 29000 }]
+        const stored = localStorage.getItem("velora_local_invoices");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (invoiceSearch) {
+            const term = invoiceSearch.toLowerCase();
+            setInvoices(
+              parsed.filter(
+                (inv) =>
+                  inv.invoiceNumber?.toLowerCase().includes(term) ||
+                  inv.clientName?.toLowerCase().includes(term) ||
+                  inv.clientPhone?.toLowerCase().includes(term) ||
+                  inv.projectName?.toLowerCase().includes(term)
+              )
+            );
+          } else {
+            setInvoices(parsed);
           }
-        ]);
+        } else {
+          setInvoices([]);
+        }
       }
     } catch (err) {
-      console.error("Error loading invoices:", err);
+      console.warn("Backend invoices fallback:", err);
+      const stored = localStorage.getItem("velora_local_invoices");
+      if (stored) {
+        setInvoices(JSON.parse(stored));
+      } else {
+        setInvoices([]);
+      }
     } finally {
       setLoadingInvoices(false);
+    }
+  };
+
+  // Load Enquiries from Backend & Enquiry Section
+  const loadEnquiries = async () => {
+    setLoadingEnquiries(true);
+    try {
+      const customEnquiries = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+      const res = await erpApi.getLeads({ limit: 100 });
+      let combined = [];
+
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        combined = [...customEnquiries, ...res.data];
+      } else {
+        const defaultEnqs = [
+          { _id: "enq1", enquiryNo: "ENQ-2026-001", salutation: "Mr", name: "PREM SHUKLA", phone: "78000 20496", email: "prem.shukla@example.com", address: "402, Wakad Chowk, Pune", siteLocation: "PHASE 2", projectType: "Commercial", projectSubtype: "Corporate Office", budget: "₹45 Lakhs", estimatedValue: 4500000, status: "Inquiry", prospectStatus: "Hot" },
+          { _id: "enq2", enquiryNo: "ENQ-2026-002", salutation: "Mr", name: "Rajeev Singhal", phone: "89482 74553", email: "rajeev.s@example.com", address: "Rishita Serenity, Sector-6, Pune", siteLocation: "Koregaon Park, Pune", projectType: "Renovation", projectSubtype: "3BHK Flat", budget: "₹30 Lakhs", estimatedValue: 3964567, status: "Booking", prospectStatus: "Warm" },
+          { _id: "enq3", enquiryNo: "ENQ-2026-003", salutation: "Mr", name: "Rasid sir", phone: "84128 52592", email: "rasid@example.com", address: "Bafana Complex, Wakad, Pune", siteLocation: "Wakad, Pune", projectType: "Commercial", projectSubtype: "Retail Showroom", budget: "₹25 Lakhs", estimatedValue: 185000, status: "Inquiry", prospectStatus: "Warm" },
+          { _id: "enq4", enquiryNo: "ENQ-2026-004", salutation: "Ms", name: "Meenakshi Krishnani", phone: "91671 35606", email: "meenakshi@example.com", address: "Bandra West, Mumbai", siteLocation: "Kalyani Nagar, Pune", projectType: "Residential", projectSubtype: "4BHK Penthouse", budget: "₹60 Lakhs", estimatedValue: 1450000, status: "Design Phase", prospectStatus: "Hot" },
+          { _id: "enq5", enquiryNo: "ENQ-2026-005", salutation: "Mr", name: "Akash Jain", phone: "89778 99643", email: "akash.jain@example.com", address: "Kalyani Nagar, Pune", siteLocation: "Kalyani Nagar", projectType: "Residential", projectSubtype: "Luxury Villa", budget: "₹35 Lakhs", estimatedValue: 2200000, status: "Inquiry", prospectStatus: "Hot" },
+          { _id: "enq6", enquiryNo: "ENQ-2026-006", salutation: "Dr", name: "Dr Saurabh", phone: "77090 19535", email: "dr.saurabh@example.com", address: "Aundh, Pune", siteLocation: "Aundh", projectType: "Residential", projectSubtype: "3BHK Luxury", budget: "₹20 Lakhs", estimatedValue: 850000, status: "Inquiry", prospectStatus: "Warm" },
+          { _id: "enq7", enquiryNo: "ENQ-2026-007", salutation: "Mr", name: "WIPRO LINCRAFT AI PRIVATE LIMITED", phone: "96323 00992", email: "contact@wiprolincraft.com", address: "Electronic City, Bengaluru", siteLocation: "Electronic City", projectType: "Commercial", projectSubtype: "IT Park Office", budget: "₹1.2 Cr", estimatedValue: 12000000, status: "Proposal", prospectStatus: "Hot" }
+        ];
+        combined = [...customEnquiries, ...defaultEnqs];
+      }
+
+      // De-duplicate by _id or enquiryNo
+      const seen = new Set();
+      const deduped = combined.filter((item) => {
+        const key = item._id || item.enquiryNo || item.phone;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setEnquiriesList(deduped);
+    } catch (err) {
+      console.warn("Error loading enquiries:", err);
+      const customEnquiries = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+      setEnquiriesList(customEnquiries);
+    } finally {
+      setLoadingEnquiries(false);
     }
   };
 
@@ -571,6 +422,7 @@ export default function QuotationInvoiceManager() {
     loadBOQEstimates();
     loadClients();
     loadQuotations();
+    loadEnquiries();
   }, [invoiceSearch, quotationSearch]);
 
   // Open Full Detail Modal for any BOQ / Client estimate
@@ -920,9 +772,132 @@ export default function QuotationInvoiceManager() {
     setInvoiceViewMode("edit");
   };
 
+  // Open View Invoice Details Modal
+  const handleOpenViewModal = (inv) => {
+    setViewingInvoice(inv);
+    setIsViewModalOpen(true);
+  };
+
+  // Open Select Client / Enquiry Modal before creating Invoice
+  const handleOpenNewInvoice = () => {
+    loadEnquiries();
+    setEnquirySearchQuery("");
+    setIsSelectEnquiryModalOpen(true);
+  };
+
+  // Start with Blank Invoice
+  const handleStartBlankInvoice = () => {
+    const invNum = `VLA-INV-2026-${String(Math.floor(1000 + Math.random() * 9000))}`;
+    setEditingInvoice({
+      ...defaultInvoiceForm,
+      _id: null,
+      invoiceNumber: invNum,
+      issueDate: new Date().toISOString().split("T")[0]
+    });
+    setIsSelectEnquiryModalOpen(false);
+    setInvoiceViewMode("edit");
+  };
+
+  // Select Enquiry from Enquiry Section to create Invoice
+  const handleSelectEnquiryForInvoice = (enq) => {
+    if (!enq) return;
+    const invNum = `VLA-INV-2026-${String(Math.floor(1000 + Math.random() * 9000))}`;
+    const cleanAddr = enq.siteAddress || enq.address || enq.siteLocation || enq.city || "Pune, Maharashtra";
+    const projName = enq.name ? `${enq.name} - ${enq.projectSubtype || enq.projectType || "Interior Execution"}` : "Interior Turnkey Project";
+    const projNum = enq.enquiryNo || `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+    const estRate = typeof enq.estimatedValue === "number" && enq.estimatedValue > 0 ? enq.estimatedValue : 0;
+    const initialItem = {
+      productName: enq.projectSubtype ? `${enquirySubtypeTitle(enq)} Fitout & Execution` : "Turnkey Interior Design & Execution",
+      category: enq.projectType || "Interior",
+      dimensions: "As per Site Layout",
+      hsnSac: "995476",
+      quantity: 1,
+      unit: "Unit",
+      rate: estRate,
+      discount: 0,
+      gstPercent: 18,
+      gstAmount: Math.round(estRate * 0.18),
+      total: Math.round(estRate * 1.18)
+    };
+
+    const calced = recalculateItems([initialItem]);
+
+    setEditingInvoice({
+      ...defaultInvoiceForm,
+      _id: null,
+      invoiceNumber: invNum,
+      projectName: projName,
+      projectNumber: projNum,
+      clientId: enq._id || enq.enquiryNo || "",
+      clientName: enq.name || "",
+      clientEmail: enq.email || "",
+      clientPhone: enq.phone || "",
+      clientAddress: cleanAddr,
+      billTo: {
+        name: enq.name || "",
+        email: enq.email || "",
+        phone: enq.phone || "",
+        gstin: enq.gstNumber || "",
+        address: cleanAddr
+      },
+      shipTo: {
+        name: enq.name || "",
+        email: enq.email || "",
+        phone: enq.phone || "",
+        gstin: enq.gstNumber || "",
+        address: cleanAddr
+      },
+      sameAsBillTo: true,
+      items: calced.items,
+      subtotal: calced.subtotal,
+      discountTotal: 0,
+      additionalCharges: {
+        installation: 0,
+        transportation: 0,
+        design: 0,
+        labour: 0,
+        other: 0,
+        totalCharges: 0
+      },
+      taxPercent: 18,
+      gstTotal: calced.gstTotal,
+      grandTotal: calced.grandTotal,
+      paidAmount: 0,
+      balanceDue: calced.grandTotal,
+      issueDate: new Date().toISOString().split("T")[0]
+    });
+
+    setIsSelectEnquiryModalOpen(false);
+    setInvoiceViewMode("edit");
+    setToastMsg(`Auto-filled details from enquiry for ${enq.name}`);
+    setTimeout(() => setToastMsg(""), 3000);
+  };
+
+  const enquirySubtypeTitle = (enq) => {
+    return enq.projectSubtype || enq.projectType || "Interior";
+  };
+
   // Dynamic Auto-fill Invoice Form from selected Client or BOQ Estimate
   const handleSelectClientOrBOQForInvoice = (val) => {
     if (!val) return;
+
+    // Check if selecting an enquiry directly prefixed with enq_
+    if (val.startsWith("enq_")) {
+      const enqId = val.replace("enq_", "");
+      const foundEnq = enquiriesList.find((e) => String(e._id) === String(enqId) || e.enquiryNo === enqId);
+      if (foundEnq) {
+        handleSelectEnquiryForInvoice(foundEnq);
+        return;
+      }
+    }
+
+    // Check if matches enquiry directly
+    const foundEnquiryDirect = enquiriesList.find((e) => String(e._id) === String(val) || e.name === val || e.enquiryNo === val);
+    if (foundEnquiryDirect) {
+      handleSelectEnquiryForInvoice(foundEnquiryDirect);
+      return;
+    }
 
     // 1. Check if it matches a BOQ Estimate
     const foundBOQ = boqEstimates.find((b) => String(b._id) === String(val) || b.boqNumber === val);
@@ -944,7 +919,7 @@ export default function QuotationInvoiceManager() {
                 unit: String(it.sqft || "1"),
                 rate: Number(it.rate) || 0,
                 discount: 0,
-                gstPercent: 0,
+                gstPercent: 18,
                 gstAmount: 0,
                 total: it.amount || (Number(it.rate || 0) * Number(it.qty || 1))
               });
@@ -962,11 +937,11 @@ export default function QuotationInvoiceManager() {
             hsnSac: "995476",
             quantity: 1,
             unit: "LS",
-            rate: foundBOQ.subtotal || Math.round((foundBOQ.grandTotal || 468800) / 1.18),
+            rate: foundBOQ.subtotal || Math.round((foundBOQ.grandTotal || 0) / 1.18),
             discount: 0,
-            gstPercent: 0,
+            gstPercent: 18,
             gstAmount: 0,
-            total: foundBOQ.grandTotal || 468800
+            total: foundBOQ.grandTotal || 0
           }
         ];
       }
@@ -1011,12 +986,7 @@ export default function QuotationInvoiceManager() {
     }
 
     // 2. Check if it matches a Registered Client
-    const foundClient = (clientsList.length > 0 ? clientsList : [
-      { name: "PREM SHUKLA", phone: "78000 20496", email: "PREMSHUKLA@GMAIL.COM", address: "402, WAKAD CHOWK, AUNDH HIJNEWADI ROAD, PIMPRI CHINCHWAD, WAKAD, PUNE, MAHARASHTRA, 411057" },
-      { name: "Rajeev Singhal", phone: "89482 74553", email: "rajeev@singhal.com", address: "Penthouse, Baner, Pune" },
-      { name: "Meenakshi Krishnani", phone: "91671 35606", email: "meenakshi@krishnani.com", address: "Koregaon Park, Pune" },
-      { name: "WIPRO LINCRAFT AI PRIVATE LIMITED", phone: "96323 00992", email: "contact@wiprolincraft.com", address: "Electronic City, Bengaluru" }
-    ]).find((c) => String(c._id) === String(val) || c.name === val || c.clientCode === val);
+    const foundClient = clientsList.find((c) => String(c._id) === String(val) || c.name === val || c.clientCode === val);
 
     if (foundClient) {
       const invNum = editingInvoice.invoiceNumber || `VLA-INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -1051,133 +1021,70 @@ export default function QuotationInvoiceManager() {
     }
   };
 
-  // Open New Invoice Mode
-  const handleOpenNewInvoice = () => {
-    const invNum = `VLA-INV-2026-${String(Math.floor(1000 + Math.random() * 9000))}`;
-    
-    // Auto-select first BOQ if available
-    const firstBOQ = boqEstimates.length > 0 ? boqEstimates[0] : null;
-
-    if (firstBOQ) {
-      let items = [];
-      if (firstBOQ.spaces && firstBOQ.spaces.length > 0) {
-        firstBOQ.spaces.forEach((sp) => {
-          if (sp.items && sp.items.length > 0) {
-            sp.items.forEach((it) => {
-              const lStr = it.lengthFt ? `${it.lengthFt}ft ${it.lengthIn || 0}in` : "";
-              const hStr = it.heightFt ? `${it.heightFt}ft` : "";
-              const dims = lStr && hStr ? `${lStr} × ${hStr}` : it.customDimensions || "Standard";
-              items.push({
-                productName: it.name || "Interior Component",
-                category: sp.name || "Interior",
-                dimensions: dims,
-                hsnSac: "995476",
-                quantity: Number(it.qty) || 1,
-                unit: String(it.sqft || "1"),
-                rate: Number(it.rate) || 0,
-                discount: 0,
-                gstPercent: 0,
-                gstAmount: 0,
-                total: it.amount || (Number(it.rate || 0) * Number(it.qty || 1))
-              });
-            });
-          }
-        });
-      }
-      if (items.length === 0) items = defaultInvoiceForm.items;
-      const calced = recalculateItems(items);
-
-      setEditingInvoice({
-        ...defaultInvoiceForm,
-        _id: null,
-        invoiceNumber: invNum,
-        projectName: firstBOQ.clientName,
-        projectNumber: `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`,
-        clientId: firstBOQ._id || firstBOQ.boqNumber,
-        clientName: firstBOQ.clientName,
-        clientEmail: firstBOQ.clientEmail || "",
-        clientPhone: firstBOQ.clientPhone || "",
-        clientAddress: firstBOQ.clientAddress || "Pune, Maharashtra",
-        billTo: {
-          name: firstBOQ.clientName,
-          email: firstBOQ.clientEmail || "",
-          phone: firstBOQ.clientPhone || "",
-          gstin: "",
-          address: firstBOQ.clientAddress || "Pune, Maharashtra"
-        },
-        shipTo: {
-          name: firstBOQ.clientName,
-          email: firstBOQ.clientEmail || "",
-          phone: firstBOQ.clientPhone || "",
-          gstin: "",
-          address: firstBOQ.clientAddress || "Pune, Maharashtra"
-        },
-        items: calced.items,
-        subtotal: calced.subtotal,
-        gstTotal: calced.gstTotal,
-        grandTotal: calced.grandTotal,
-        balanceDue: calced.grandTotal
-      });
-    } else {
-      const calced = recalculateItems(defaultInvoiceForm.items);
-      setEditingInvoice({
-        ...defaultInvoiceForm,
-        _id: null,
-        invoiceNumber: invNum,
-        items: calced.items,
-        subtotal: calced.subtotal,
-        gstTotal: calced.gstTotal,
-        grandTotal: calced.grandTotal,
-        balanceDue: calced.grandTotal
-      });
-    }
-    setInvoiceViewMode("edit");
-  };
-
   // Save Invoice
   const handleSaveInvoice = async (e) => {
     if (e) e.preventDefault();
-    try {
-      if (editingInvoice._id) {
-        await erpApi.updateInvoice(editingInvoice._id, editingInvoice);
-        setToastMsg(`Invoice ${editingInvoice.invoiceNumber} updated successfully!`);
-      } else {
-        await erpApi.createInvoice(editingInvoice);
-        setToastMsg(`Invoice ${editingInvoice.invoiceNumber} created & issued successfully!`);
-      }
-      loadInvoices();
-      setInvoiceViewMode("list");
-      setTimeout(() => setToastMsg(""), 3000);
-    } catch (err) {
-      console.warn("Backend save fallback to local state:", err);
-      setInvoices((prev) => {
-        const idx = prev.findIndex((i) => i.invoiceNumber === editingInvoice.invoiceNumber);
-        if (idx >= 0) {
-          const updated = [...prev];
-          updated[idx] = editingInvoice;
-          return updated;
-        }
-        return [editingInvoice, ...prev];
-      });
-      setToastMsg(`Invoice ${editingInvoice.invoiceNumber} saved!`);
-      setInvoiceViewMode("list");
-      setTimeout(() => setToastMsg(""), 3000);
+    if (!editingInvoice.clientName) {
+      alert("Please specify a Client Name for this invoice.");
+      return;
     }
+    const invNum = editingInvoice.invoiceNumber || `VLA-INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const invoiceToSave = {
+      ...editingInvoice,
+      invoiceNumber: invNum,
+      _id: editingInvoice._id || `inv_${Date.now()}`
+    };
+
+    try {
+      if (editingInvoice._id && !String(editingInvoice._id).startsWith("inv_")) {
+        await erpApi.updateInvoice(editingInvoice._id, invoiceToSave);
+      } else {
+        const res = await erpApi.createInvoice(invoiceToSave);
+        if (res?.data?._id) {
+          invoiceToSave._id = res.data._id;
+        }
+      }
+    } catch (err) {
+      console.warn("Backend save fallback to local storage:", err);
+    }
+
+    setInvoices((prev) => {
+      const idx = prev.findIndex(
+        (i) => i.invoiceNumber === invNum || (invoiceToSave._id && i._id === invoiceToSave._id)
+      );
+      let updated;
+      if (idx >= 0) {
+        updated = [...prev];
+        updated[idx] = invoiceToSave;
+      } else {
+        updated = [invoiceToSave, ...prev];
+      }
+      localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
+      return updated;
+    });
+
+    setToastMsg(`Invoice ${invNum} saved successfully!`);
+    setInvoiceViewMode("list");
+    setTimeout(() => setToastMsg(""), 3500);
   };
 
   // Delete Invoice
   const handleDeleteInvoice = async (id, invNum) => {
     if (!window.confirm(`Delete Invoice ${invNum}?`)) return;
     try {
-      await erpApi.deleteInvoice(id);
-      loadInvoices();
-      setToastMsg(`Invoice ${invNum} deleted.`);
-      setTimeout(() => setToastMsg(""), 3000);
+      if (id && !String(id).startsWith("inv_")) {
+        await erpApi.deleteInvoice(id);
+      }
     } catch (err) {
-      setInvoices((prev) => prev.filter((i) => i.invoiceNumber !== invNum && i._id !== id));
-      setToastMsg(`Invoice ${invNum} deleted.`);
-      setTimeout(() => setToastMsg(""), 3000);
+      console.warn("Backend delete invoice fallback:", err);
     }
+    setInvoices((prev) => {
+      const updated = prev.filter((i) => i.invoiceNumber !== invNum && i._id !== id);
+      localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
+      return updated;
+    });
+    setToastMsg(`Invoice ${invNum} deleted.`);
+    setTimeout(() => setToastMsg(""), 3000);
   };
 
   // Open PDF Viewer Modal with explicit Mode ("tax" | "boq")
@@ -1367,8 +1274,31 @@ export default function QuotationInvoiceManager() {
                 <tbody className="divide-y divide-stone-100 text-stone-700">
                   {filteredInvoices.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-stone-400 font-medium">
-                        No invoices found matching "{invoiceSearch}"
+                      <td colSpan={7} className="py-16 text-center text-stone-500">
+                        <div className="flex flex-col items-center justify-center space-y-3">
+                          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                            <Receipt size={24} />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-sm text-stone-800">
+                              {invoiceSearch ? `No invoices match "${invoiceSearch}"` : "No Tax Invoices Yet"}
+                            </h4>
+                            <p className="text-xs text-stone-400 mt-0.5">
+                              {invoiceSearch
+                                ? "Try searching for a different name, phone, or invoice number."
+                                : "Create your first invoice by selecting a client from the Enquiry Section."}
+                            </p>
+                          </div>
+                          {!invoiceSearch && (
+                            <button
+                              onClick={handleOpenNewInvoice}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer mt-2"
+                            >
+                              <Plus size={14} />
+                              <span>Create Invoice from Enquiry</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -1378,17 +1308,24 @@ export default function QuotationInvoiceManager() {
                         className="hover:bg-stone-50/70 transition"
                       >
                         {/* Invoice No */}
-                        <td className="py-3 px-4 font-bold text-stone-900 font-mono">
+                        <td className="py-3.5 px-4 font-bold text-stone-900 font-mono">
                           {inv.invoiceNumber}
                         </td>
 
                         {/* Billed To */}
-                        <td className="py-3 px-4 font-semibold text-stone-800">
-                          {inv.clientName || inv.billTo?.name || "Client"}
+                        <td className="py-3.5 px-4 font-semibold text-stone-800">
+                          <div>
+                            <span>{inv.clientName || inv.billTo?.name || "Client"}</span>
+                            {inv.projectName && (
+                              <span className="block text-[10px] text-stone-400 font-normal">
+                                {inv.projectName}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         {/* Invoice Date */}
-                        <td className="py-3 px-4 text-stone-600">
+                        <td className="py-3.5 px-4 text-stone-600">
                           {inv.issueDate
                             ? new Date(inv.issueDate).toLocaleDateString("en-US", {
                                 month: "short",
@@ -1399,62 +1336,63 @@ export default function QuotationInvoiceManager() {
                         </td>
 
                         {/* Due Date */}
-                        <td className="py-3 px-4 text-stone-400">
+                        <td className="py-3.5 px-4 text-stone-400">
                           {inv.dueDate
                             ? new Date(inv.dueDate).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric"
                               })
-                            : ""}
+                            : "-"}
                         </td>
 
                         {/* Tax % */}
-                        <td className="py-3 px-4 text-stone-600 font-medium">
-                          {inv.taxPercent !== undefined ? `${inv.taxPercent}%` : "0%"}
+                        <td className="py-3.5 px-4 text-stone-600 font-medium">
+                          {inv.taxPercent !== undefined ? `${inv.taxPercent}%` : "18%"}
                         </td>
 
                         {/* Due Amount */}
-                        <td className="py-3 px-4 text-right font-bold text-stone-900 font-mono">
+                        <td className="py-3.5 px-4 text-right font-bold text-stone-900 font-mono">
                           ₹{(inv.grandTotal || inv.balanceDue || 0).toLocaleString("en-IN")}
                         </td>
 
-                        {/* Action Column: High Visibility Prominent Buttons for Tax & BOQ Options */}
-                        <td className="py-3 px-4 text-center">
+                        {/* Action Column: View, Preview, Download + Options */}
+                        <td className="py-3.5 px-4 text-center">
                           <div className="relative inline-flex items-center justify-center gap-1.5 flex-wrap">
+                            {/* View Details Button */}
+                            <button
+                              onClick={() => handleOpenViewModal(inv)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-[11px] rounded-xl border border-stone-300 transition cursor-pointer shadow-2xs"
+                              title="View Full Invoice Breakdown"
+                            >
+                              <Eye size={12} className="text-stone-700" />
+                              <span>View</span>
+                            </button>
+
                             {/* Preview Tax Invoice Button */}
                             <button
                               onClick={() => handleOpenPdfViewer(inv, "tax")}
-                              className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10.5px] rounded-lg border border-blue-200 transition cursor-pointer"
-                              title="Preview Official Tax Invoice Layout"
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] rounded-xl border border-blue-200 transition cursor-pointer shadow-2xs"
+                              title="Preview Official Tax Invoice PDF Layout"
                             >
-                              <Eye size={12} className="text-blue-600" />
-                              <span>Tax View</span>
-                            </button>
-
-                            {/* Preview BOQ Estimate Button */}
-                            <button
-                              onClick={() => handleOpenPdfViewer(inv, "boq")}
-                              className="flex items-center gap-1 px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[10.5px] rounded-lg border border-amber-300 transition cursor-pointer"
-                              title="Preview BOQ Estimate & Scope Breakdown"
-                            >
-                              <FileSpreadsheet size={12} className="text-[#9E7B1D]" />
-                              <span>BOQ View</span>
+                              <FileText size={12} className="text-blue-600" />
+                              <span>Preview</span>
                             </button>
 
                             {/* Download PDF Button */}
                             <button
                               onClick={() => downloadInvoicePdf(inv)}
-                              className="p-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg border border-stone-300 transition cursor-pointer"
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-xl border border-emerald-300 transition cursor-pointer shadow-2xs"
                               title="Download Tax Invoice PDF"
                             >
-                              <Download size={13} />
+                              <Download size={12} className="text-emerald-600" />
+                              <span>Download</span>
                             </button>
 
                             {/* Pencil Edit Icon */}
                             <button
                               onClick={() => handleOpenEdit(inv)}
-                              className="p-1 text-stone-500 hover:bg-stone-100 rounded-lg border border-stone-200 transition cursor-pointer"
+                              className="p-1.5 text-stone-500 hover:bg-stone-100 rounded-xl border border-stone-200 transition cursor-pointer"
                               title="Edit Invoice Details"
                             >
                               <Edit2 size={13} />
@@ -1467,8 +1405,8 @@ export default function QuotationInvoiceManager() {
                                   activeDropdownId === inv.invoiceNumber ? null : inv.invoiceNumber
                                 )
                               }
-                              className="p-1 text-stone-600 hover:bg-stone-100 rounded-lg border border-stone-200 transition cursor-pointer"
-                              title="All Commercial Options"
+                              className="p-1.5 text-stone-600 hover:bg-stone-100 rounded-xl border border-stone-200 transition cursor-pointer"
+                              title="More Options"
                             >
                               <MoreVertical size={13} />
                             </button>
@@ -1669,7 +1607,7 @@ export default function QuotationInvoiceManager() {
             </div>
           </div>
 
-          {/* Client & BOQ Auto-Fill Selector Banner */}
+          {/* Client & Enquiry Auto-Fill Selector Banner */}
           <div className="bg-gradient-to-r from-amber-50/90 via-orange-50/80 to-amber-50/90 p-4 rounded-2xl border border-amber-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-gradient-to-br from-[#D4AF37] to-[#B38E2D] text-stone-950 rounded-xl shadow-xs">
@@ -1677,42 +1615,60 @@ export default function QuotationInvoiceManager() {
               </div>
               <div>
                 <h4 className="font-black text-xs text-stone-900 flex items-center gap-2">
-                  <span>Single Source of Truth: Link Client / BOQ Quotation</span>
+                  <span>Client & Project Details Source</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-200 text-amber-900 font-extrabold">Auto-Import</span>
                 </h4>
                 <p className="text-[11px] text-stone-600 font-medium mt-0.5">
-                  Select an existing Client or BOQ estimate to automatically load all project details, customer info, and line items
+                  Select a lead from the Enquiry Section, registered client, or BOQ estimate to automatically fill details
                 </p>
               </div>
             </div>
 
-            <div className="w-full sm:w-auto min-w-[320px]">
-              <select
-                value={editingInvoice.clientId || ""}
-                onChange={(e) => handleSelectClientOrBOQForInvoice(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-extrabold text-stone-900 focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer hover:border-amber-400 transition"
+            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  loadEnquiries();
+                  setIsSelectEnquiryModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
               >
-                <option value="">-- Select Client or BOQ Estimate to Auto-Fill --</option>
-                <optgroup label="📋 Existing BOQ Estimates & Quotations">
-                  {boqEstimates.map((b) => (
-                    <option key={b._id || b.boqNumber} value={b._id || b.boqNumber}>
-                      {b.boqNumber} • {b.clientName} (₹{(b.grandTotal || 0).toLocaleString("en-IN")})
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="👥 All Registered Clients">
-                  {(clientsList.length > 0 ? clientsList : [
-                    { _id: "cl1", name: "PREM SHUKLA", phone: "78000 20496" },
-                    { _id: "cl2", name: "Rajeev Singhal", phone: "89482 74553" },
-                    { _id: "cl3", name: "Meenakshi Krishnani", phone: "91671 35606" },
-                    { _id: "cl4", name: "WIPRO LINCRAFT AI PRIVATE LIMITED", phone: "96323 00992" }
-                  ]).map((c, idx) => (
-                    <option key={c._id || idx} value={c._id || c.name}>
-                      {c.name} ({c.phone || c.clientPhone || "Registered Client"})
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
+                <Search size={13} />
+                <span>Select from Enquiry Section</span>
+              </button>
+
+              <div className="min-w-[280px] flex-1 sm:flex-initial">
+                <select
+                  value={editingInvoice.clientId || ""}
+                  onChange={(e) => handleSelectClientOrBOQForInvoice(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-extrabold text-stone-900 focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer hover:border-amber-400 transition"
+                >
+                  <option value="">-- Or Quick Select Client / Enquiry / BOQ --</option>
+                  {enquiriesList.length > 0 && (
+                    <optgroup label="📋 Enquiries (From Enquiry Section)">
+                      {enquiriesList.map((enq) => (
+                        <option key={enq._id || enq.enquiryNo} value={`enq_${enq._id || enq.enquiryNo}`}>
+                          {enq.name} ({enq.phone || "No phone"}) • {enq.projectSubtype || enq.projectType || "Enquiry"}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="📐 Existing BOQ Estimates">
+                    {boqEstimates.map((b) => (
+                      <option key={b._id || b.boqNumber} value={b._id || b.boqNumber}>
+                        {b.boqNumber} • {b.clientName} (₹{(b.grandTotal || 0).toLocaleString("en-IN")})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="👥 Registered Clients">
+                    {clientsList.map((c, idx) => (
+                      <option key={c._id || idx} value={c._id || c.name}>
+                        {c.name} ({c.phone || c.clientPhone || "Registered Client"})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -3473,6 +3429,407 @@ export default function QuotationInvoiceManager() {
                   <span>⚡ Auto-Generate Standard Tax Invoice</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SELECT CLIENT FROM ENQUIRY MODAL (NEW INVOICE WORKFLOW) */}
+      {/* ========================================================================= */}
+      {isSelectEnquiryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in select-none">
+          <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-blue-900 via-indigo-900 to-stone-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/10 rounded-2xl border border-white/10 text-blue-300">
+                  <User size={22} />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                    <span>Select Client from Enquiry Section</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/30 border border-blue-400/30 text-blue-200 font-bold">
+                      {enquiriesList.length} Leads
+                    </span>
+                  </h3>
+                  <p className="text-xs text-blue-200/80 mt-0.5 font-medium">
+                    Pick a lead from your Enquiry section to automatically load their name, contact, address & project details
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsSelectEnquiryModalOpen(false)}
+                className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Top Search & Fast Actions */}
+            <div className="p-5 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3">
+              <div className="relative flex-1 min-w-[260px]">
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="Search enquiry by client name, phone, email, site location, or project..."
+                  value={enquirySearchQuery}
+                  onChange={(e) => setEnquirySearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-stone-300 rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-blue-500 transition shadow-2xs"
+                />
+              </div>
+
+              <button
+                onClick={handleStartBlankInvoice}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs rounded-xl border border-stone-300 transition cursor-pointer shadow-2xs"
+              >
+                <FileText size={14} className="text-stone-500" />
+                <span>Or Start Blank Invoice</span>
+              </button>
+            </div>
+
+            {/* Modal List of Enquiries */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-stone-100/50 max-h-[55vh]">
+              {loadingEnquiries ? (
+                <div className="py-12 text-center text-stone-400 text-xs font-semibold">
+                  Loading Enquiries...
+                </div>
+              ) : (() => {
+                const filteredEnqs = enquiriesList.filter((e) => {
+                  if (!enquirySearchQuery.trim()) return true;
+                  const term = enquirySearchQuery.toLowerCase();
+                  return (
+                    e.name?.toLowerCase().includes(term) ||
+                    e.phone?.toLowerCase().includes(term) ||
+                    e.email?.toLowerCase().includes(term) ||
+                    e.siteLocation?.toLowerCase().includes(term) ||
+                    e.address?.toLowerCase().includes(term) ||
+                    e.projectType?.toLowerCase().includes(term) ||
+                    e.projectSubtype?.toLowerCase().includes(term) ||
+                    e.enquiryNo?.toLowerCase().includes(term)
+                  );
+                });
+
+                if (filteredEnqs.length === 0) {
+                  return (
+                    <div className="py-12 text-center text-stone-400">
+                      <p className="text-sm font-bold text-stone-600">
+                        {enquirySearchQuery ? `No enquiries found matching "${enquirySearchQuery}"` : "No enquiries found in the Enquiry section"}
+                      </p>
+                      <p className="text-xs text-stone-400 mt-1">
+                        You can start with a blank invoice to enter client details manually.
+                      </p>
+                      <button
+                        onClick={handleStartBlankInvoice}
+                        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                      >
+                        Create Blank Invoice
+                      </button>
+                    </div>
+                  );
+                }
+
+                return filteredEnqs.map((enq, idx) => (
+                  <div
+                    key={enq._id || enq.enquiryNo || idx}
+                    className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition flex flex-wrap items-center justify-between gap-4"
+                  >
+                    {/* Client & Project Info */}
+                    <div className="space-y-1.5 flex-1 min-w-[280px]">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-extrabold text-sm text-stone-900">
+                          {enq.salutation ? `${enq.salutation} ` : ""}{enq.name}
+                        </span>
+                        {enq.enquiryNo && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 font-mono font-bold">
+                            {enq.enquiryNo}
+                          </span>
+                        )}
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
+                          {enq.projectSubtype || enq.projectType || "Residential"}
+                        </span>
+                        {enq.prospectStatus && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                            enq.prospectStatus === "Hot" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {enq.prospectStatus} Lead
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs text-stone-600 flex-wrap">
+                        {enq.phone && (
+                          <span className="flex items-center gap-1 font-mono">
+                            <Phone size={11} className="text-stone-400" />
+                            {enq.phone}
+                          </span>
+                        )}
+                        {enq.email && (
+                          <span className="flex items-center gap-1 text-stone-500">
+                            <Mail size={11} className="text-stone-400" />
+                            {enq.email}
+                          </span>
+                        )}
+                        {(enq.siteLocation || enq.address || enq.city) && (
+                          <span className="flex items-center gap-1 text-stone-500">
+                            <MapPin size={11} className="text-stone-400" />
+                            {enq.siteLocation || enq.address || enq.city}
+                          </span>
+                        )}
+                        {enq.budget && (
+                          <span className="font-bold text-stone-700">
+                            Budget: {enq.budget}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <button
+                      onClick={() => handleSelectEnquiryForInvoice(enq)}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                    >
+                      <Check size={13} />
+                      <span>Select Client & Create Invoice</span>
+                    </button>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-white border-t border-stone-200 flex items-center justify-between">
+              <span className="text-xs text-stone-500">
+                Loaded directly from Velora Enquiry Module
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSelectEnquiryModalOpen(false)}
+                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleStartBlankInvoice}
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  Start Blank Invoice
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW INVOICE DETAILS MODAL */}
+      {/* ========================================================================= */}
+      {isViewModalOpen && viewingInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in select-none">
+          <div className="relative w-full max-w-4xl max-h-[92vh] bg-white rounded-3xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Header */}
+            <div className="px-6 py-4 bg-stone-900 text-white flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-xl text-white">
+                  <Receipt size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-white">
+                      Invoice {viewingInvoice.invoiceNumber}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold text-[10px] border border-emerald-500/30">
+                      {viewingInvoice.status || "Issued"}
+                    </span>
+                  </div>
+                  <span className="text-xs text-stone-400">
+                    {viewingInvoice.clientName} • {viewingInvoice.projectName || "Turnkey Project"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons in View Modal */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleOpenPdfViewer(viewingInvoice, "tax");
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  <FileText size={13} />
+                  <span>Preview PDF</span>
+                </button>
+                <button
+                  onClick={() => downloadInvoicePdf(viewingInvoice)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  <Download size={13} />
+                  <span>Download PDF</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleOpenEdit(viewingInvoice);
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold rounded-xl border border-stone-700 transition cursor-pointer"
+                >
+                  <Edit2 size={13} />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="p-1.5 text-stone-400 hover:text-white rounded-lg transition cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-stone-50">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Dates & Info */}
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-2">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
+                    Invoice Details
+                  </span>
+                  <div className="text-xs space-y-1 text-stone-700">
+                    <div>
+                      <span className="font-semibold text-stone-500">Issue Date: </span>
+                      <span className="font-bold text-stone-900">
+                        {viewingInvoice.issueDate ? new Date(viewingInvoice.issueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-stone-500">Due Date: </span>
+                      <span className="font-bold text-stone-900">
+                        {viewingInvoice.dueDate ? new Date(viewingInvoice.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Upon Receipt"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-stone-500">Invoice Type: </span>
+                      <span className="font-bold text-stone-900">{viewingInvoice.invoiceType || "Supply"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Billed To */}
+                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-2">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
+                    Billed To (Client)
+                  </span>
+                  <div className="text-xs space-y-1 text-stone-700">
+                    <div className="font-extrabold text-stone-900">{viewingInvoice.clientName || viewingInvoice.billTo?.name}</div>
+                    {viewingInvoice.clientPhone && (
+                      <div className="font-mono text-stone-600">{viewingInvoice.clientPhone}</div>
+                    )}
+                    {viewingInvoice.clientEmail && (
+                      <div className="text-stone-500">{viewingInvoice.clientEmail}</div>
+                    )}
+                    {viewingInvoice.clientAddress && (
+                      <div className="text-[11px] text-stone-500 line-clamp-2">{viewingInvoice.clientAddress}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Financial Overview */}
+                <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-200/80 space-y-2">
+                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
+                    Total Due
+                  </span>
+                  <div className="text-xl font-black text-blue-900 font-mono">
+                    ₹{(viewingInvoice.grandTotal || viewingInvoice.balanceDue || 0).toLocaleString("en-IN")}
+                  </div>
+                  <div className="text-[11px] text-blue-700 font-medium flex justify-between">
+                    <span>Tax Applied: {viewingInvoice.taxPercent || 18}%</span>
+                    <span>GST: ₹{(viewingInvoice.gstTotal || 0).toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
+                <div className="px-4 py-3 bg-stone-100/75 border-b border-stone-200 font-bold text-xs text-stone-800 flex justify-between items-center">
+                  <span>Line Items ({(viewingInvoice.items || []).length})</span>
+                  <span className="text-[11px] text-stone-500 font-normal">Currency: INR (₹)</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="bg-stone-50 text-stone-500 font-bold border-b border-stone-200 text-[11px]">
+                        <th className="py-2.5 px-4">#</th>
+                        <th className="py-2.5 px-4">Product / Description</th>
+                        <th className="py-2.5 px-3">Category</th>
+                        <th className="py-2.5 px-3">HSN/SAC</th>
+                        <th className="py-2.5 px-3 text-center">Qty</th>
+                        <th className="py-2.5 px-3 text-right">Rate</th>
+                        <th className="py-2.5 px-3 text-right">GST %</th>
+                        <th className="py-2.5 px-4 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100 text-stone-700">
+                      {(viewingInvoice.items && viewingInvoice.items.length > 0 ? viewingInvoice.items : []).map((it, idx) => (
+                        <tr key={idx} className="hover:bg-stone-50/50">
+                          <td className="py-3 px-4 font-bold text-stone-400">{idx + 1}</td>
+                          <td className="py-3 px-4 font-bold text-stone-900">
+                            {it.productName || "Item"}
+                            {it.dimensions && (
+                              <span className="block text-[10px] text-stone-400 font-normal">
+                                {it.dimensions}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-stone-600">{it.category || "General"}</td>
+                          <td className="py-3 px-3 font-mono text-stone-500">{it.hsnSac || "995476"}</td>
+                          <td className="py-3 px-3 text-center font-bold">{it.quantity || 1} {it.unit || ""}</td>
+                          <td className="py-3 px-3 text-right font-mono">₹{(it.rate || 0).toLocaleString("en-IN")}</td>
+                          <td className="py-3 px-3 text-right font-mono">{it.gstPercent || 0}%</td>
+                          <td className="py-3 px-4 text-right font-mono font-bold text-stone-900">
+                            ₹{(it.total || 0).toLocaleString("en-IN")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Calculations Footer */}
+              <div className="flex justify-end">
+                <div className="w-full max-w-sm bg-white p-4 rounded-2xl border border-stone-200 space-y-2 text-xs">
+                  <div className="flex justify-between text-stone-600">
+                    <span>Subtotal:</span>
+                    <span className="font-mono font-bold text-stone-800">
+                      ₹{(viewingInvoice.subtotal || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-stone-600">
+                    <span>GST Amount ({viewingInvoice.taxPercent || 18}%):</span>
+                    <span className="font-mono font-bold text-stone-800">
+                      ₹{(viewingInvoice.gstTotal || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="border-t border-stone-200 pt-2 flex justify-between text-sm font-black text-stone-900">
+                    <span>Grand Total:</span>
+                    <span className="font-mono text-blue-600">
+                      ₹{(viewingInvoice.grandTotal || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-white border-t border-stone-200 flex justify-end gap-2">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

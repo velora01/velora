@@ -271,11 +271,6 @@ const SEED_INVOICES = [
 // GET /api/erp/invoices
 export const getInvoices = async (req, res) => {
   try {
-    const count = await Invoice.countDocuments();
-    if (count === 0) {
-      await Invoice.insertMany(SEED_INVOICES);
-    }
-
     const { search = "", status = "", page = 1, limit = 50 } = req.query;
     const query = {};
     if (search) {

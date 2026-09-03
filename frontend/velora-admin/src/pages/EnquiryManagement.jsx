@@ -895,11 +895,7 @@ export default function EnquiryManagement() {
                       <option value="Residential">Residential</option>
                       <option value="Commercial">Commercial</option>
                       <option value="Renovation">Renovation</option>
-                      <option value="Villa">Villa / Bungalow</option>
-                      <option value="Apartment">Apartment / Flat</option>
-                      <option value="Office">Office / Workstation</option>
-                      <option value="Retail">Retail & Showroom</option>
-                      <option value="Hospitality">Hospitality & Cafe</option>
+                      <option value="Hospital">Hospital</option>
                     </select>
                   </div>
 
@@ -1563,7 +1559,7 @@ export default function EnquiryManagement() {
                 <option value="Residential">Residential</option>
                 <option value="Commercial">Commercial</option>
                 <option value="Renovation">Renovation</option>
-                <option value="Villa">Villa</option>
+                <option value="Hospital">Hospital</option>
               </select>
             </div>
 

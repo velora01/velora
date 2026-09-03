@@ -1020,58 +1020,38 @@ export default function QuotationInvoiceManager() {
       )}
 
       {/* ========================================================================= */}
-      {/* SELECT CLIENT FROM ENQUIRY MODAL (WORKFLOW STEP 1) */}
+      {/* SELECT PROJECT TO CONTINUE MODAL (EXACT MATCH TO REFERENCE SCREENSHOT) */}
       {/* ========================================================================= */}
       {isSelectEnquiryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in select-none">
-          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                  <User size={16} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm text-stone-900">
-                    Select Client from Enquiry Section
-                  </h3>
-                  <span className="text-[11px] text-stone-500">
-                    Select an enquiry to auto-fill details. Once an invoice is generated, they move to the Invoice list.
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsSelectEnquiryModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 p-6 space-y-4">
+            {/* Top Search Input (Pill Shaped Search Bar) */}
+            <div className="relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                placeholder="Search by Name, Phone, Email"
+                value={enquirySearchQuery}
+                onChange={(e) => setEnquirySearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white border border-stone-200 rounded-full text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:border-blue-500 shadow-2xs"
+              />
             </div>
 
-            {/* Search Input */}
-            <div className="p-4 border-b border-stone-100 bg-white">
-              <div className="relative">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Search enquiry client by name, phone, project type..."
-                  value={enquirySearchQuery}
-                  onChange={(e) => setEnquirySearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-stone-900 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
+            {/* Subtitle */}
+            <div className="text-center">
+              <span className="text-xs font-bold text-stone-600">Select Project to continue</span>
             </div>
 
-            {/* Enquiry List */}
-            <div className="flex-1 overflow-y-auto p-4 divide-y divide-stone-100">
+            {/* Scrollable Project Cards List */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[420px]">
               {availableEnquiriesForInvoicing.length === 0 ? (
-                <div className="text-center py-10 space-y-3">
+                <div className="text-center py-12 space-y-3">
                   <CheckCircle2 size={36} className="text-emerald-500 mx-auto" />
                   <p className="font-bold text-xs text-stone-700">
-                    {enquirySearchQuery ? "No matching enquiries found." : "All registered enquiries have invoices generated!"}
+                    {enquirySearchQuery ? "No matching clients found." : "All clients have invoices created!"}
                   </p>
-                  <p className="text-[11px] text-stone-400 max-w-sm mx-auto">
-                    You can still create a custom invoice for any new client by clicking below.
+                  <p className="text-[11px] text-stone-400 max-w-xs mx-auto">
+                    You can still create a custom invoice by clicking below.
                   </p>
                   <button
                     onClick={handleCreateBlankInvoice}
@@ -1083,49 +1063,44 @@ export default function QuotationInvoiceManager() {
               ) : (
                 availableEnquiriesForInvoicing.map((enq) => (
                   <div
-                    key={enq._id || enq.enquiryNo}
+                    key={enq._id || enq.enquiryNo || enq.phone}
                     onClick={() => handleSelectEnquiryClient(enq)}
-                    className="py-3 px-3 hover:bg-blue-50/60 rounded-xl transition cursor-pointer flex items-center justify-between gap-4 group"
+                    className="flex items-center gap-3.5 p-3 rounded-2xl border border-stone-200 hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer group shadow-2xs bg-white"
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-stone-900 group-hover:text-blue-700 transition">
-                          {enq.name}
-                        </span>
-                        <span className="px-2 py-0.5 bg-stone-100 text-stone-600 text-[10px] font-bold rounded-full border border-stone-200">
-                          {enq.projectSubtype || enq.projectType || "Residential"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-[11px] text-stone-500">
-                        <span>📞 {enq.phone || "No phone"}</span>
-                        <span>📍 {enq.siteLocation || enq.address || "Pune"}</span>
-                        <span className="font-mono font-bold text-emerald-700">
-                          ₹{(typeof enq.budget === "number" ? enq.budget : 2500000).toLocaleString("en-IN")}
-                        </span>
-                      </div>
+                    {/* Circle Avatar with Initial */}
+                    <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 text-stone-700 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition">
+                      {(enq.name || "C").charAt(0).toUpperCase()}
                     </div>
 
-                    <button
-                      type="button"
-                      className="px-3.5 py-1.5 bg-blue-600 group-hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1 shrink-0"
-                    >
-                      <span>Create Invoice</span>
-                    </button>
+                    {/* Client Name & Project No */}
+                    <div className="flex-1 min-w-0">
+                      <span className="font-bold text-xs text-stone-900 group-hover:text-blue-700 transition block truncate">
+                        {enq.name}
+                      </span>
+                      <span className="font-mono text-[11px] text-stone-400 block font-medium">
+                        {enq.projectNumber || (enq.enquiryNo ? enq.enquiryNo.replace("ENQ", "PRJ") : "PRJ-2026-012")}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
             </div>
 
-            {/* Modal Bottom Bar */}
-            <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs">
-              <span className="text-stone-500 font-medium">
-                {availableEnquiriesForInvoicing.length} pending enquiries available
-              </span>
+            {/* Bottom Actions with Close Button */}
+            <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
               <button
                 onClick={handleCreateBlankInvoice}
-                className="font-bold text-blue-600 hover:underline cursor-pointer"
+                className="text-[11px] font-bold text-stone-500 hover:text-blue-600 cursor-pointer"
               >
-                + Create Blank / Custom Invoice
+                + Create Custom / Blank Invoice
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsSelectEnquiryModalOpen(false)}
+                className="px-6 py-2 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

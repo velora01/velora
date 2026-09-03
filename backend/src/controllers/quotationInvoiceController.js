@@ -131,7 +131,7 @@ const SEED_INVOICES = [
     issueDate: new Date("2026-08-13"),
     dueDate: null,
     termsAndConditions: "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% upon material delivery at site or production clearance.\n3. Balance 10% on completion and final handover.",
-    bankDetails: "Account Holder: NETTLE CREEK INTERIORS\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
+    bankDetails: "Account Holder: VELORA ANTARAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
   },
   {
     invoiceNumber: "NCI005",

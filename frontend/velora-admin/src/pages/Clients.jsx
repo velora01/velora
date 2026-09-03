@@ -409,40 +409,45 @@ export default function Clients() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-wrap justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-[#EAE3D2] shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-stone-900 tracking-tight">Clients Directory</h1>
-            <span className="text-xs font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-              {clients.length} Registered
-            </span>
+      {/* Main Clients Directory View */}
+      {!selectedClient && (
+        <>
+          {/* Header */}
+          <div className="flex flex-wrap justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-black text-stone-900 tracking-tight">Clients Directory</h1>
+                <span className="text-xs font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  {clients.length} Registered
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 mt-1 font-medium">
+                Velora Antaraal • Connected Enquiry &rarr; Client 360° &rarr; BOQ Estimates &rarr; Tax Invoices
+              </p>
+            </div>
+
+            <button
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+            >
+              <Plus size={16} />
+              <span>Add New Client</span>
+            </button>
           </div>
-          <p className="text-xs text-stone-500 mt-1 font-medium">
-            Single Source of Truth: Connected Enquiry &rarr; Client &rarr; BOQ &rarr; Invoice Lifecycle
-          </p>
-        </div>
 
-        <button
-          onClick={handleOpenAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
-        >
-          <Plus size={16} />
-          <span>Add New Client</span>
-        </button>
-      </div>
-
-      {/* Main Table */}
-      <DataTable
-        title="All Clients & Accounts"
-        columns={columns}
-        data={clients}
-        search={search}
-        setSearch={setSearch}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        statusOptions={["Active", "Lead", "Completed", "Archived"]}
-      />
+          {/* Main Table */}
+          <DataTable
+            title="All Clients & Accounts"
+            columns={columns}
+            data={clients}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            statusOptions={["Active", "Lead", "Completed", "Archived"]}
+          />
+        </>
+      )}
 
       {/* ========================================================================= */}
       {/* ADD / EDIT CLIENT MODAL */}
@@ -635,86 +640,164 @@ export default function Clients() {
       )}
 
       {/* ========================================================================= */}
-      {/* ADVANCED 360° CLIENT DETAIL DRAWER (TABBED) */}
+      {/* 2. FULL-PAGE CLIENT 360° WORKSPACE (WHEN CLIENT IS SELECTED) */}
       {/* ========================================================================= */}
-      <Drawer
-        isOpen={!!selectedClient}
-        onClose={() => setSelectedClient(null)}
-        title="Client 360° Detailed Workspace"
-      >
-        {selectedClient && (
-          <div className="space-y-4 text-xs">
-            {/* Top Client Header Badge */}
-            <div className="p-4 bg-gradient-to-br from-[#FAF9F5] to-amber-50/50 rounded-2xl border border-amber-200/80 flex items-center justify-between">
+      {selectedClient && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Top Executive Header with Back Navigation & Quick Actions */}
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSelectedClient(null)}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer shadow-2xs"
+                title="Return to Clients Directory"
+              >
+                <ArrowRight size={14} className="rotate-180" />
+                <span>Back to All Clients</span>
+              </button>
+
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-black text-base text-stone-900">{selectedClient.name}</h3>
-                  <span className="font-mono font-bold text-xs text-[#9E7B1D] bg-amber-100 px-2 py-0.5 rounded-md">
-                    {selectedClient.clientId || selectedClient.clientCode}
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl font-black text-stone-900 tracking-tight">
+                    {selectedClient.salutation ? `${selectedClient.salutation} ` : ""}{selectedClient.name}
+                  </h1>
+                  <span className="font-mono font-bold text-xs text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
+                    {selectedClient.clientId || selectedClient.clientCode || "VLA-CL-1001"}
                   </span>
-                </div>
-                <p className="text-[11px] text-stone-500 mt-0.5">
-                  {selectedClient.phone} • {selectedClient.city || "Pune"}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
-                  }}
-                  className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1 text-[11px]"
-                >
-                  <Receipt size={12} />
-                  <span>Invoice</span>
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
-                  }}
-                  className="px-3 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1 text-[11px]"
-                >
-                  <FileSpreadsheet size={12} />
-                  <span>BOQ</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Navigation Tabs */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-stone-200 scrollbar-none">
-              {[
-                { id: "overview", label: "Overview", icon: User },
-                { id: "project", label: "Project", icon: Home },
-                { id: "boq", label: "BOQ & Products", icon: Layers },
-                { id: "pricing", label: "Pricing & Commercials", icon: IndianRupee },
-                { id: "invoices", label: "Invoices", icon: Receipt },
-                { id: "documents", label: "Documents", icon: FileText },
-                { id: "notes", label: "Notes & Calls", icon: PhoneCall }
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const active = activeClientTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveClientTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold whitespace-nowrap text-xs transition cursor-pointer ${
-                      active
-                        ? "bg-stone-900 text-white shadow-xs"
-                        : "text-stone-600 hover:bg-stone-100"
+                  <span
+                    className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
+                      selectedClient.status === "Active"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : "bg-stone-100 text-stone-700 border-stone-200"
                     }`}
                   >
-                    <Icon size={12} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
+                    {selectedClient.status || "Active"}
+                  </span>
+                </div>
+                <p className="text-xs text-stone-500 font-medium mt-0.5">
+                  {selectedClient.phone} • {selectedClient.email || "No email"} • {selectedClient.city || "Pune, Maharashtra"}
+                </p>
+              </div>
             </div>
 
-            {/* Tab Contents */}
-            {/* 1. OVERVIEW TAB */}
-            {activeClientTab === "overview" && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => handleOpenEditModal(selectedClient)}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer"
+              >
+                <Edit2 size={13} />
+                <span>Edit Client</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate("/boq", {
+                    state: {
+                      clientName: selectedClient.name,
+                      clientPhone: selectedClient.phone,
+                      clientEmail: selectedClient.email
+                    }
+                  });
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <FileSpreadsheet size={14} />
+                <span>Open in BOQ Builder</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate("/invoices", {
+                    state: {
+                      createFromClient: true,
+                      client: selectedClient
+                    }
+                  });
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <Receipt size={14} />
+                <span>Generate Tax Invoice</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2-Column Full-Page Layout with Left Side Tags/Tabs */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Sidebar Navigation Tags / Tabs (3 cols) */}
+            <div className="lg:col-span-3 space-y-4">
+              {/* Profile Card */}
+              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-stone-900 text-[#D4AF37] font-black text-sm flex items-center justify-center shadow-xs">
+                    {selectedClient.name?.substring(0, 2).toUpperCase() || "CL"}
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-stone-900 line-clamp-1">{selectedClient.name}</h3>
+                    <span className="text-[11px] text-stone-400 font-medium block">
+                      {selectedClient.projectType || "Turnkey Project"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-stone-50 rounded-xl space-y-1.5 text-xs border border-stone-100">
+                  <div className="flex justify-between">
+                    <span className="text-stone-400">Total Commercials:</span>
+                    <span className="font-mono font-bold text-stone-900">
+                      ₹{(selectedClient.commercialSummary?.grandTotal || (selectedClient.name?.includes("PREM") ? 468800 : 525000)).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-stone-400">Style:</span>
+                    <span className="font-bold text-stone-700">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vertical Navigation Tags / Tabs */}
+              <div className="bg-white p-2 rounded-2xl border border-stone-200 shadow-2xs space-y-1">
+                <div className="px-3 py-1.5 text-[10px] font-black text-stone-400 uppercase tracking-wider">
+                  Client Workspace
+                </div>
+                {[
+                  { id: "overview", label: "Overview & Profile", icon: User },
+                  { id: "project", label: "Project & Design Scope", icon: Home },
+                  { id: "boq", label: "BOQ & Products Scope", icon: Layers },
+                  { id: "pricing", label: "Pricing & Commercials", icon: IndianRupee },
+                  { id: "invoices", label: "Tax Invoices & Billing", icon: Receipt },
+                  { id: "documents", label: "Documents & Files", icon: FileText },
+                  { id: "notes", label: "Communication & Calls", icon: PhoneCall }
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const active = activeClientTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveClientTab(tab.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl font-bold text-xs transition cursor-pointer text-left ${
+                        active
+                          ? "bg-stone-900 text-white shadow-xs"
+                          : "text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Icon size={15} className={active ? "text-[#D4AF37]" : "text-stone-500"} />
+                        <span className="font-bold">{tab.label}</span>
+                      </div>
+                      <ArrowRight size={13} className={active ? "text-[#D4AF37]" : "text-stone-300"} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Full-Width Main Content Workspace (9 cols) */}
+            <div className="lg:col-span-9 space-y-6">
+              {/* 1. OVERVIEW TAB */}
+              {activeClientTab === "overview" && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
                   <h4 className="font-extrabold text-stone-900 text-xs flex items-center gap-1.5 border-b border-stone-100 pb-2">
                     <User size={13} className="text-[#9E7B1D]" />
                     <span>Basic Client Information</span>
@@ -1091,10 +1174,11 @@ export default function Clients() {
                   </div>
                 </div>
               </div>
-            )}
+              )}
+            </div>
           </div>
-        )}
-      </Drawer>
+        </div>
+      )}
     </div>
   );
 }

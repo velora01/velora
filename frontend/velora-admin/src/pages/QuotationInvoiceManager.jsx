@@ -149,7 +149,7 @@ export default function QuotationInvoiceManager() {
     termsAndConditions:
       "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% on material delivery or production clearance.\n3. Balance 10% on completion and final snag handover.",
     bankDetails:
-      "Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
+      "Account Holder: VELORA ANTARAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
   };
 
   const [editingInvoice, setEditingInvoice] = useState(defaultInvoiceForm);
@@ -547,7 +547,7 @@ export default function QuotationInvoiceManager() {
       termsAndConditions:
         "TERMS & CONDITIONS\nFor Interior Design & Turnkey Execution\n1. 50% advance along with work order confirmation.\n2. 40% on material delivery or production clearance.\n3. Balance 10% on completion and final snag handover.",
       bankDetails:
-        "Account Holder: NETTLE CREEK INTERIORS / VELORA ANTRAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
+        "Account Holder: VELORA ANTARAAL\nAccount Number: 50200073374185\nBank Name: HDFC Bank, Wakad Branch\nIFSC Code: HDFC0000123"
     };
 
     try {
@@ -1564,23 +1564,23 @@ export default function QuotationInvoiceManager() {
       {/* ========================================================================= */}
       {activeTab === "invoices" && invoiceViewMode === "edit" && (
         <form onSubmit={handleSaveInvoice} className="space-y-6 animate-in fade-in">
-          {/* Header Bar */}
-          <div className="flex items-center justify-between">
+          {/* Executive Header Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setInvoiceViewMode("list")}
-                className="p-2 hover:bg-stone-200/60 rounded-xl transition text-stone-600 cursor-pointer"
+                className="p-2.5 bg-stone-100 hover:bg-stone-200 rounded-xl transition text-stone-700 cursor-pointer border border-stone-200"
                 title="Back to Invoices"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={16} />
               </button>
               <div>
-                <h2 className="text-lg font-extrabold text-stone-900">
-                  {editingInvoice._id ? "Edit Invoice" : "Create Invoice"}
+                <h2 className="text-xl font-black text-stone-900 tracking-tight">
+                  {editingInvoice._id ? `Edit Invoice (${editingInvoice.invoiceNumber})` : "Create New Tax Invoice"}
                 </h2>
-                <span className="text-[11px] text-stone-500">
-                  Single Source of Truth: Linked Client &rarr; BOQ &rarr; Tax Invoice
+                <span className="text-xs text-stone-500 font-medium">
+                  Velora Antaraal • Connected Enquiry &rarr; Client 360° &rarr; BOQ &rarr; Tax Invoice
                 </span>
               </div>
             </div>
@@ -1589,86 +1589,19 @@ export default function QuotationInvoiceManager() {
               <button
                 type="button"
                 onClick={() => handleOpenPdfViewer(editingInvoice, "tax")}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-300 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 title="Preview Official Tax Invoice PDF Format"
               >
-                <Receipt size={14} />
-                <span>Tax Invoice Preview</span>
+                <Receipt size={14} className="text-blue-600" />
+                <span>Preview Invoice</span>
               </button>
               <button
-                type="button"
-                onClick={() => handleOpenPdfViewer(editingInvoice, "boq")}
-                className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
-                title="Preview BOQ Estimate Scope PDF Format"
+                type="submit"
+                className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
               >
-                <FileSpreadsheet size={14} />
-                <span>BOQ Scope Preview</span>
+                <Check size={14} />
+                <span>Save & Issue Invoice</span>
               </button>
-            </div>
-          </div>
-
-          {/* Client & Enquiry Auto-Fill Selector Banner */}
-          <div className="bg-gradient-to-r from-amber-50/90 via-orange-50/80 to-amber-50/90 p-4 rounded-2xl border border-amber-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-[#D4AF37] to-[#B38E2D] text-stone-950 rounded-xl shadow-xs">
-                <FileSpreadsheet size={20} />
-              </div>
-              <div>
-                <h4 className="font-black text-xs text-stone-900 flex items-center gap-2">
-                  <span>Client & Project Details Source</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-200 text-amber-900 font-extrabold">Auto-Import</span>
-                </h4>
-                <p className="text-[11px] text-stone-600 font-medium mt-0.5">
-                  Select a lead from the Enquiry Section, registered client, or BOQ estimate to automatically fill details
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  loadEnquiries();
-                  setIsSelectEnquiryModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
-              >
-                <Search size={13} />
-                <span>Select from Enquiry Section</span>
-              </button>
-
-              <div className="min-w-[280px] flex-1 sm:flex-initial">
-                <select
-                  value={editingInvoice.clientId || ""}
-                  onChange={(e) => handleSelectClientOrBOQForInvoice(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-extrabold text-stone-900 focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer hover:border-amber-400 transition"
-                >
-                  <option value="">-- Or Quick Select Client / Enquiry / BOQ --</option>
-                  {enquiriesList.length > 0 && (
-                    <optgroup label="📋 Enquiries (From Enquiry Section)">
-                      {enquiriesList.map((enq) => (
-                        <option key={enq._id || enq.enquiryNo} value={`enq_${enq._id || enq.enquiryNo}`}>
-                          {enq.name} ({enq.phone || "No phone"}) • {enq.projectSubtype || enq.projectType || "Enquiry"}
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                  <optgroup label="📐 Existing BOQ Estimates">
-                    {boqEstimates.map((b) => (
-                      <option key={b._id || b.boqNumber} value={b._id || b.boqNumber}>
-                        {b.boqNumber} • {b.clientName} (₹{(b.grandTotal || 0).toLocaleString("en-IN")})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="👥 Registered Clients">
-                    {clientsList.map((c, idx) => (
-                      <option key={c._id || idx} value={c._id || c.name}>
-                        {c.name} ({c.phone || c.clientPhone || "Registered Client"})
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
             </div>
           </div>
 
@@ -1678,7 +1611,55 @@ export default function QuotationInvoiceManager() {
             <div className="lg:col-span-8 space-y-6">
               {/* Invoice Metadata & Parties Card */}
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-6">
-                <h3 className="font-extrabold text-base text-stone-900">Invoice</h3>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+                  <h3 className="font-extrabold text-base text-stone-900">Tax Invoice Master File</h3>
+                  
+                  {/* Clean Client Quick-Select Dropdown */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        loadEnquiries();
+                        setIsSelectEnquiryModalOpen(true);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition cursor-pointer shadow-2xs"
+                    >
+                      <User size={13} />
+                      <span>Select from Enquiry Section</span>
+                    </button>
+
+                    <select
+                      value={editingInvoice.clientId || ""}
+                      onChange={(e) => handleSelectClientOrBOQForInvoice(e.target.value)}
+                      className="px-3 py-1.5 bg-stone-50 border border-stone-300 rounded-xl text-xs font-bold text-stone-800 focus:outline-none focus:border-stone-900 cursor-pointer"
+                    >
+                      <option value="">-- Quick Pick Client / Lead --</option>
+                      {enquiriesList.length > 0 && (
+                        <optgroup label="📋 Enquiries (From Enquiry Section)">
+                          {enquiriesList.map((enq) => (
+                            <option key={enq._id || enq.enquiryNo} value={`enq_${enq._id || enq.enquiryNo}`}>
+                              {enq.name} ({enq.phone || "No phone"}) • {enq.projectSubtype || enq.projectType || "Enquiry"}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="📐 Existing BOQ Estimates">
+                        {boqEstimates.map((b) => (
+                          <option key={b._id || b.boqNumber} value={b._id || b.boqNumber}>
+                            {b.boqNumber} • {b.clientName} (₹{(b.grandTotal || 0).toLocaleString("en-IN")})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="👥 Registered Clients">
+                        {clientsList.map((c, idx) => (
+                          <option key={c._id || idx} value={c._id || c.name}>
+                            {c.name} ({c.phone || c.clientPhone || "Registered Client"})
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
 
                 {/* Top 4 Metadata Tags */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-4 border-b border-stone-100">

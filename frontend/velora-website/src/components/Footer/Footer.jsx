@@ -3,15 +3,15 @@ const Footer = () => {
     <footer className="bg-[#111111] text-white pt-12 sm:pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-[#C9A227]">Velora</h2>
+          <h2 className="text-3xl font-bold text-[#C9A227]">Velora Antaraal</h2>
           <p className="text-gray-300 leading-8">
-            Velora is a premium interior design studio based in Nettle Creek, specializing in luxury residential and boutique commercial spaces.
-            We create bespoke living environments with curated materials, custom furniture, and timeless finishes.
+            Velora Antaraal is a premium luxury interior design studio based in Pune, specializing in bespoke residential and boutique commercial spaces.
+            We create timeless living environments with curated materials, custom modular furniture, and architectural finishes.
           </p>
           <div className="space-y-2 text-gray-400">
             <p className="font-semibold text-gray-200">Studio</p>
-            <p>velora antraal</p>
-            <p>wakad chauk , aundh raod, pune maharashtra 411008</p>
+            <p>Velora Antaraal</p>
+            <p>Wakad Chowk, Aundh Road, Pune, Maharashtra 411057</p>
           </div>
         </div>
 

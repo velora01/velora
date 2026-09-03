@@ -7,10 +7,10 @@ export const DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE = {
   id: "standard_interior_boq",
   title: "Standard Interior Turnkey Contract & 12-Year Warranty",
   bankDetails: {
-    accountHolder: "NETTLE CREEK INTERIORS",
+    accountHolder: "VELORA ANTARAAL",
     accountNumber: "50200073374185",
     ifsc: "HDFC0000223",
-    branch: "PASHAN",
+    branch: "WAKAD / PASHAN",
     accountType: "CURRENT"
   },
   paymentPlan: [

@@ -29,7 +29,12 @@ import {
   Upload,
   QrCode,
   CreditCard,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Sparkles,
+  Users,
+  IndianRupee,
+  SlidersHorizontal,
+  ChevronDown
 } from "lucide-react";
 import { downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
 
@@ -50,8 +55,10 @@ export default function QuotationInvoiceManager() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Enquiries / Clients list for quick-selection
+  // Enquiries list (from Enquiry section)
   const [enquiriesList, setEnquiriesList] = useState([]);
+  const [isSelectEnquiryModalOpen, setIsSelectEnquiryModalOpen] = useState(false);
+  const [enquirySearchQuery, setEnquirySearchQuery] = useState("");
 
   // PDF Viewer Modal State (Screenshot 4)
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
@@ -457,6 +464,120 @@ export default function QuotationInvoiceManager() {
     }
   ];
 
+  // Base list of enquiries from Enquiry section
+  const baseEnquiriesList = [
+    {
+      _id: "enq_012",
+      name: "sai chauhan",
+      phone: "8446031622",
+      email: "rohan@gmail.com",
+      siteLocation: "Wakad Chowk, Pune, Maharashtra",
+      projectType: "Residential",
+      projectSubtype: "3BHK Luxury Apartment",
+      budget: 2850000,
+      enquiryNo: "ENQ-2026-012"
+    },
+    {
+      _id: "enq_008",
+      name: "PREM SHUKLA",
+      phone: "7800020496",
+      email: "PREMSHUKLA@GMAIL.COM",
+      siteLocation: "402, High Street, Baner, Pune",
+      projectType: "Commercial",
+      projectSubtype: "Corporate Office",
+      budget: 468800,
+      enquiryNo: "ENQ-2026-008"
+    },
+    {
+      _id: "enq_011",
+      name: "Rajeev Singhal",
+      phone: "8948274553",
+      email: "rajeev.singhal@gmail.com",
+      siteLocation: "RISHITA - SERENITY, Kalyani Nagar, Pune",
+      projectType: "Residential",
+      projectSubtype: "4BHK Penthouse",
+      budget: 3200000,
+      enquiryNo: "ENQ-2026-011"
+    },
+    {
+      _id: "enq_010",
+      name: "Rasid sir",
+      phone: "8412852592",
+      email: "rasid.interior@gmail.com",
+      siteLocation: "Koregaon Park, Pune",
+      projectType: "Commercial",
+      projectSubtype: "Retail Showroom",
+      budget: 5500000,
+      enquiryNo: "ENQ-2026-010"
+    },
+    {
+      _id: "enq_009",
+      name: "Akash Jain",
+      phone: "8977899643",
+      email: "akash.jain@gmail.com",
+      siteLocation: "Hinjewadi Phase 1, Pune",
+      projectType: "Residential",
+      projectSubtype: "2BHK Apartment",
+      budget: 2150000,
+      enquiryNo: "ENQ-2026-009"
+    },
+    {
+      _id: "enq_007",
+      name: "Dr Saurabh",
+      phone: "7709019535",
+      email: "dr.saurabh@gmail.com",
+      siteLocation: "Aundh, Pune",
+      projectType: "Commercial",
+      projectSubtype: "Healthcare Clinic",
+      budget: 3800000,
+      enquiryNo: "ENQ-2026-007"
+    },
+    {
+      _id: "enq_006",
+      name: "Dr Hardik",
+      phone: "9890944762",
+      email: "dr.hardik@gmail.com",
+      siteLocation: "Viman Nagar, Pune",
+      projectType: "Residential",
+      projectSubtype: "3BHK Luxury Residence",
+      budget: 2900000,
+      enquiryNo: "ENQ-2026-006"
+    },
+    {
+      _id: "enq_005",
+      name: "WIPRO LINCRAFT AI PRIVATE LIMITED",
+      phone: "9632300992",
+      email: "procurement@wipro-lincraft.com",
+      siteLocation: "EON Free Zone, Kharadi, Pune",
+      projectType: "Commercial",
+      projectSubtype: "AI Innovation Center",
+      budget: 8400000,
+      enquiryNo: "ENQ-2026-005"
+    },
+    {
+      _id: "enq_004",
+      name: "Meenakshi Krishnani",
+      phone: "9167135606",
+      email: "meenakshi@example.com",
+      siteLocation: "Kalyani Nagar, Pune",
+      projectType: "Residential",
+      projectSubtype: "4BHK Penthouse",
+      budget: 6000000,
+      enquiryNo: "ENQ-2026-004"
+    },
+    {
+      _id: "enq_003",
+      name: "Khushi",
+      phone: "7355123408",
+      email: "khushi@example.com",
+      siteLocation: "Baner Highway, Pune",
+      projectType: "Residential",
+      projectSubtype: "2BHK Apartment",
+      budget: 1800000,
+      enquiryNo: "ENQ-2026-003"
+    }
+  ];
+
   // Invoice Form State
   const initialInvoiceForm = {
     _id: null,
@@ -518,7 +639,7 @@ export default function QuotationInvoiceManager() {
         if (res?.data) apiInvs = res.data;
       } catch (e) {}
 
-      // Merge uniquely
+      // Merge invoices uniquely
       const invMap = new Map();
       [...localInvs, ...apiInvs, ...defaultSampleInvoices].forEach((inv) => {
         const key = (inv.invoiceNumber || String(inv._id)).trim().toUpperCase();
@@ -538,7 +659,7 @@ export default function QuotationInvoiceManager() {
       const mergedInvoices = Array.from(invMap.values());
       setInvoices(mergedInvoices);
 
-      // Load enquiries for quick client autofill
+      // 3. Load all enquiries from local storage, backend API & base dataset
       let localEnqs = [];
       try {
         const savedEnqs = localStorage.getItem("velora_custom_enquiries");
@@ -552,15 +673,17 @@ export default function QuotationInvoiceManager() {
       } catch (e) {}
 
       const enqMap = new Map();
-      [...localEnqs, ...apiEnqs].forEach((enq) => {
-        const key = (enq.phone || enq.name || String(enq._id || enq.enquiryNo)).trim().toLowerCase();
+      [...localEnqs, ...apiEnqs, ...baseEnquiriesList].forEach((enq) => {
+        const cleanPhone = (enq.phone || enq.clientPhone || "").replace(/\D/g, "").slice(-10);
+        const cleanName = (enq.name || enq.clientName || "").trim().toLowerCase();
+        const key = cleanPhone ? `p_${cleanPhone}` : `n_${cleanName}`;
         if (key && !enqMap.has(key)) {
           enqMap.set(key, enq);
         }
       });
       setEnquiriesList(Array.from(enqMap.values()));
 
-      // Check if opened from another page (e.g. from Projects or Client Workspace)
+      // Check if opened from another page (e.g. from Projects)
       if (location.state?.createFromClient && location.state?.client) {
         const cl = location.state.client;
         setFormData({
@@ -591,7 +714,7 @@ export default function QuotationInvoiceManager() {
       }
 
     } catch (err) {
-      console.error("Error loading invoices:", err);
+      console.error("Error loading invoices & enquiries:", err);
     } finally {
       setLoading(false);
     }
@@ -599,7 +722,50 @@ export default function QuotationInvoiceManager() {
 
   useEffect(() => {
     loadData();
+
+    // Auto-sync when tab gains focus or storage updates
+    const handleSync = () => loadData();
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, [location.state]);
+
+  // Check if an enquiry already has an invoice created
+  const isEnquiryInvoiced = (enq) => {
+    const enqPhone = (enq.phone || enq.clientPhone || "").replace(/\D/g, "").slice(-10);
+    const enqName = (enq.name || enq.clientName || "").trim().toLowerCase();
+
+    return invoices.some((inv) => {
+      const invPhone = (inv.billTo?.phone || inv.clientPhone || "").replace(/\D/g, "").slice(-10);
+      const invName = (inv.billedTo || inv.billTo?.name || inv.clientName || inv.projectName || "").trim().toLowerCase();
+      
+      const phoneMatch = Boolean(enqPhone && invPhone && enqPhone === invPhone);
+      const nameMatch = Boolean(enqName && invName && enqName === invName);
+      return phoneMatch || nameMatch;
+    });
+  };
+
+  // Filter available enquiries that don't have an invoice yet
+  const availableEnquiriesForInvoicing = enquiriesList.filter((enq) => {
+    // Check if already invoiced
+    if (isEnquiryInvoiced(enq)) return false;
+
+    // Search query filter
+    if (enquirySearchQuery.trim()) {
+      const q = enquirySearchQuery.toLowerCase();
+      const match =
+        (enq.name || "").toLowerCase().includes(q) ||
+        (enq.phone || "").toLowerCase().includes(q) ||
+        (enq.email || "").toLowerCase().includes(q) ||
+        (enq.projectType || "").toLowerCase().includes(q) ||
+        (enq.siteLocation || "").toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
 
   // Handle saving QR code upload
   const handleQrUpload = (e) => {
@@ -629,7 +795,7 @@ export default function QuotationInvoiceManager() {
     showToast("QR code removed.");
   };
 
-  // Filtered Invoices
+  // Filtered Invoices for Table
   const filteredInvoices = invoices.filter((inv) => {
     if (!search.trim()) return true;
     const term = search.toLowerCase();
@@ -713,12 +879,26 @@ export default function QuotationInvoiceManager() {
     });
   };
 
-  // Quick Client Selection from Enquiry / Clients list
-  const handleSelectClient = (enq) => {
-    setFormData((prev) => ({
-      ...prev,
-      projectName: enq.name || prev.projectName,
-      projectNumber: enq.projectNumber || (enq.enquiryNo ? enq.enquiryNo.replace("ENQ", "PRJ") : prev.projectNumber),
+  // Start Creating New Invoice (Opens Enquiry Picker Modal)
+  const handleStartNewInvoice = () => {
+    setEnquirySearchQuery("");
+    setIsSelectEnquiryModalOpen(true);
+  };
+
+  // Select Enquiry Client and Open Invoice Editor
+  const handleSelectEnquiryClient = (enq) => {
+    const nextInvNum = `NCI${String(100 + invoices.length + 1).slice(-3)}`;
+    const budgetVal = typeof enq.budget === "number" ? enq.budget : (parseInt(String(enq.budget || "").replace(/\D/g, ""), 10) * 100000 || (enq.estimatedValue ? Number(enq.estimatedValue) : 65000));
+    const prjNum = enq.projectNumber || (enq.enquiryNo ? enq.enquiryNo.replace("ENQ", "PRJ") : "PRJ-2026-015");
+
+    setFormData({
+      ...initialInvoiceForm,
+      invoiceNumber: nextInvNum,
+      projectName: enq.name || "Client Project",
+      projectNumber: prjNum,
+      invoiceType: "Service",
+      invoiceDate: new Date().toISOString().split("T")[0],
+      dueDate: "",
       billTo: {
         name: enq.name || "",
         email: enq.email || "",
@@ -726,20 +906,45 @@ export default function QuotationInvoiceManager() {
         gstin: enq.gstNumber || "",
         address: enq.siteLocation || enq.address || ""
       },
-      shipTo: prev.sameAsBillTo
-        ? {
-            name: enq.name || "",
-            email: enq.email || "",
-            phone: enq.phone || "",
-            gstin: enq.gstNumber || "",
-            address: enq.siteLocation || enq.address || ""
-          }
-        : prev.shipTo
-    }));
-    showToast(`Autofilled client: ${enq.name}`);
+      shipTo: {
+        name: enq.name || "",
+        email: enq.email || "",
+        phone: enq.phone || "",
+        gstin: enq.gstNumber || "",
+        address: enq.siteLocation || enq.address || ""
+      },
+      sameAsBillTo: true,
+      items: [
+        {
+          serviceDescription: `${enq.projectSubtype || enq.projectType || "Interior Execution"} - Work Order Confirmation`,
+          hsnSac: "9954",
+          quantity: 1,
+          unit: "Job",
+          rate: budgetVal,
+          gstPercent: 0,
+          gstAmount: 0,
+          total: budgetVal
+        }
+      ]
+    });
+
+    setIsSelectEnquiryModalOpen(false);
+    setViewMode("edit");
+    showToast(`Loaded details for ${enq.name}. Now finalize and save invoice.`);
   };
 
-  // Open Edit Mode for an invoice
+  // Create Custom Blank Invoice (Skipping Enquiry Selection)
+  const handleCreateBlankInvoice = () => {
+    const nextInvNum = `NCI${String(100 + invoices.length + 1).slice(-3)}`;
+    setFormData({
+      ...initialInvoiceForm,
+      invoiceNumber: nextInvNum
+    });
+    setIsSelectEnquiryModalOpen(false);
+    setViewMode("edit");
+  };
+
+  // Open Edit Mode for an existing invoice
   const handleEditInvoice = (inv) => {
     setFormData({
       ...initialInvoiceForm,
@@ -752,7 +957,7 @@ export default function QuotationInvoiceManager() {
     setActiveDropdownId(null);
   };
 
-  // Save Invoice
+  // Save Invoice (Persists and Shows on Invoice List Tab)
   const handleSaveInvoice = (e) => {
     if (e) e.preventDefault();
     if (!formData.billTo.name) {
@@ -781,7 +986,7 @@ export default function QuotationInvoiceManager() {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
     } catch (err) {}
 
-    showToast(`Invoice ${invoiceRecord.invoiceNumber} saved successfully!`);
+    showToast(`Invoice ${invoiceRecord.invoiceNumber} created and added to list!`);
     setViewMode("list");
   };
 
@@ -815,7 +1020,120 @@ export default function QuotationInvoiceManager() {
       )}
 
       {/* ========================================================================= */}
-      {/* 1. CREATE / EDIT INVOICE VIEW (SCREENSHOT 2 & 3 EXACT UI) */}
+      {/* SELECT CLIENT FROM ENQUIRY MODAL (WORKFLOW STEP 1) */}
+      {/* ========================================================================= */}
+      {isSelectEnquiryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in select-none">
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                  <User size={16} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-stone-900">
+                    Select Client from Enquiry Section
+                  </h3>
+                  <span className="text-[11px] text-stone-500">
+                    Select an enquiry to auto-fill details. Once an invoice is generated, they move to the Invoice list.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSelectEnquiryModalOpen(false)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="p-4 border-b border-stone-100 bg-white">
+              <div className="relative">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="Search enquiry client by name, phone, project type..."
+                  value={enquirySearchQuery}
+                  onChange={(e) => setEnquirySearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-stone-900 focus:bg-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Enquiry List */}
+            <div className="flex-1 overflow-y-auto p-4 divide-y divide-stone-100">
+              {availableEnquiriesForInvoicing.length === 0 ? (
+                <div className="text-center py-10 space-y-3">
+                  <CheckCircle2 size={36} className="text-emerald-500 mx-auto" />
+                  <p className="font-bold text-xs text-stone-700">
+                    {enquirySearchQuery ? "No matching enquiries found." : "All registered enquiries have invoices generated!"}
+                  </p>
+                  <p className="text-[11px] text-stone-400 max-w-sm mx-auto">
+                    You can still create a custom invoice for any new client by clicking below.
+                  </p>
+                  <button
+                    onClick={handleCreateBlankInvoice}
+                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                  >
+                    + Create Blank Invoice
+                  </button>
+                </div>
+              ) : (
+                availableEnquiriesForInvoicing.map((enq) => (
+                  <div
+                    key={enq._id || enq.enquiryNo}
+                    onClick={() => handleSelectEnquiryClient(enq)}
+                    className="py-3 px-3 hover:bg-blue-50/60 rounded-xl transition cursor-pointer flex items-center justify-between gap-4 group"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs text-stone-900 group-hover:text-blue-700 transition">
+                          {enq.name}
+                        </span>
+                        <span className="px-2 py-0.5 bg-stone-100 text-stone-600 text-[10px] font-bold rounded-full border border-stone-200">
+                          {enq.projectSubtype || enq.projectType || "Residential"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-stone-500">
+                        <span>📞 {enq.phone || "No phone"}</span>
+                        <span>📍 {enq.siteLocation || enq.address || "Pune"}</span>
+                        <span className="font-mono font-bold text-emerald-700">
+                          ₹{(typeof enq.budget === "number" ? enq.budget : 2500000).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="px-3.5 py-1.5 bg-blue-600 group-hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1 shrink-0"
+                    >
+                      <span>Create Invoice</span>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Modal Bottom Bar */}
+            <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs">
+              <span className="text-stone-500 font-medium">
+                {availableEnquiriesForInvoicing.length} pending enquiries available
+              </span>
+              <button
+                onClick={handleCreateBlankInvoice}
+                className="font-bold text-blue-600 hover:underline cursor-pointer"
+              >
+                + Create Blank / Custom Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. CREATE / EDIT INVOICE VIEW (SCREENSHOT 2 & 3 EXACT UI) */}
       {/* ========================================================================= */}
       {viewMode === "edit" ? (
         <div className="space-y-6 animate-in fade-in">
@@ -831,7 +1149,7 @@ export default function QuotationInvoiceManager() {
               </button>
               <span className="text-stone-300">/</span>
               <span className="font-extrabold text-stone-900">
-                {formData._id ? `Edit Invoice (${formData.invoiceNumber})` : "New Invoice"}
+                {formData._id ? `Edit Invoice (${formData.invoiceNumber})` : `New Invoice (${formData.invoiceNumber})`}
               </span>
             </div>
 
@@ -911,25 +1229,14 @@ export default function QuotationInvoiceManager() {
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                   <h3 className="font-extrabold text-sm text-stone-900">Bill To (User Details)</h3>
-                  {enquiriesList.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-stone-400 font-medium">Quick Autofill:</span>
-                      <select
-                        onChange={(e) => {
-                          const found = enquiriesList.find((enq) => (enq._id || enq.enquiryNo) === e.target.value);
-                          if (found) handleSelectClient(found);
-                        }}
-                        className="px-2 py-1 bg-stone-50 border border-stone-200 text-stone-700 rounded-lg text-[11px] font-bold focus:outline-none cursor-pointer"
-                      >
-                        <option value="">-- Select Client from Enquiries --</option>
-                        {enquiriesList.map((enq) => (
-                          <option key={enq._id || enq.enquiryNo} value={enq._id || enq.enquiryNo}>
-                            {enq.name} ({enq.phone || "No phone"})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectEnquiryModalOpen(true)}
+                    className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <User size={12} />
+                    <span>Change / Pick from Enquiry</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -1416,7 +1723,7 @@ export default function QuotationInvoiceManager() {
         </div>
       ) : (
         /* ========================================================================= */
-        /* 2. MAIN INVOICE TABLE VIEW (SCREENSHOT 1 & 5 EXACT UI) */
+        /* 3. MAIN INVOICE TABLE VIEW (SCREENSHOT 1 & 5 EXACT UI) */
         /* ========================================================================= */
         <div className="space-y-6 animate-in fade-in">
           {/* Top Search, Count & New Invoice Button (Screenshot 1 Exact UI) */}
@@ -1439,13 +1746,7 @@ export default function QuotationInvoiceManager() {
               </span>
 
               <button
-                onClick={() => {
-                  setFormData({
-                    ...initialInvoiceForm,
-                    invoiceNumber: `NCI${String(100 + invoices.length + 1).slice(-3)}`
-                  });
-                  setViewMode("edit");
-                }}
+                onClick={handleStartNewInvoice}
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
               >
                 <Plus size={14} />
@@ -1473,7 +1774,7 @@ export default function QuotationInvoiceManager() {
                   {filteredInvoices.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-stone-400 font-medium">
-                        No invoices found. Click "New Invoice" to create one.
+                        No invoices found. Click "New Invoice" to select a client and create one.
                       </td>
                     </tr>
                   ) : (
@@ -1635,7 +1936,7 @@ export default function QuotationInvoiceManager() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. PDF VIEWER / PRINTABLE MODAL (SCREENSHOT 4 EXACT UI) */}
+      {/* 4. PDF VIEWER / PRINTABLE MODAL (SCREENSHOT 4 EXACT UI) */}
       {/* ========================================================================= */}
       {isPdfViewerOpen && previewInvoiceData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 backdrop-blur-xs p-4 animate-in fade-in select-none">

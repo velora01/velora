@@ -1943,7 +1943,7 @@ export default function QuotationInvoiceManager() {
                     activePdfPage === 1 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
                   }`}
                 >
-                  Page 1: Tax Invoice
+                  Page 1: Invoice
                 </button>
                 <button
                   onClick={() => setActivePdfPage(2)}
@@ -1951,7 +1951,15 @@ export default function QuotationInvoiceManager() {
                     activePdfPage === 2 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
                   }`}
                 >
-                  Page 2: Terms & Signatory
+                  Page 2: Terms
+                </button>
+                <button
+                  onClick={() => setActivePdfPage(3)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activePdfPage === 3 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                  }`}
+                >
+                  Page 3: Contract & Sign
                 </button>
               </div>
 
@@ -2011,7 +2019,7 @@ export default function QuotationInvoiceManager() {
             {/* Viewer Body: Left Thumbnails + Center Printable Document Sheet */}
             <div className="flex-1 flex overflow-hidden">
               {/* Left Side: Page Thumbnails */}
-              <div className="w-52 bg-stone-950 border-r border-stone-800 p-4 space-y-4 overflow-y-auto hidden sm:block shrink-0">
+              <div className="w-52 bg-stone-950 border-r border-stone-800 p-4 space-y-3 overflow-y-auto hidden sm:block shrink-0">
                 <div className="text-[10px] font-black text-stone-500 uppercase tracking-wider mb-2">
                   Document Pages
                 </div>
@@ -2024,22 +2032,21 @@ export default function QuotationInvoiceManager() {
                       : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
                   }`}
                 >
-                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-2 border border-stone-300">
+                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="flex justify-between items-center mb-1">
                       <div className="w-12 h-2 bg-amber-500/40 rounded-xs" />
                       <div className="w-8 h-2 bg-blue-600 rounded-xs" />
                     </div>
-                    <div className="h-4 bg-blue-600 rounded-xs my-1" />
+                    <div className="h-3 bg-blue-600 rounded-xs my-1" />
                     <div className="grid grid-cols-2 gap-1 my-1">
-                      <div className="h-4 bg-stone-100 rounded-xs" />
-                      <div className="h-4 bg-stone-100 rounded-xs" />
+                      <div className="h-3 bg-stone-100 rounded-xs" />
+                      <div className="h-3 bg-stone-100 rounded-xs" />
                     </div>
                     <div className="space-y-0.5 flex-1 mt-1">
-                      <div className="h-2 bg-blue-600 rounded-xs" />
-                      <div className="h-1.5 bg-stone-100 rounded-xs" />
-                      <div className="h-1.5 bg-stone-100 rounded-xs" />
+                      <div className="h-1.5 bg-blue-600 rounded-xs" />
+                      <div className="h-1 bg-stone-100 rounded-xs" />
                     </div>
-                    <div className="h-4 bg-stone-100 rounded-xs border border-stone-200 mt-1" />
+                    <div className="h-3 bg-stone-100 rounded-xs border border-stone-200 mt-1" />
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-white">Page 1</span>
@@ -2055,7 +2062,7 @@ export default function QuotationInvoiceManager() {
                       : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
                   }`}
                 >
-                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-2 border border-stone-300">
+                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="w-16 h-2 bg-stone-800 rounded-xs mb-1" />
                     <div className="space-y-1 my-1">
                       <div className="h-1 bg-stone-300 rounded-xs w-full" />
@@ -2063,14 +2070,35 @@ export default function QuotationInvoiceManager() {
                       <div className="h-1 bg-stone-200 rounded-xs w-3/4" />
                     </div>
                     <div className="h-8 bg-stone-100 rounded-xs border border-stone-200 my-1" />
-                    <div className="flex justify-between items-end mt-2 pt-2 border-t border-stone-200">
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-white">Page 2</span>
+                    <span className="text-[10px] text-stone-400">Terms P1</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActivePdfPage(3)}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
+                    activePdfPage === 3
+                      ? "border-blue-500 bg-blue-500/10 shadow-lg"
+                      : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
+                  }`}
+                >
+                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
+                    <div className="space-y-1 my-1">
+                      <div className="h-1 bg-stone-300 rounded-xs w-full" />
+                      <div className="h-1 bg-stone-200 rounded-xs w-full" />
+                      <div className="h-1 bg-stone-200 rounded-xs w-3/4" />
+                    </div>
+                    <div className="flex justify-between items-end mt-4 pt-2 border-t border-stone-200">
                       <div className="w-8 h-1 bg-stone-400" />
                       <div className="w-10 h-1 bg-stone-800" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white">Page 2</span>
-                    <span className="text-[10px] text-stone-400">Terms</span>
+                    <span className="font-bold text-white">Page 3</span>
+                    <span className="text-[10px] text-stone-400">Terms P2</span>
                   </div>
                 </button>
               </div>
@@ -2078,8 +2106,8 @@ export default function QuotationInvoiceManager() {
               {/* Main Document Preview (Crisp White High-Res Sheet) */}
               <div className="flex-1 bg-stone-900/80 p-4 sm:p-8 overflow-y-auto flex justify-center">
                 <div className="w-full max-w-3xl bg-white text-stone-900 rounded-2xl shadow-2xl p-8 sm:p-10 space-y-6 text-xs min-h-[850px] border border-stone-300 font-sans">
-                  {/* Page 1: Tax Invoice */}
-                  {activePdfPage === 1 ? (
+                  {/* Page 1: Tax Invoice (Exact Screenshot 1) */}
+                  {activePdfPage === 1 && (
                     <div className="space-y-6 animate-in fade-in">
                       {/* Top Header */}
                       <div className="flex items-start justify-between border-b border-stone-200 pb-5">
@@ -2103,48 +2131,47 @@ export default function QuotationInvoiceManager() {
                             </span>
                           </div>
                           <p className="text-stone-800 font-bold font-mono text-xs">
-                            GSTIN: <span className="text-blue-700">27CHCPS9945R1Z4</span>
+                            GST No: <span className="text-blue-700">27CHCPS9945R1Z4</span>
                           </p>
                         </div>
 
                         <div className="text-right space-y-1">
                           <h1 className="text-3xl font-black text-blue-600 tracking-tight">INVOICE</h1>
-                          <span className="inline-block px-2.5 py-0.5 bg-stone-100 border border-stone-300 rounded-full font-bold text-[10px] text-stone-600 uppercase tracking-wider">
-                            Original for Recipient
-                          </span>
                         </div>
                       </div>
 
-                      {/* Blue Info Banner (Screenshot 4 exact layout) */}
-                      <div className="bg-blue-600 text-white rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-md">
-                        <div>
-                          <span className="text-xs font-medium text-blue-100 block">Total Value:</span>
-                          <span className="font-mono text-2xl font-black tracking-tight">
-                            ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
-                          </span>
-                        </div>
+                      {/* Blue Info Banner (Screenshot 1 exact layout) */}
+                      <div className="flex justify-end">
+                        <div className="w-full sm:w-80 space-y-2">
+                          <div className="bg-blue-600 text-white rounded-xl p-3.5 flex items-center justify-between shadow-md">
+                            <span className="text-xs font-medium text-blue-100">Total Value:</span>
+                            <span className="font-mono text-xl font-black">
+                              ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
+                            </span>
+                          </div>
 
-                        <div className="space-y-1 text-right text-xs">
-                          <div>
-                            <span className="text-blue-200 font-medium">Invoice Number: </span>
-                            <span className="font-mono font-black">{previewInvoiceData.invoiceNumber}</span>
-                          </div>
-                          <div>
-                            <span className="text-blue-200 font-medium">Invoice Date: </span>
-                            <span className="font-bold">{previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate}</span>
-                          </div>
-                          <div>
-                            <span className="text-blue-200 font-medium">Due Date: </span>
-                            <span className="font-bold">{previewInvoiceData.dueDate || "--"}</span>
+                          <div className="space-y-1 text-right text-xs text-stone-600 pr-1">
+                            <div>
+                              <span className="text-stone-400 font-medium">Invoice Number: </span>
+                              <span className="font-mono font-bold text-stone-900">{previewInvoiceData.invoiceNumber}</span>
+                            </div>
+                            <div>
+                              <span className="text-stone-400 font-medium">Invoice Date: </span>
+                              <span className="font-bold text-stone-900">{previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate}</span>
+                            </div>
+                            <div>
+                              <span className="text-stone-400 font-medium">Due Date: </span>
+                              <span className="font-bold text-stone-900">{previewInvoiceData.dueDate || "--"}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Two Column Bill To & Ship To */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-stone-50 p-5 rounded-2xl border border-stone-200">
-                        <div className="space-y-1 border-b sm:border-b-0 sm:border-r border-stone-200 pb-3 sm:pb-0 sm:pr-4">
-                          <span className="font-black text-blue-600 text-[11px] uppercase tracking-wider block">BILL TO</span>
-                          <span className="font-black text-sm text-stone-900 block">
+                      <div className="grid grid-cols-2 gap-8 text-xs">
+                        <div className="space-y-1">
+                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">BILL TO</span>
+                          <span className="font-bold text-sm text-stone-900 block">
                             {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName}
                           </span>
                           <span className="font-mono text-stone-700 block font-medium">
@@ -2158,9 +2185,9 @@ export default function QuotationInvoiceManager() {
                           </span>
                         </div>
 
-                        <div className="space-y-1 sm:pl-4">
-                          <span className="font-black text-blue-600 text-[11px] uppercase tracking-wider block">SHIP TO</span>
-                          <span className="font-black text-sm text-stone-900 block">
+                        <div className="space-y-1">
+                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">SHIP TO</span>
+                          <span className="font-bold text-sm text-stone-900 block">
                             {previewInvoiceData.shipTo?.name || previewInvoiceData.billTo?.name || previewInvoiceData.billedTo}
                           </span>
                           <span className="font-mono text-stone-700 block font-medium">
@@ -2175,38 +2202,38 @@ export default function QuotationInvoiceManager() {
                         </div>
                       </div>
 
-                      {/* Service Items Table (Screenshot 4 Blue header) */}
-                      <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-2xs">
+                      {/* Service Items Table (Screenshot 1 Blue header) */}
+                      <div className="border border-stone-200 rounded-xl overflow-hidden shadow-2xs">
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
                             <tr className="bg-blue-600 text-white font-bold text-[11px]">
-                              <th className="py-3 px-3.5">Service Description</th>
-                              <th className="py-3 px-2">HSN/SAC</th>
-                              <th className="py-3 px-2 text-center">Qty</th>
-                              <th className="py-3 px-2 text-center">Unit</th>
-                              <th className="py-3 px-3 text-right">Rate (₹)</th>
-                              <th className="py-3 px-2 text-center">GST (%)</th>
-                              <th className="py-3 px-2 text-right">GST (₹)</th>
-                              <th className="py-3 px-3.5 text-right">Total (₹)</th>
+                              <th className="py-2.5 px-3">Service Description</th>
+                              <th className="py-2.5 px-2">HSN/SAC</th>
+                              <th className="py-2.5 px-2 text-center">Qty</th>
+                              <th className="py-2.5 px-2 text-center">Unit</th>
+                              <th className="py-2.5 px-3 text-right">Rate</th>
+                              <th className="py-2.5 px-2 text-center">GST (%)</th>
+                              <th className="py-2.5 px-2 text-right">GST (₹)</th>
+                              <th className="py-2.5 px-3 text-right">Total</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-stone-100 text-stone-700">
                             {(previewInvoiceData.items || []).map((it, idx) => (
-                              <tr key={idx} className={idx % 2 === 1 ? "bg-stone-50/60" : "bg-white"}>
-                                <td className="py-3 px-3.5 font-bold text-stone-900">
+                              <tr key={idx} className="hover:bg-stone-50/50">
+                                <td className="py-2.5 px-3 font-bold text-stone-900">
                                   {it.serviceDescription || it.productName || "sofa"}
                                 </td>
-                                <td className="py-3 px-2 font-mono text-stone-500">{it.hsnSac || "HSN/SAC"}</td>
-                                <td className="py-3 px-2 text-center font-bold text-stone-900">{it.quantity || 1}</td>
-                                <td className="py-3 px-2 text-center text-stone-600">{it.unit || "1"}</td>
-                                <td className="py-3 px-3 text-right font-mono font-bold text-stone-900">
+                                <td className="py-2.5 px-2 font-mono text-stone-400">{it.hsnSac || ""}</td>
+                                <td className="py-2.5 px-2 text-center font-bold text-stone-900">{it.quantity || 1}</td>
+                                <td className="py-2.5 px-2 text-center text-stone-600">{it.unit || "1"}</td>
+                                <td className="py-2.5 px-3 text-right font-mono font-bold text-stone-900">
                                   ₹{(it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-3 px-2 text-center font-mono font-bold text-stone-700">{it.gstPercent || 0}%</td>
-                                <td className="py-3 px-2 text-right font-mono text-stone-500">
+                                <td className="py-2.5 px-2 text-center font-mono text-stone-700">{it.gstPercent || 0} %</td>
+                                <td className="py-2.5 px-2 text-right font-mono text-stone-500">
                                   ₹{(it.gstAmount || 0).toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-3 px-3.5 text-right font-mono font-black text-stone-900">
+                                <td className="py-2.5 px-3 text-right font-mono font-black text-stone-900">
                                   ₹{(it.total || it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
                               </tr>
@@ -2216,15 +2243,8 @@ export default function QuotationInvoiceManager() {
                       </div>
 
                       {/* Totals & Summary Box */}
-                      <div className="flex flex-wrap items-start justify-between gap-4 pt-2">
-                        <div className="space-y-1 text-xs text-stone-500 max-w-sm">
-                          <span className="font-bold text-stone-700 block">Notes:</span>
-                          <p className="leading-relaxed">
-                            {previewInvoiceData.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
-                          </p>
-                        </div>
-
-                        <div className="w-72 space-y-2 text-xs bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                      <div className="flex justify-end pt-1">
+                        <div className="w-64 space-y-2 text-xs">
                           <div className="flex justify-between text-stone-600">
                             <span>Sub Total</span>
                             <span className="font-mono font-bold text-stone-900">
@@ -2232,100 +2252,247 @@ export default function QuotationInvoiceManager() {
                             </span>
                           </div>
                           <div className="flex justify-between text-stone-600">
-                            <span>Tax Amount (GST)</span>
+                            <span>Tax Amount</span>
                             <span className="font-mono font-bold text-stone-900">
                               ₹{(previewInvoiceData.taxAmount || 0).toLocaleString("en-IN")}
                             </span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-stone-200 font-bold text-stone-900 text-sm">
                             <span>Total Value</span>
-                            <span className="font-mono font-black text-blue-700 text-base">
+                            <span className="font-mono font-black text-stone-900">
                               ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Bank Details & Attached PhonePe Payment QR Code */}
-                      <div className="p-5 bg-gradient-to-r from-stone-50 to-blue-50/40 border border-stone-200 rounded-2xl grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                        <div className="sm:col-span-8 space-y-1.5">
-                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">
+                      {/* Bank Details & Scan to Pay (Screenshot 1 Layout) */}
+                      <div className="space-y-4 pt-2 border-t border-stone-100">
+                        <div className="space-y-1">
+                          <span className="font-bold text-stone-900 text-xs block">
                             Bank Details & Payment Instructions
                           </span>
-                          <pre className="font-mono text-xs text-stone-700 whitespace-pre-wrap leading-relaxed">
-                            {previewInvoiceData.bankDetails || "Account Holder: VELORA ANTARAAL\nAccount Number: 50200073374185\nIFSC: HDFC0000282\nBank: HDFC Bank, Wakad Branch"}
-                          </pre>
+                          <p className="font-mono text-[11px] text-stone-700 leading-relaxed">
+                            Account Holder: VELORA ANTARAAL<br />
+                            Account Number: 50200073374185<br />
+                            IFSC: HDFC0000282<br />
+                            Branch: WAKAD<br />
+                            Account Type: Current Account
+                          </p>
                         </div>
 
-                        {/* PhonePe QR Code Render */}
-                        <div className="sm:col-span-4 flex flex-col items-center justify-center border-t sm:border-t-0 sm:border-l sm:border-stone-200 pt-3 sm:pt-0 sm:pl-4 text-center">
-                          {paymentQrCode ? (
-                            <>
+                        {/* Scan to pay */}
+                        <div className="space-y-2">
+                          <span className="font-bold text-stone-900 text-xs block">Scan to pay</span>
+                          <div className="inline-block p-2 bg-white border border-stone-200 rounded-xl shadow-2xs">
+                            {paymentQrCode ? (
                               <img
                                 src={paymentQrCode}
                                 alt="PhonePe QR Code"
-                                className="w-24 h-24 object-contain rounded-xl border border-stone-200 p-1 bg-white shadow-2xs mb-1.5"
+                                className="w-24 h-24 object-contain rounded-lg"
                               />
-                              <span className="text-[10px] font-black text-blue-700 tracking-wider">
-                                SCAN TO PAY WITH PHONEPE
-                              </span>
-                            </>
-                          ) : (
-                            <div className="p-3 bg-white border border-stone-300 rounded-xl text-center space-y-1 shadow-2xs">
-                              <QrCode size={36} className="text-blue-600 mx-auto" />
-                              <span className="text-[9px] font-black text-stone-700 block uppercase">
-                                UPI: velora@hdfcbank
-                              </span>
-                            </div>
-                          )}
+                            ) : (
+                              <div className="w-24 h-24 bg-stone-50 rounded-lg flex flex-col items-center justify-center p-2 text-center border border-dashed border-stone-300">
+                                <QrCode size={36} className="text-blue-600 mb-1" />
+                                <span className="text-[8px] font-black text-stone-600">PhonePe / UPI</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div className="space-y-1 pt-2">
+                          <span className="font-bold text-stone-900 text-xs block">Notes</span>
+                          <p className="text-stone-600 text-xs">
+                            {previewInvoiceData.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    /* Page 2: Terms & Conditions & Signatory */
-                    <div className="space-y-6 animate-in fade-in pt-4">
-                      <div className="border-b border-stone-200 pb-4">
-                        <h2 className="text-lg font-black text-stone-900 tracking-tight">TERMS & CONDITIONS</h2>
-                        <span className="text-xs text-stone-500">Legal Agreement, Warranty & Turnkey Execution Protocol</span>
+                  )}
+
+                  {/* Page 2: Terms & Conditions Part 1 (Exact Screenshot 2) */}
+                  {activePdfPage === 2 && (
+                    <div className="space-y-5 animate-in fade-in pt-2">
+                      <div className="space-y-1 pb-3 border-b border-stone-200">
+                        <span className="font-bold text-stone-900 text-xs block">Notes</span>
+                        <p className="text-stone-600 text-xs">
+                          Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.
+                        </p>
                       </div>
 
-                      <div className="p-6 bg-stone-50 border border-stone-200 rounded-2xl text-stone-700 leading-relaxed text-xs space-y-4">
-                        <div>
-                          <p className="font-black text-stone-900 text-xs mb-1">1. Payment & Commercial Milestones:</p>
-                          <p className="text-stone-600">
-                            - 50% mobilization advance upon signing the work order confirmation.<br />
-                            - 40% dispatch clearance prior to transport of factory-manufactured modular carcasses.<br />
-                            - 10% final settlement upon completion of site installation and snag list handover.
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="font-black text-stone-900 text-xs mb-1">2. Material Warranty & Service SLA:</p>
-                          <p className="text-stone-600">
-                            - 10 Years warranty on all BWP Marine Grade Core Plywood and Hettich hardware.<br />
-                            - 1 Year complimentary snag and hinge alignment maintenance support from date of handover.
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="font-black text-stone-900 text-xs mb-1">3. Taxation & Legal Jurisdiction:</p>
-                          <p className="text-stone-600">
-                            - Registered under Composition Taxable scheme. All disputes subject to Pune jurisdiction.
-                          </p>
+                      <div className="space-y-2">
+                        <span className="font-bold text-stone-900 text-xs block">Terms & Conditions</span>
+                        <h2 className="text-sm font-black text-stone-900 uppercase">TERMS & CONDITIONS</h2>
+                        <span className="text-xs text-stone-600 block">For Interior Design & Turnkey Execution Services</span>
+                        <div className="pt-2 text-xs">
+                          <span className="font-bold text-stone-900 block">Company Name: VELORA ANTARAAL</span>
+                          <span className="text-stone-600 block">Tagline: Designing Elevated Living</span>
                         </div>
                       </div>
 
-                      <div className="pt-24 flex justify-between items-end border-t border-stone-200">
-                        <div className="space-y-2">
-                          <div className="w-48 border-b-2 border-stone-400 mb-1" />
-                          <span className="font-bold text-xs text-stone-800 block">Client Signature</span>
-                          <span className="text-[10px] text-stone-400">Accepted & Confirmed</span>
+                      <div className="space-y-4 text-xs text-stone-700 leading-relaxed pt-2">
+                        <div>
+                          <p className="font-bold text-stone-900 mb-1">1. Scope of Work</p>
+                          <p className="text-stone-600">
+                            The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, furniture design, civil work, electrical work, false ceiling, modular furniture, décor assistance, site supervision, and turnkey execution as mutually agreed in the final quotation/work order.
+                          </p>
+                          <p className="text-stone-600 mt-1">
+                            Any work outside the approved quotation shall be treated as additional work and billed separately.
+                          </p>
                         </div>
 
-                        <div className="text-right space-y-2">
-                          <div className="w-56 border-b-2 border-stone-900 mb-1 ml-auto" />
-                          <span className="font-black text-xs text-stone-900 block">For VELORA ANTARAAL</span>
-                          <span className="text-[11px] text-stone-500">Authorized Signatory</span>
+                        <div>
+                          <p className="font-bold text-stone-900 mb-1">2. Design Process</p>
+                          <p className="text-stone-600">
+                            1. Initial consultation and requirement discussion<br />
+                            2. Concept design and layout planning
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Page 3: Terms & Conditions Part 2 & Signatures (Exact Screenshot 3) */}
+                  {activePdfPage === 3 && (
+                    <div className="space-y-4 animate-in fade-in pt-2 text-xs text-stone-700 leading-relaxed">
+                      <div>
+                        <p className="text-stone-600">
+                          3. Material and finish selection<br />
+                          4. Final design approval<br />
+                          5. Execution and site coordination<br />
+                          6. Project handover
+                        </p>
+                        <p className="text-stone-600 mt-1 italic">
+                          Design revisions beyond the agreed number of revisions may attract additional charges.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">3. Quotation & Pricing</p>
+                        <p className="text-stone-600">
+                          - All quotations are valid for 15 days from the date of issue.<br />
+                          - Prices are based on current market rates of materials and labour.<br />
+                          - Any increase in material cost, taxes, transport, or vendor pricing after quotation approval may lead to revised costing.<br />
+                          - Customizations requested after final approval will be charged additionally.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">4. Payment Terms</p>
+                        <p className="text-stone-600 mb-1">Payment schedule shall generally be as follows:</p>
+                        <p className="text-stone-600 font-medium">
+                          - 10% Advance – Booking & Design Initiation<br />
+                          - 40% – Before Production/Execution<br />
+                          - 40% – During Execution Stage<br />
+                          - 10% – Before Final Handover
+                        </p>
+                        <p className="text-stone-600 mt-1">
+                          All payments must be made as per agreed timelines. Delay in payment may lead to work suspension and revised delivery timelines.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">5. Project Timeline</p>
+                        <p className="text-stone-600">
+                          - Timelines are estimated based on project scope and site conditions.<br />
+                          - Delays caused due to civil issues, approvals, client-side delays, vendor delays, material shortages, force majeure events, or changes in design shall not be considered the company's liability.<br />
+                          - Working days exclude Sundays and public holidays unless otherwise specified.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">6. Client Responsibilities</p>
+                        <p className="text-stone-600">
+                          The client shall:<br />
+                          - Provide timely approvals and decisions.<br />
+                          - Ensure site accessibility and basic utilities like electricity and water.<br />
+                          - Clear all dues as per payment schedule.<br />
+                          - Coordinate with society management/building authorities for permissions if required.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">7. Material & Finishes</p>
+                        <p className="text-stone-600">
+                          - Natural variations in wood, veneer, marble, laminates, fabric, stone, and other materials are normal and not considered defects.<br />
+                          - Shade differences may occur due to lighting and batch variation.<br />
+                          - Availability of selected materials is subject to market conditions.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">8. Warranty</p>
+                        <p className="text-stone-600">
+                          Modular Furniture & Interior Work Warranty<br />
+                          - Warranty period: 5 years for modular furniture manufacturing defects.<br />
+                          - Hardware warranty shall be as per respective brand manufacturer policy.<br />
+                          - Electrical appliances/accessories carry manufacturer warranty only.<br />
+                          - Polish, paint touch-ups, fabric wear, glass breakage, seepage, plumbing leakage from existing structure, mishandling, moisture damage, termite issues due to site conditions, or unauthorized modifications are not covered under warranty.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">9. Cancellation Policy</p>
+                        <p className="text-stone-600">
+                          - Booking amount/design fees are non-refundable.<br />
+                          - In case of project cancellation after production/execution initiation, charges for completed work, materials procured, labour, and applicable damages shall be recoverable from the client.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">10. Ownership of Designs</p>
+                        <p className="text-stone-600">
+                          All drawings, concepts, renders, and designs remain intellectual property of VELORA ANTARAAL unless otherwise agreed in writing. Unauthorized copying or execution through third parties is prohibited.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">11. Photography & Portfolio Rights</p>
+                        <p className="text-stone-600">
+                          The company reserves the right to photograph completed projects for portfolio, social media, website, and marketing purposes unless the client specifically requests confidentiality in writing.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">12. Limitation of Liability</p>
+                        <p className="text-stone-600">
+                          The company shall not be liable for: Structural defects of the property; Existing site issues; Delays due to external agencies/vendors; Damages caused after handover due to misuse or negligence.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">13. Force Majeure</p>
+                        <p className="text-stone-600">
+                          The company shall not be responsible for delays or non-performance caused by events beyond reasonable control including natural disasters, strikes, government restrictions, pandemics, transport disruptions, or supply chain interruptions.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">14. Dispute Resolution</p>
+                        <p className="text-stone-600">
+                          Any disputes arising shall be subject to the jurisdiction of Pune, Maharashtra courts only.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-stone-900 mb-1">15. Acceptance</p>
+                        <p className="text-stone-600">
+                          Approval of quotation/work order and payment of advance shall be considered acceptance of these Terms & Conditions.
+                        </p>
+                      </div>
+
+                      {/* Signatures Block (Screenshot 3) */}
+                      <div className="pt-8 space-y-4 border-t border-stone-200">
+                        <div>
+                          <p className="text-stone-800">Client Signature: _______________________</p>
+                        </div>
+                        <div>
+                          <p className="text-stone-800">Date: _______________________</p>
+                        </div>
+                        <div className="pt-2">
+                          <p className="font-bold text-stone-900">Authorized Signatory</p>
+                          <p className="font-black text-stone-900">VELORA ANTARAAL</p>
                         </div>
                       </div>
                     </div>
@@ -2337,7 +2504,7 @@ export default function QuotationInvoiceManager() {
             {/* Modal Bottom Action Bar */}
             <div className="px-6 py-4 bg-stone-950 border-t border-stone-800 flex items-center justify-between shrink-0">
               <div className="text-xs text-stone-400">
-                Viewing Page <span className="font-bold text-white">{activePdfPage}</span> of 2
+                Viewing Page <span className="font-bold text-white">{activePdfPage}</span> of 3
               </div>
 
               <div className="flex items-center gap-3">

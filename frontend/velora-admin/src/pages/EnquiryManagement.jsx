@@ -155,7 +155,18 @@ export default function EnquiryManagement() {
     { key: "Lost", label: "Lost", color: "bg-rose-500" }
   ];
 
-  // Fetch Enquiries from Backend API
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper to normalize unique key for an enquiry
+  const getEnquiryKey = (item) => {
+    const cleanPhone = (item.phone || item.clientPhone || "").replace(/\D/g, "").slice(-10);
+    if (cleanPhone) return `phone_${cleanPhone}`;
+    const cleanName = (item.name || item.clientName || "").trim().toLowerCase();
+    if (cleanName) return `name_${cleanName}`;
+    return `id_${item._id || item.enquiryNo || Date.now()}`;
+  };
+
+  // Fetch Enquiries from Backend API & Local Storage (Strictly Deduplicated)
   const fetchEnquiries = useCallback(async () => {
     setLoading(true);
     try {
@@ -168,19 +179,25 @@ export default function EnquiryManagement() {
         source: filterSource || undefined
       };
 
-      const res = await erpApi.getLeads(params);
-      if (res?.success) {
-        setEnquiries(res.data || []);
-        if (res.pagination) {
-          setPagination((prev) => ({
-            ...prev,
-            total: res.pagination.total || 0,
-            pages: res.pagination.pages || 1
-          }));
+      // 1. Read API leads
+      let apiLeads = [];
+      try {
+        const res = await erpApi.getLeads(params);
+        if (res?.success && res.data) {
+          apiLeads = res.data;
         }
+      } catch (e) {
+        console.warn("Backend getLeads:", e);
       }
-    } catch {
-      // Fallback mock dataset if backend is unreachable
+
+      // 2. Read local storage leads
+      let localEnqs = [];
+      try {
+        const saved = localStorage.getItem("velora_custom_enquiries");
+        if (saved) localEnqs = JSON.parse(saved);
+      } catch (e) {}
+
+      // Fallback mock dataset
       const mockData = [
         {
           _id: "mock1",
@@ -311,8 +328,43 @@ export default function EnquiryManagement() {
           prospectStatus: "Hot"
         }
       ];
-      setEnquiries(mockData);
-      setPagination((prev) => ({ ...prev, total: mockData.length, pages: 1 }));
+
+      // 3. Strictly deduplicate so each enquiry is unique
+      const uniqueMap = new Map();
+
+      // Custom/Newly added leads first
+      localEnqs.forEach((item) => {
+        const key = getEnquiryKey(item);
+        if (key && !uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
+        }
+      });
+
+      // API leads
+      apiLeads.forEach((item) => {
+        const key = getEnquiryKey(item);
+        if (key && !uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
+        }
+      });
+
+      // Mock defaults (only if not already registered)
+      mockData.forEach((item) => {
+        const key = getEnquiryKey(item);
+        if (key && !uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
+        }
+      });
+
+      const deduplicatedList = Array.from(uniqueMap.values());
+      setEnquiries(deduplicatedList);
+      setPagination((prev) => ({
+        ...prev,
+        total: deduplicatedList.length,
+        pages: Math.max(1, Math.ceil(deduplicatedList.length / pagination.limit))
+      }));
+    } catch (err) {
+      console.error("Error in fetchEnquiries:", err);
     } finally {
       setLoading(false);
     }
@@ -353,53 +405,64 @@ export default function EnquiryManagement() {
     });
   };
 
-  // Submit Form (Add / Edit)
+  // Submit Form (Add / Edit) - Strictly Single Execution
   const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
+    if (isSubmitting) return;
     if (!formData.name || !formData.phone) {
       setErrorMessage("Please enter both Name and Phone number.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const randomNum = Math.floor(100 + Math.random() * 900);
       const generatedEnquiryNo = formData.enquiryNo || `ENQ-2026-${String(randomNum).padStart(3, "0")}`;
       const payload = { ...formData, enquiryNo: generatedEnquiryNo };
 
       if (editingId) {
-        await erpApi.updateLead(editingId, payload);
+        try {
+          await erpApi.updateLead(editingId, payload);
+        } catch (e) {}
+
+        try {
+          const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+          const editKey = getEnquiryKey(payload);
+          const updated = existingLocal.map((it) => (getEnquiryKey(it) === editKey ? { ...it, ...payload } : it));
+          localStorage.setItem("velora_custom_enquiries", JSON.stringify(updated));
+        } catch (e) {}
+
         setSuccessToast("Enquiry updated successfully!");
       } else {
-        const res = await erpApi.createLead(payload);
-        const createdItem = res?.data || { ...payload, _id: `local_${Date.now()}` };
+        let createdItem = { ...payload, _id: `local_${Date.now()}` };
+        try {
+          const res = await erpApi.createLead(payload);
+          if (res?.data) createdItem = res.data;
+        } catch (e) {
+          console.warn("API createLead:", e);
+        }
         
-        // Sync to localStorage for instant BOQ discovery
-        const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
-        localStorage.setItem("velora_custom_enquiries", JSON.stringify([createdItem, ...existingLocal]));
+        // Sync to localStorage with strict deduplication
+        try {
+          const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+          const newKey = getEnquiryKey(createdItem);
+          const filtered = existingLocal.filter((it) => getEnquiryKey(it) !== newKey);
+          localStorage.setItem("velora_custom_enquiries", JSON.stringify([createdItem, ...filtered]));
+        } catch (e) {}
         
         setSuccessToast("New enquiry added successfully!");
       }
+
       setViewMode("list");
       setEditingId(null);
       setFormData(initialFormData);
       setWizardStep(1);
-      fetchEnquiries();
+      await fetchEnquiries();
       setTimeout(() => setSuccessToast(""), 4000);
     } catch (err) {
-      // Fallback local persistence if backend is offline
-      const randomNum = Math.floor(100 + Math.random() * 900);
-      const generatedEnquiryNo = formData.enquiryNo || `ENQ-2026-${String(randomNum).padStart(3, "0")}`;
-      const createdItem = { ...formData, enquiryNo: generatedEnquiryNo, _id: `local_${Date.now()}` };
-      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
-      localStorage.setItem("velora_custom_enquiries", JSON.stringify([createdItem, ...existingLocal]));
-      
-      setEnquiries((prev) => [createdItem, ...prev]);
-      setViewMode("list");
-      setEditingId(null);
-      setFormData(initialFormData);
-      setWizardStep(1);
-      setSuccessToast("New enquiry added successfully!");
-      setTimeout(() => setSuccessToast(""), 4000);
+      console.error("Error submitting enquiry:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

@@ -432,12 +432,21 @@ export default function Projects() {
         if (pEdits) savedProjectEdits = JSON.parse(pEdits);
       } catch (e) {}
 
+      // Helper to normalize unique key for a client
+      const getNormalizedClientKey = (item) => {
+        const cleanPhone = (item.phone || item.clientPhone || "").replace(/\D/g, "").slice(-10);
+        if (cleanPhone) return `phone_${cleanPhone}`;
+        const cleanName = (item.name || item.clientName || "").trim().toLowerCase();
+        if (cleanName) return `name_${cleanName}`;
+        return `id_${item._id || item.id || item.projectNumber || item.enquiryNo}`;
+      };
+
       // 4. Combine all into master client list
       const combinedMap = new Map();
 
       // First add base clients
       baseEnquiryClients.forEach((client, idx) => {
-        const key = (client.phone || client.name).trim().toLowerCase();
+        const key = getNormalizedClientKey(client);
         const customEdits = savedProjectEdits[key] || {};
         combinedMap.set(key, {
           ...client,
@@ -457,7 +466,7 @@ export default function Projects() {
 
       // Next add custom added leads from Enquiry section
       [...localEnqs, ...apiEnqs].forEach((enq, idx) => {
-        const key = (enq.phone || enq.name || String(enq._id || enq.enquiryNo)).trim().toLowerCase();
+        const key = getNormalizedClientKey(enq);
         if (key && !combinedMap.has(key)) {
           const customEdits = savedProjectEdits[key] || {};
           const budgetVal = typeof enq.budget === "number" ? enq.budget : (parseInt(String(enq.budget || "").replace(/\D/g, ""), 10) * 100000 || 2500000);

@@ -822,16 +822,6 @@ export default function Projects() {
               </button>
 
               <button
-                onClick={() => {
-                  showToast("Daily Progress Report template generated!");
-                }}
-                className="px-4 py-2 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs rounded-xl border border-stone-300 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-              >
-                <FileText size={13} className="text-blue-600" />
-                <span>Generate DPR (Detailed)</span>
-              </button>
-
-              <button
                 onClick={() => handleDeleteProject(selectedProject)}
                 className="px-4 py-2 bg-white hover:bg-rose-50 text-rose-600 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer flex items-center gap-1.5"
               >

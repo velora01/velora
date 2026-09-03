@@ -1911,182 +1911,302 @@ export default function QuotationInvoiceManager() {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. PDF VIEWER / PRINTABLE MODAL (SCREENSHOT 4 EXACT UI) */}
+      {/* 4. ELEVATED HIGH-RESOLUTION PDF VIEWER / PRINTABLE MODAL */}
       {/* ========================================================================= */}
       {isPdfViewerOpen && previewInvoiceData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 backdrop-blur-xs p-4 animate-in fade-in select-none">
-          <div className="bg-stone-900 text-white rounded-3xl shadow-2xl border border-stone-800 w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="px-6 py-3.5 border-b border-stone-800 flex items-center justify-between bg-stone-950">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-blue-400" />
-                <h3 className="font-extrabold text-sm text-white">PDF Viewer</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/85 backdrop-blur-md p-2 sm:p-4 animate-in fade-in select-none">
+          <div className="bg-stone-950 text-white rounded-3xl shadow-2xl border border-stone-800 w-full max-w-6xl h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Top Control Bar */}
+            <div className="px-6 py-3.5 border-b border-stone-800 flex items-center justify-between bg-stone-900/90 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-sm text-white">Invoice Preview</h3>
+                    <span className="px-2 py-0.5 bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-full font-mono text-[10px] font-bold">
+                      {previewInvoiceData.invoiceNumber}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-stone-400">
+                    Billed to {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || "Client"}
+                  </span>
+                </div>
               </div>
-              <button
-                onClick={() => setIsPdfViewerOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            {/* Viewer Workspace (Left Thumbnails + Right Document Preview) */}
-            <div className="flex-1 flex overflow-hidden">
-              {/* Left Side: Page Thumbnails (Screenshot 4) */}
-              <div className="w-48 bg-stone-950/80 border-r border-stone-800 p-4 space-y-4 overflow-y-auto hidden sm:block">
+              {/* Center Quick Page Selector */}
+              <div className="hidden md:flex items-center gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800">
                 <button
                   onClick={() => setActivePdfPage(1)}
-                  className={`w-full p-2 rounded-xl border text-center transition cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activePdfPage === 1 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                  }`}
+                >
+                  Page 1: Tax Invoice
+                </button>
+                <button
+                  onClick={() => setActivePdfPage(2)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activePdfPage === 2 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                  }`}
+                >
+                  Page 2: Terms & Signatory
+                </button>
+              </div>
+
+              {/* Right Action Icons & Close */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    printInvoice({
+                      invoiceNumber: previewInvoiceData.invoiceNumber,
+                      clientName: previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName,
+                      clientPhone: previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone,
+                      clientEmail: previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail,
+                      clientAddress: previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress,
+                      projectName: previewInvoiceData.projectName,
+                      grandTotal: previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000,
+                      items: previewInvoiceData.items,
+                      paymentQrCode: paymentQrCode
+                    });
+                  }}
+                  className="px-3.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs rounded-xl border border-stone-700 transition cursor-pointer flex items-center gap-1.5"
+                  title="Print Invoice"
+                >
+                  <Printer size={13} />
+                  <span className="hidden sm:inline">Print</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    downloadInvoicePdf({
+                      invoiceNumber: previewInvoiceData.invoiceNumber,
+                      clientName: previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName,
+                      clientPhone: previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone,
+                      clientEmail: previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail,
+                      clientAddress: previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress,
+                      projectName: previewInvoiceData.projectName,
+                      grandTotal: previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000,
+                      items: previewInvoiceData.items,
+                      paymentQrCode: paymentQrCode
+                    });
+                    showToast(`Downloading ${previewInvoiceData.invoiceNumber}.pdf...`);
+                  }}
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Download size={13} />
+                  <span className="hidden sm:inline">Download PDF</span>
+                </button>
+
+                <button
+                  onClick={() => setIsPdfViewerOpen(false)}
+                  className="p-1.5 text-stone-400 hover:text-white rounded-lg cursor-pointer ml-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Viewer Body: Left Thumbnails + Center Printable Document Sheet */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left Side: Page Thumbnails */}
+              <div className="w-52 bg-stone-950 border-r border-stone-800 p-4 space-y-4 overflow-y-auto hidden sm:block shrink-0">
+                <div className="text-[10px] font-black text-stone-500 uppercase tracking-wider mb-2">
+                  Document Pages
+                </div>
+
+                <button
+                  onClick={() => setActivePdfPage(1)}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
                     activePdfPage === 1
                       ? "border-blue-500 bg-blue-500/10 shadow-lg"
                       : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
                   }`}
                 >
-                  <div className="w-full aspect-[1/1.4] bg-white rounded shadow-xs p-1 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none">
-                    <div className="h-2 bg-blue-600 rounded-xs mb-1" />
-                    <div className="space-y-0.5">
-                      <div className="h-1 bg-stone-300 rounded-xs w-3/4" />
-                      <div className="h-1 bg-stone-200 rounded-xs w-1/2" />
+                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-2 border border-stone-300">
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="w-12 h-2 bg-amber-500/40 rounded-xs" />
+                      <div className="w-8 h-2 bg-blue-600 rounded-xs" />
                     </div>
-                    <div className="h-3 bg-stone-100 rounded-xs border border-stone-200" />
+                    <div className="h-4 bg-blue-600 rounded-xs my-1" />
+                    <div className="grid grid-cols-2 gap-1 my-1">
+                      <div className="h-4 bg-stone-100 rounded-xs" />
+                      <div className="h-4 bg-stone-100 rounded-xs" />
+                    </div>
+                    <div className="space-y-0.5 flex-1 mt-1">
+                      <div className="h-2 bg-blue-600 rounded-xs" />
+                      <div className="h-1.5 bg-stone-100 rounded-xs" />
+                      <div className="h-1.5 bg-stone-100 rounded-xs" />
+                    </div>
+                    <div className="h-4 bg-stone-100 rounded-xs border border-stone-200 mt-1" />
                   </div>
-                  <span className="text-[11px] font-bold text-stone-400 block mt-2">1</span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-white">Page 1</span>
+                    <span className="text-[10px] text-stone-400">Invoice</span>
+                  </div>
                 </button>
 
                 <button
                   onClick={() => setActivePdfPage(2)}
-                  className={`w-full p-2 rounded-xl border text-center transition cursor-pointer ${
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
                     activePdfPage === 2
                       ? "border-blue-500 bg-blue-500/10 shadow-lg"
                       : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
                   }`}
                 >
-                  <div className="w-full aspect-[1/1.4] bg-white rounded shadow-xs p-1 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none">
-                    <div className="space-y-1">
+                  <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-2 border border-stone-300">
+                    <div className="w-16 h-2 bg-stone-800 rounded-xs mb-1" />
+                    <div className="space-y-1 my-1">
                       <div className="h-1 bg-stone-300 rounded-xs w-full" />
                       <div className="h-1 bg-stone-200 rounded-xs w-full" />
                       <div className="h-1 bg-stone-200 rounded-xs w-3/4" />
                     </div>
-                    <div className="h-4 bg-stone-100 rounded-xs border border-stone-200" />
+                    <div className="h-8 bg-stone-100 rounded-xs border border-stone-200 my-1" />
+                    <div className="flex justify-between items-end mt-2 pt-2 border-t border-stone-200">
+                      <div className="w-8 h-1 bg-stone-400" />
+                      <div className="w-10 h-1 bg-stone-800" />
+                    </div>
                   </div>
-                  <span className="text-[11px] font-bold text-stone-400 block mt-2">2</span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-white">Page 2</span>
+                    <span className="text-[10px] text-stone-400">Terms</span>
+                  </div>
                 </button>
               </div>
 
-              {/* Main Document Preview (Screenshot 4 Printable Tax Invoice Exact UI) */}
-              <div className="flex-1 bg-stone-900 p-4 sm:p-8 overflow-y-auto flex justify-center">
-                <div className="w-full max-w-3xl bg-white text-stone-900 rounded-xl shadow-2xl p-8 space-y-6 text-xs min-h-[750px] border border-stone-200">
-                  {/* Page 1 Content */}
+              {/* Main Document Preview (Crisp White High-Res Sheet) */}
+              <div className="flex-1 bg-stone-900/80 p-4 sm:p-8 overflow-y-auto flex justify-center">
+                <div className="w-full max-w-3xl bg-white text-stone-900 rounded-2xl shadow-2xl p-8 sm:p-10 space-y-6 text-xs min-h-[850px] border border-stone-300 font-sans">
+                  {/* Page 1: Tax Invoice */}
                   {activePdfPage === 1 ? (
                     <div className="space-y-6 animate-in fade-in">
                       {/* Top Header */}
-                      <div className="flex items-start justify-between border-b border-stone-200 pb-4">
-                        <div className="space-y-1">
-                          {/* Velora Antaraal Badge */}
-                          <div className="inline-block px-3 py-1 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300 rounded-lg text-[#9E7B1D] font-black text-sm tracking-wider mb-1">
-                            VELORA ANTARAAL
+                      <div className="flex items-start justify-between border-b border-stone-200 pb-5">
+                        <div className="space-y-1.5">
+                          {/* Velora Antaraal Luxury Logo Badge */}
+                          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300 rounded-xl text-[#9E7B1D] font-black text-sm tracking-wider shadow-2xs">
+                            <Building size={16} />
+                            <span>VELORA ANTARAAL</span>
                           </div>
-                          <p className="font-bold text-stone-800 text-[11px] leading-tight max-w-[280px]">
+                          <p className="font-bold text-stone-800 text-xs leading-relaxed max-w-[320px]">
                             BAFANA NIWAS, AUNDH HINJEWADI WAKAD CHOWK, WAKAD, SR NO 242/2/B1, Hinjawadi, Pune, Maharashtra, 411057
                           </p>
-                          <p className="text-stone-600 font-mono text-[11px]">8055526603</p>
-                          <p className="text-stone-600 text-[11px]">velora.family@gmail.com</p>
-                          <p className="text-stone-700 font-bold font-mono text-[11px]">GST No: 27CHCPS9945R1Z4</p>
+                          <div className="flex flex-wrap items-center gap-3 text-stone-600 text-xs font-medium">
+                            <span className="flex items-center gap-1 font-mono">
+                              <Phone size={12} className="text-stone-400" />
+                              <span>(+91) 80555 26603</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Mail size={12} className="text-stone-400" />
+                              <span>velora.family@gmail.com</span>
+                            </span>
+                          </div>
+                          <p className="text-stone-800 font-bold font-mono text-xs">
+                            GSTIN: <span className="text-blue-700">27CHCPS9945R1Z4</span>
+                          </p>
                         </div>
 
-                        <div className="text-right">
+                        <div className="text-right space-y-1">
                           <h1 className="text-3xl font-black text-blue-600 tracking-tight">INVOICE</h1>
+                          <span className="inline-block px-2.5 py-0.5 bg-stone-100 border border-stone-300 rounded-full font-bold text-[10px] text-stone-600 uppercase tracking-wider">
+                            Original for Recipient
+                          </span>
                         </div>
                       </div>
 
                       {/* Blue Info Banner (Screenshot 4 exact layout) */}
-                      <div className="bg-blue-600 text-white rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                      <div className="bg-blue-600 text-white rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-md">
                         <div>
-                          <span className="text-[11px] font-medium text-blue-100 block">Total Value:</span>
-                          <span className="font-mono text-xl font-black">
+                          <span className="text-xs font-medium text-blue-100 block">Total Value:</span>
+                          <span className="font-mono text-2xl font-black tracking-tight">
                             ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
                           </span>
                         </div>
 
-                        <div className="space-y-0.5 text-right text-xs">
+                        <div className="space-y-1 text-right text-xs">
                           <div>
                             <span className="text-blue-200 font-medium">Invoice Number: </span>
-                            <span className="font-mono font-bold">{previewInvoiceData.invoiceNumber}</span>
+                            <span className="font-mono font-black">{previewInvoiceData.invoiceNumber}</span>
                           </div>
                           <div>
                             <span className="text-blue-200 font-medium">Invoice Date: </span>
-                            <span className="font-medium">{previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate}</span>
+                            <span className="font-bold">{previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate}</span>
                           </div>
                           <div>
                             <span className="text-blue-200 font-medium">Due Date: </span>
-                            <span className="font-medium">{previewInvoiceData.dueDate || "--"}</span>
+                            <span className="font-bold">{previewInvoiceData.dueDate || "--"}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Two Column Bill To & Ship To */}
-                      <div className="grid grid-cols-2 gap-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
-                        <div className="space-y-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <div className="space-y-1 border-b sm:border-b-0 sm:border-r border-stone-200 pb-3 sm:pb-0 sm:pr-4">
                           <span className="font-black text-blue-600 text-[11px] uppercase tracking-wider block">BILL TO</span>
-                          <span className="font-bold text-sm text-stone-900 block">
+                          <span className="font-black text-sm text-stone-900 block">
                             {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName}
                           </span>
-                          <span className="font-mono text-stone-700 block">
+                          <span className="font-mono text-stone-700 block font-medium">
                             (+91) {previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone || "--"}
                           </span>
                           <span className="text-stone-600 block">
                             {previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail || "--"}
                           </span>
-                          <span className="text-stone-600 block text-[11px]">
+                          <span className="text-stone-600 block text-xs leading-relaxed">
                             {previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress || "--"}
                           </span>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1 sm:pl-4">
                           <span className="font-black text-blue-600 text-[11px] uppercase tracking-wider block">SHIP TO</span>
-                          <span className="font-bold text-sm text-stone-900 block">
+                          <span className="font-black text-sm text-stone-900 block">
                             {previewInvoiceData.shipTo?.name || previewInvoiceData.billTo?.name || previewInvoiceData.billedTo}
                           </span>
-                          <span className="font-mono text-stone-700 block">
+                          <span className="font-mono text-stone-700 block font-medium">
                             (+91) {previewInvoiceData.shipTo?.phone || previewInvoiceData.billTo?.phone || "--"}
                           </span>
                           <span className="text-stone-600 block">
                             {previewInvoiceData.shipTo?.email || previewInvoiceData.billTo?.email || "--"}
                           </span>
-                          <span className="text-stone-600 block text-[11px]">
+                          <span className="text-stone-600 block text-xs leading-relaxed">
                             {previewInvoiceData.shipTo?.address || previewInvoiceData.billTo?.address || "--"}
                           </span>
                         </div>
                       </div>
 
                       {/* Service Items Table (Screenshot 4 Blue header) */}
-                      <div className="border border-stone-200 rounded-xl overflow-hidden shadow-2xs">
+                      <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-2xs">
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
                             <tr className="bg-blue-600 text-white font-bold text-[11px]">
-                              <th className="py-2.5 px-3">Service Description</th>
-                              <th className="py-2.5 px-2">HSN/SAC</th>
-                              <th className="py-2.5 px-2 text-center">Qty</th>
-                              <th className="py-2.5 px-2 text-center">Unit</th>
-                              <th className="py-2.5 px-3 text-right">Rate</th>
-                              <th className="py-2.5 px-2 text-center">GST (%)</th>
-                              <th className="py-2.5 px-2 text-right">GST (₹)</th>
-                              <th className="py-2.5 px-3 text-right">Total</th>
+                              <th className="py-3 px-3.5">Service Description</th>
+                              <th className="py-3 px-2">HSN/SAC</th>
+                              <th className="py-3 px-2 text-center">Qty</th>
+                              <th className="py-3 px-2 text-center">Unit</th>
+                              <th className="py-3 px-3 text-right">Rate (₹)</th>
+                              <th className="py-3 px-2 text-center">GST (%)</th>
+                              <th className="py-3 px-2 text-right">GST (₹)</th>
+                              <th className="py-3 px-3.5 text-right">Total (₹)</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-stone-100 text-stone-700">
                             {(previewInvoiceData.items || []).map((it, idx) => (
-                              <tr key={idx}>
-                                <td className="py-3 px-3 font-bold text-stone-900">{it.serviceDescription || it.productName || "sofa"}</td>
+                              <tr key={idx} className={idx % 2 === 1 ? "bg-stone-50/60" : "bg-white"}>
+                                <td className="py-3 px-3.5 font-bold text-stone-900">
+                                  {it.serviceDescription || it.productName || "sofa"}
+                                </td>
                                 <td className="py-3 px-2 font-mono text-stone-500">{it.hsnSac || "HSN/SAC"}</td>
-                                <td className="py-3 px-2 text-center font-bold">{it.quantity || 1}</td>
+                                <td className="py-3 px-2 text-center font-bold text-stone-900">{it.quantity || 1}</td>
                                 <td className="py-3 px-2 text-center text-stone-600">{it.unit || "1"}</td>
                                 <td className="py-3 px-3 text-right font-mono font-bold text-stone-900">
                                   ₹{(it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-3 px-2 text-center font-mono">{it.gstPercent || 0}%</td>
-                                <td className="py-3 px-2 text-right font-mono text-stone-500">₹{(it.gstAmount || 0).toLocaleString("en-IN")}</td>
-                                <td className="py-3 px-3 text-right font-mono font-bold text-stone-900">
+                                <td className="py-3 px-2 text-center font-mono font-bold text-stone-700">{it.gstPercent || 0}%</td>
+                                <td className="py-3 px-2 text-right font-mono text-stone-500">
+                                  ₹{(it.gstAmount || 0).toLocaleString("en-IN")}
+                                </td>
+                                <td className="py-3 px-3.5 text-right font-mono font-black text-stone-900">
                                   ₹{(it.total || it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
                               </tr>
@@ -2095,9 +2215,16 @@ export default function QuotationInvoiceManager() {
                         </table>
                       </div>
 
-                      {/* Totals Box */}
-                      <div className="flex justify-end pt-2">
-                        <div className="w-64 space-y-2 text-xs">
+                      {/* Totals & Summary Box */}
+                      <div className="flex flex-wrap items-start justify-between gap-4 pt-2">
+                        <div className="space-y-1 text-xs text-stone-500 max-w-sm">
+                          <span className="font-bold text-stone-700 block">Notes:</span>
+                          <p className="leading-relaxed">
+                            {previewInvoiceData.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
+                          </p>
+                        </div>
+
+                        <div className="w-72 space-y-2 text-xs bg-stone-50 p-4 rounded-2xl border border-stone-200">
                           <div className="flex justify-between text-stone-600">
                             <span>Sub Total</span>
                             <span className="font-mono font-bold text-stone-900">
@@ -2105,14 +2232,14 @@ export default function QuotationInvoiceManager() {
                             </span>
                           </div>
                           <div className="flex justify-between text-stone-600">
-                            <span>Tax Amount</span>
+                            <span>Tax Amount (GST)</span>
                             <span className="font-mono font-bold text-stone-900">
                               ₹{(previewInvoiceData.taxAmount || 0).toLocaleString("en-IN")}
                             </span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-stone-200 font-bold text-stone-900 text-sm">
                             <span>Total Value</span>
-                            <span className="font-mono font-black text-blue-700">
+                            <span className="font-mono font-black text-blue-700 text-base">
                               ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
                             </span>
                           </div>
@@ -2120,33 +2247,33 @@ export default function QuotationInvoiceManager() {
                       </div>
 
                       {/* Bank Details & Attached PhonePe Payment QR Code */}
-                      <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                        <div className="sm:col-span-8 space-y-1">
-                          <span className="font-black text-stone-900 text-[11px] uppercase tracking-wider block">
+                      <div className="p-5 bg-gradient-to-r from-stone-50 to-blue-50/40 border border-stone-200 rounded-2xl grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                        <div className="sm:col-span-8 space-y-1.5">
+                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">
                             Bank Details & Payment Instructions
                           </span>
-                          <pre className="font-mono text-[11px] text-stone-700 whitespace-pre-wrap leading-relaxed">
+                          <pre className="font-mono text-xs text-stone-700 whitespace-pre-wrap leading-relaxed">
                             {previewInvoiceData.bankDetails || "Account Holder: VELORA ANTARAAL\nAccount Number: 50200073374185\nIFSC: HDFC0000282\nBank: HDFC Bank, Wakad Branch"}
                           </pre>
                         </div>
 
                         {/* PhonePe QR Code Render */}
-                        <div className="sm:col-span-4 flex flex-col items-center justify-center border-l sm:border-stone-200 pl-0 sm:pl-4 text-center">
+                        <div className="sm:col-span-4 flex flex-col items-center justify-center border-t sm:border-t-0 sm:border-l sm:border-stone-200 pt-3 sm:pt-0 sm:pl-4 text-center">
                           {paymentQrCode ? (
                             <>
                               <img
                                 src={paymentQrCode}
                                 alt="PhonePe QR Code"
-                                className="w-24 h-24 object-contain rounded border border-stone-200 p-1 bg-white shadow-2xs mb-1"
+                                className="w-24 h-24 object-contain rounded-xl border border-stone-200 p-1 bg-white shadow-2xs mb-1.5"
                               />
                               <span className="text-[10px] font-black text-blue-700 tracking-wider">
                                 SCAN TO PAY WITH PHONEPE
                               </span>
                             </>
                           ) : (
-                            <div className="p-3 bg-white border border-stone-300 rounded-lg text-center space-y-1">
-                              <QrCode size={36} className="text-stone-400 mx-auto" />
-                              <span className="text-[9px] font-bold text-stone-500 block uppercase">
+                            <div className="p-3 bg-white border border-stone-300 rounded-xl text-center space-y-1 shadow-2xs">
+                              <QrCode size={36} className="text-blue-600 mx-auto" />
+                              <span className="text-[9px] font-black text-stone-700 block uppercase">
                                 UPI: velora@hdfcbank
                               </span>
                             </div>
@@ -2155,41 +2282,48 @@ export default function QuotationInvoiceManager() {
                       </div>
                     </div>
                   ) : (
-                    /* Page 2: Terms & Signatory */
+                    /* Page 2: Terms & Conditions & Signatory */
                     <div className="space-y-6 animate-in fade-in pt-4">
-                      <div className="border-b border-stone-200 pb-3">
-                        <h2 className="text-base font-black text-stone-900">TERMS & CONDITIONS</h2>
-                        <span className="text-xs text-stone-500">Legal Agreement & Standard Supply Guidelines</span>
+                      <div className="border-b border-stone-200 pb-4">
+                        <h2 className="text-lg font-black text-stone-900 tracking-tight">TERMS & CONDITIONS</h2>
+                        <span className="text-xs text-stone-500">Legal Agreement, Warranty & Turnkey Execution Protocol</span>
                       </div>
 
-                      <div className="p-5 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 leading-relaxed text-xs space-y-3">
-                        <p className="font-semibold text-stone-900">1. Payment & Commercial Terms:</p>
-                        <p className="text-stone-600">
-                          - 50% mobilization advance upon signing the work order confirmation.<br />
-                          - 40% dispatch clearance prior to transport of factory-manufactured modular carcasses.<br />
-                          - 10% final settlement upon completion of site installation and snag list handover.
-                        </p>
-
-                        <p className="font-semibold text-stone-900">2. Material Warranty & Service SLA:</p>
-                        <p className="text-stone-600">
-                          - 10 Years warranty on all BWP Marine Grade Core Plywood and Hettich hardware.<br />
-                          - 1 Year complimentary snag and hinge alignment maintenance support from date of handover.
-                        </p>
-
-                        <p className="font-semibold text-stone-900">3. Taxation & Legal Jurisdiction:</p>
-                        <p className="text-stone-600">
-                          - Registered under Composition Taxable scheme. Disputes subject to Pune jurisdiction.
-                        </p>
-                      </div>
-
-                      <div className="pt-16 flex justify-between items-end border-t border-stone-200">
-                        <div className="space-y-1">
-                          <div className="w-40 border-b border-stone-400 mb-1" />
-                          <span className="font-bold text-xs text-stone-700">Client Signature</span>
+                      <div className="p-6 bg-stone-50 border border-stone-200 rounded-2xl text-stone-700 leading-relaxed text-xs space-y-4">
+                        <div>
+                          <p className="font-black text-stone-900 text-xs mb-1">1. Payment & Commercial Milestones:</p>
+                          <p className="text-stone-600">
+                            - 50% mobilization advance upon signing the work order confirmation.<br />
+                            - 40% dispatch clearance prior to transport of factory-manufactured modular carcasses.<br />
+                            - 10% final settlement upon completion of site installation and snag list handover.
+                          </p>
                         </div>
 
-                        <div className="text-right space-y-1">
-                          <div className="w-48 border-b border-stone-900 mb-1 ml-auto" />
+                        <div>
+                          <p className="font-black text-stone-900 text-xs mb-1">2. Material Warranty & Service SLA:</p>
+                          <p className="text-stone-600">
+                            - 10 Years warranty on all BWP Marine Grade Core Plywood and Hettich hardware.<br />
+                            - 1 Year complimentary snag and hinge alignment maintenance support from date of handover.
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="font-black text-stone-900 text-xs mb-1">3. Taxation & Legal Jurisdiction:</p>
+                          <p className="text-stone-600">
+                            - Registered under Composition Taxable scheme. All disputes subject to Pune jurisdiction.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-24 flex justify-between items-end border-t border-stone-200">
+                        <div className="space-y-2">
+                          <div className="w-48 border-b-2 border-stone-400 mb-1" />
+                          <span className="font-bold text-xs text-stone-800 block">Client Signature</span>
+                          <span className="text-[10px] text-stone-400">Accepted & Confirmed</span>
+                        </div>
+
+                        <div className="text-right space-y-2">
+                          <div className="w-56 border-b-2 border-stone-900 mb-1 ml-auto" />
                           <span className="font-black text-xs text-stone-900 block">For VELORA ANTARAAL</span>
                           <span className="text-[11px] text-stone-500">Authorized Signatory</span>
                         </div>
@@ -2200,10 +2334,10 @@ export default function QuotationInvoiceManager() {
               </div>
             </div>
 
-            {/* Modal Bottom Actions (Screenshot 4) */}
-            <div className="px-6 py-4 bg-stone-950 border-t border-stone-800 flex items-center justify-between">
+            {/* Modal Bottom Action Bar */}
+            <div className="px-6 py-4 bg-stone-950 border-t border-stone-800 flex items-center justify-between shrink-0">
               <div className="text-xs text-stone-400">
-                Page {activePdfPage} of 2
+                Viewing Page <span className="font-bold text-white">{activePdfPage}</span> of 2
               </div>
 
               <div className="flex items-center gap-3">
@@ -2212,7 +2346,7 @@ export default function QuotationInvoiceManager() {
                   onClick={() => setIsPdfViewerOpen(false)}
                   className="px-5 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs rounded-xl transition cursor-pointer"
                 >
-                  Cancel
+                  Close Preview
                 </button>
 
                 <button
@@ -2234,7 +2368,7 @@ export default function QuotationInvoiceManager() {
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
                 >
                   <Download size={14} />
-                  <span>Continue / Download PDF</span>
+                  <span>Download PDF</span>
                 </button>
               </div>
             </div>

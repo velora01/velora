@@ -1394,139 +1394,166 @@ export const numberToWordsIN = (num) => {
 };
 
 /**
- * Client-Side Luxury Invoice PDF Generator (Exactexport const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
+ * Client-Side Luxury Invoice PDF Generator
+ */
+export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const invNum = invoice?.invoiceNumber || "NCI006";
   const projName = invoice?.projectName || invoice?.clientName || "sai chauhan";
   const projNumber = invoice?.projectNumber || "PRJ-2026-012";
-  const clientName = invoice?.billTo?.name || invoice?.clientName || "sai chauhan";
-  const clientEmail = invoice?.billTo?.email || invoice?.clientEmail || "rohan@gmail.com";
-  const clientPhone = invoice?.billTo?.phone || invoice?.clientPhone || "+91 84460 31622";
-  const clientAddress = invoice?.billTo?.address || invoice?.clientAddress || "Wakad Chowk, Pune, Maharashtra";
+  const clientName = invoice?.billTo?.name || invoice?.clientName || invoice?.billedTo || "Valued Client";
+  const clientEmail = invoice?.billTo?.email || invoice?.clientEmail || "";
+  const clientPhone = invoice?.billTo?.phone || invoice?.clientPhone || "";
+  const clientAddress = invoice?.billTo?.address || invoice?.clientAddress || "Pune, Maharashtra";
 
   const shipName = invoice?.shipTo?.name || (invoice?.sameAsBillTo ? clientName : clientName);
   const shipEmail = invoice?.shipTo?.email || (invoice?.sameAsBillTo ? clientEmail : clientEmail);
   const shipPhone = invoice?.shipTo?.phone || (invoice?.sameAsBillTo ? clientPhone : clientPhone);
+  const shipAddress = invoice?.shipTo?.address || (invoice?.sameAsBillTo ? clientAddress : clientAddress);
 
-  const grandTotal = Number(invoice?.totalAmount || invoice?.dueAmount || invoice?.grandTotal || 65000);
+  const grandTotal = Number(invoice?.totalAmount || invoice?.dueAmount || invoice?.grandTotal || 0);
   const subtotal = Number(invoice?.subTotal || invoice?.subtotal || grandTotal);
   const gstTotal = Number(invoice?.taxAmount || invoice?.gstTotal || 0);
 
   const primaryBlue = [29, 78, 216]; // Royal Blue #1D4ED8
+  const gold = [158, 123, 29]; // #9E7B1D
 
-  // --- PAGE 1: TAX INVOICE (MATCHING USER SCREENSHOT 1) ---
+  // --- PAGE 1: TAX INVOICE ---
   
-  // Gold Logo Badge (Top Left)
+  // Brand Header Logo Badge (Top Left)
   doc.setFillColor(254, 243, 199);
-  doc.roundedRect(40, 35, 110, 48, 4, 4, "F");
+  doc.roundedRect(40, 35, 120, 48, 4, 4, "F");
   doc.setDrawColor(217, 119, 6);
-  doc.roundedRect(40, 35, 110, 48, 4, 4, "S");
+  doc.roundedRect(40, 35, 120, 48, 4, 4, "S");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(10.5);
   doc.setTextColor(180, 83, 9);
-  doc.text("VELORA", 95, 56, { align: "center" });
-  doc.setFontSize(6.5);
+  doc.text("VELORA", 100, 56, { align: "center" });
+  doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text("— ANTARAAL —", 95, 68, { align: "center" });
+  doc.text("— ANTARAAL —", 100, 68, { align: "center" });
 
   // Company Details (Left below logo)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(9.5);
   doc.setTextColor(15, 23, 42);
   doc.text("VELORA ANTARAAL", 40, 100);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(51, 65, 85);
-  const addrLines = doc.splitTextToSize("BAFANA NIWAS, AUNDH HINJEWADI WAKAD CHOWK, WAKAD, SR NO 242/2/B1, Hinjawadi, Pune, Maharashtra, 411057", 240);
+  const addrLines = doc.splitTextToSize("Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Wakad Chowk, Wakad, Pune - 411057, Maharashtra", 240);
   doc.text(addrLines, 40, 112);
   let compY = 112 + (addrLines.length * 9);
-  doc.text("8055526603", 40, compY);
-  doc.text("velora.family@gmail.com", 40, compY + 10);
+  doc.text("Phone: +91 86055 26603 / 80555 26603", 40, compY);
+  doc.text("Email: info@velora.family | https://velora.family", 40, compY + 10);
   doc.setFont("helvetica", "bold");
-  doc.text("GST No: 27CHCPS9945R1Z4", 40, compY + 20);
+  doc.text("GSTIN: 27CHCPS9945R1Z4  |  PAN: CHCPS9945R", 40, compY + 20);
 
   // Large INVOICE Heading (Top Right)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(26);
   doc.setTextColor(...primaryBlue);
-  doc.text("INVOICE", 555, 55, { align: "right" });
+  doc.text("TAX INVOICE", 555, 55, { align: "right" });
 
-  // Blue Total Value Box (Top Right matching Screenshot 1)
+  // Blue Total Value Box (Top Right)
   doc.setFillColor(...primaryBlue);
-  doc.rect(290, 80, 265, 28, "F");
+  doc.rect(290, 75, 265, 28, "F");
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(255, 255, 255);
-  doc.text("Total Value:", 300, 98);
+  doc.text("Total Value:", 300, 93);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 545, 98, { align: "right" });
+  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 545, 93, { align: "right" });
 
-  // Invoice Number, Date, Due Date (Below blue box)
+  // Invoice Number, Date, Due Date, Project Info
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
-  doc.text("Invoice Number:", 370, 122);
+  doc.text("Invoice Number:", 350, 116);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
-  doc.text(invNum, 545, 122, { align: "right" });
+  doc.text(invNum, 545, 116, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text("Invoice Date:", 370, 134);
+  doc.text("Invoice Date:", 350, 128);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
-  doc.text(invoice?.formattedDate || "02 Sep, 2026", 545, 134, { align: "right" });
+  doc.text(invoice?.formattedDate || invoice?.invoiceDate || new Date().toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" }), 545, 128, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text("Due Date:", 370, 146);
+  doc.text("Project Ref (PID):", 350, 140);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
-  doc.text(invoice?.dueDate || "--", 545, 146, { align: "right" });
+  doc.text(projNumber || "--", 545, 140, { align: "right" });
 
-  // BILL TO & SHIP TO Columns (Screenshot 1 Layout)
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(71, 85, 105);
+  doc.text("Place of Supply:", 350, 152);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(15, 23, 42);
+  doc.text("Maharashtra (27)", 545, 152, { align: "right" });
+
+  // BILL TO & SHIP TO Columns
   const billShipY = 175;
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(40, billShipY, 240, 68, 4, 4, "F");
+  doc.roundedRect(295, billShipY, 260, 68, 4, 4, "F");
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(40, billShipY, 240, 68, 4, 4, "S");
+  doc.roundedRect(295, billShipY, 260, 68, 4, 4, "S");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...primaryBlue);
+  doc.text("BILL TO (CLIENT DETAILS)", 48, billShipY + 12);
+  doc.text("SHIP TO / SITE ADDRESS", 303, billShipY + 12);
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text("BILL TO", 40, billShipY);
-  doc.text("SHIP TO", 290, billShipY);
+  doc.text(clientName, 48, billShipY + 24);
+  doc.text(shipName, 303, billShipY + 24);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59);
-  doc.text(clientName, 40, billShipY + 12);
-  doc.text(clientPhone, 40, billShipY + 23);
-  doc.text(clientEmail, 40, billShipY + 34);
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 48, billShipY + 35);
+  if (clientEmail) doc.text(`Email: ${clientEmail}`, 48, billShipY + 45);
+  const clientAddrShort = doc.splitTextToSize(clientAddress, 224);
+  doc.text(clientAddrShort, 48, billShipY + (clientPhone && clientEmail ? 55 : 45));
 
-  doc.text(shipName, 290, billShipY + 12);
-  doc.text(shipPhone, 290, billShipY + 23);
-  doc.text(shipEmail, 290, billShipY + 34);
+  if (shipPhone) doc.text(`Phone: ${shipPhone}`, 303, billShipY + 35);
+  if (shipEmail) doc.text(`Email: ${shipEmail}`, 303, billShipY + 45);
+  const shipAddrShort = doc.splitTextToSize(shipAddress, 244);
+  doc.text(shipAddrShort, 303, billShipY + (shipPhone && shipEmail ? 55 : 45));
 
-  // Line Items Table (Blue Header matching Screenshot 1)
+  // Line Items Table
   const rawItems = (invoice?.items && invoice.items.length > 0)
     ? invoice.items
     : [
-        { serviceDescription: "sofa", hsnSac: "", quantity: 1, unit: "1", rate: 65000, gstPercent: 0, gstAmount: 0, total: 65000 }
+        { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
       ];
 
-  const tableBody = rawItems.map((it) => [
-    it.serviceDescription || it.productName || "sofa",
-    it.hsnSac || "",
+  const tableBody = rawItems.map((it, idx) => [
+    String(idx + 1),
+    it.serviceDescription || it.productName || it.name || "Interior Execution Item",
+    it.hsnSac || "9954",
     String(it.quantity || 1),
-    String(it.unit || "1"),
-    `Rs. ${(Number(it.rate) || 65000).toLocaleString("en-IN")}`,
-    `${it.gstPercent || 0} %`,
+    String(it.unit || it.uom || "1"),
+    `Rs. ${(Number(it.rate) || 0).toLocaleString("en-IN")}`,
+    `${it.gstPercent || 0}%`,
     `Rs. ${(Number(it.gstAmount) || 0).toLocaleString("en-IN")}`,
-    `Rs. ${(Number(it.total) || Number(it.rate) || 65000).toLocaleString("en-IN")}`
+    `Rs. ${(Number(it.total) || Number(it.rate) || 0).toLocaleString("en-IN")}`
   ]);
 
   autoTable(doc, {
-    startY: billShipY + 48,
+    startY: billShipY + 76,
     margin: { left: 40, right: 40 },
-    head: [["Service Description", "HSN/SAC", "Qty", "Unit", "Rate", "GST (%)", "GST (Rs.)", "Total"]],
+    head: [["SN", "Service / Goods Description", "HSN/SAC", "Qty", "Unit", "Rate", "GST %", "GST (Rs)", "Total Amount"]],
     body: tableBody,
     theme: "grid",
     headStyles: {
@@ -1534,133 +1561,151 @@ export const numberToWordsIN = (num) => {
       textColor: [255, 255, 255],
       fontSize: 8,
       fontStyle: "bold",
-      cellPadding: 4.5
+      cellPadding: 5
     },
     bodyStyles: {
       fontSize: 8,
       textColor: [30, 41, 59],
-      cellPadding: 4.5
+      cellPadding: 5
     },
     columnStyles: {
-      0: { cellWidth: 160, fontStyle: "bold" },
-      1: { cellWidth: 55, halign: "center" },
-      2: { cellWidth: 35, halign: "center" },
-      3: { cellWidth: 40, halign: "center" },
-      4: { cellWidth: 65, halign: "right" },
-      5: { cellWidth: 45, halign: "center" },
-      6: { cellWidth: 55, halign: "right" },
-      7: { cellWidth: 60, halign: "right", fontStyle: "bold" }
+      0: { cellWidth: 22, halign: "center", fontStyle: "bold" },
+      1: { cellWidth: 155, fontStyle: "bold" },
+      2: { cellWidth: 48, halign: "center" },
+      3: { cellWidth: 30, halign: "center" },
+      4: { cellWidth: 35, halign: "center" },
+      5: { cellWidth: 60, halign: "right" },
+      6: { cellWidth: 40, halign: "center" },
+      7: { cellWidth: 55, halign: "right" },
+      8: { cellWidth: 70, halign: "right", fontStyle: "bold" }
     }
   });
 
-  let finalY = (doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 12 : 360);
+  let finalY = (doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 12 : 380);
 
-  // Totals Section (Right Aligned)
+  // Commercial Totals Section (Right Aligned)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
-  doc.text("Sub Total", 400, finalY);
+  doc.text("Sub Total (Taxable)", 390, finalY);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
   doc.text(`Rs. ${subtotal.toLocaleString("en-IN")}`, 555, finalY, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text("Tax Amount", 400, finalY + 14);
+  doc.text("Tax Amount (GST)", 390, finalY + 14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
   doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, 555, finalY + 14, { align: "right" });
 
+  doc.setFillColor(250, 246, 237);
+  doc.rect(380, finalY + 22, 175, 26, "F");
+  doc.setDrawColor(217, 119, 6);
+  doc.rect(380, finalY + 22, 175, 26, "S");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Total Value", 400, finalY + 30);
-  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 555, finalY + 30, { align: "right" });
+  doc.setFontSize(10);
+  doc.setTextColor(180, 83, 9);
+  doc.text("Total Value", 388, finalY + 38);
+  doc.setFontSize(11);
+  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 548, finalY + 38, { align: "right" });
 
-  // Bank Details & Payment Instructions (Left Column)
-  let bankY = finalY + 50;
+  // Amount in Words
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Bank Details & Payment Instructions", 40, bankY);
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Amount in Words: ${numberToWordsIN(grandTotal)}`, 40, finalY + 40);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(51, 65, 85);
-  doc.text("Account Holder: VELORA ANTARAAL", 40, bankY + 12);
-  doc.text("Account Number: 50200073374185", 40, bankY + 22);
-  doc.text("IFSC: HDFC0000282", 40, bankY + 32);
-  doc.text("Branch: WAKAD", 40, bankY + 42);
-  doc.text("Account Type: Current Account", 40, bankY + 52);
-
-  // Scan to pay Box
-  let qrY = bankY + 70;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Scan to pay", 40, qrY);
-
-  // PhonePe QR Code / Badge
-  if (invoice?.paymentQrCode && invoice.paymentQrCode.startsWith("data:image")) {
-    try {
-      doc.addImage(invoice.paymentQrCode, "JPEG", 40, qrY + 8, 70, 70);
-    } catch (e) {
-      doc.setDrawColor(203, 213, 225);
-      doc.rect(40, qrY + 8, 70, 70, "S");
-      doc.setFontSize(6.5);
-      doc.text("PhonePe QR Code", 75, qrY + 45, { align: "center" });
-    }
-  } else {
-    doc.setDrawColor(203, 213, 225);
-    doc.rect(40, qrY + 8, 70, 70, "S");
-    doc.setFontSize(6.5);
-    doc.setFont("helvetica", "normal");
-    doc.text("PhonePe / UPI", 75, qrY + 38, { align: "center" });
-    doc.text("ACCEPTED HERE", 75, qrY + 48, { align: "center" });
+  // Bank Details & Scan to Pay (Left Column)
+  let bankY = finalY + 58;
+  if (bankY > 670) {
+    doc.addPage();
+    bankY = 40;
   }
 
-  // Notes Box
-  let notesY = qrY + 95;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Notes", 40, notesY);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
-  doc.text(invoice?.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.", 40, notesY + 12);
-
-  // --- PAGE 2: TERMS & CONDITIONS (MATCHING SCREENSHOT 2) ---
-  doc.addPage();
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Notes", 40, 40);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
-  doc.text("Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.", 40, 52);
+  doc.setDrawColor(...primaryBlue);
+  doc.setLineWidth(2);
+  doc.line(40, bankY, 40, bankY + 68);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Terms & Conditions", 40, 75);
-  doc.text("TERMS & CONDITIONS", 40, 88);
+  doc.setTextColor(...primaryBlue);
+  doc.text("Bank Details & Official Payment Instructions", 48, bankY + 10);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(51, 65, 85);
-  doc.text("For Interior Design & Turnkey Execution Services", 40, 100);
-  doc.setFont("helvetica", "bold");
-  doc.text("Company Name: VELORA ANTARAAL", 40, 118);
-  doc.setFont("helvetica", "normal");
-  doc.text("Tagline: Designing Elevated Living", 40, 130);
+  doc.text("Account Holder: VELORA ANTARAAL", 48, bankY + 22);
+  doc.text("Account Number: 50200073374185", 48, bankY + 33);
+  doc.text("IFSC Code: HDFC0000282    |    Branch: WAKAD, PUNE", 48, bankY + 44);
+  doc.text("Bank Name: HDFC Bank      |    Account Type: Current Account", 48, bankY + 55);
 
-  let p2Y = 150;
-  const printTermBlock = (title, contentLines) => {
+  // Scan to pay Box
+  let qrX = 475;
+  let qrY = bankY;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
+  doc.text("Scan to Pay (UPI)", qrX + 38, qrY + 10, { align: "center" });
+
+  if (invoice?.paymentQrCode && invoice.paymentQrCode.startsWith("data:image")) {
+    try {
+      doc.addImage(invoice.paymentQrCode, "JPEG", qrX, qrY + 14, 75, 75);
+    } catch (e) {
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(qrX, qrY + 14, 75, 55, "S");
+      doc.setFontSize(7);
+      doc.text("PhonePe / UPI", qrX + 38, qrY + 44, { align: "center" });
+    }
+  } else {
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(qrX, qrY + 14, 75, 55, "S");
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setTextColor(180, 83, 9);
+    doc.text("PhonePe / UPI", qrX + 38, qrY + 38, { align: "center" });
+    doc.setFontSize(6.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text("ACCEPTED HERE", qrX + 38, qrY + 48, { align: "center" });
+  }
+
+  // Notes Box
+  let notesY = bankY + 76;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(15, 23, 42);
+  doc.text("Notes / Declaration:", 40, notesY);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(invoice?.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.", 40, notesY + 11);
+
+  // --- PAGE 2: TERMS & CONDITIONS ---
+  doc.addPage();
+  doc.setFillColor(254, 243, 199);
+  doc.rect(40, 35, 515, 24, "F");
+  doc.setDrawColor(217, 119, 6);
+  doc.rect(40, 35, 515, 24, "S");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10.5);
+  doc.setTextColor(180, 83, 9);
+  doc.text("TERMS & CONDITIONS — VELORA ANTARAAL", 48, 51);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text("For Interior Design & Turnkey Execution Services", 40, 72);
+
+  let p2Y = 88;
+  const printTermBlock = (title, contentLines) => {
+    if (p2Y > 740) {
+      doc.addPage();
+      p2Y = 40;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
     doc.setTextColor(15, 23, 42);
     doc.text(title, 40, p2Y);
     p2Y += 11;
@@ -1668,6 +1713,10 @@ export const numberToWordsIN = (num) => {
     doc.setFontSize(7.5);
     doc.setTextColor(51, 65, 85);
     contentLines.forEach((l) => {
+      if (p2Y > 750) {
+        doc.addPage();
+        p2Y = 40;
+      }
       const split = doc.splitTextToSize(l, 515);
       doc.text(split, 40, p2Y);
       p2Y += (split.length * 9) + 2;
@@ -1676,129 +1725,77 @@ export const numberToWordsIN = (num) => {
   };
 
   printTermBlock("1. Scope of Work", [
-    "The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, furniture design, civil work, electrical work, false ceiling, modular furniture, décor assistance, site supervision, and turnkey execution as mutually agreed in the final quotation/work order.",
+    "The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, modular furniture design, civil execution, electrical work, false ceiling, and turnkey execution as agreed in the final quotation/work order.",
     "Any work outside the approved quotation shall be treated as additional work and billed separately."
   ]);
 
-  printTermBlock("2. Design Process", [
-    "1. Initial consultation and requirement discussion",
-    "2. Concept design and layout planning"
+  printTermBlock("2. Design & Execution Process", [
+    "1. Initial consultation & site survey  |  2. 2D Concept design & layout planning  |  3. 3D Renders & material selection  |  4. Execution signoff & handover."
   ]);
-
-  // --- PAGE 3: TERMS & CONDITIONS PART 2 & SIGNATURES (MATCHING SCREENSHOT 3) ---
-  doc.addPage();
-  p2Y = 40;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
-  doc.text("3. Material and finish selection", 40, p2Y);
-  doc.text("4. Final design approval", 40, p2Y + 10);
-  doc.text("5. Execution and site coordination", 40, p2Y + 20);
-  doc.text("6. Project handover", 40, p2Y + 30);
-  doc.text("Design revisions beyond the agreed number of revisions may attract additional charges.", 40, p2Y + 42);
-  p2Y += 58;
 
   printTermBlock("3. Quotation & Pricing", [
     "- All quotations are valid for 15 days from the date of issue.",
-    "- Prices are based on current market rates of materials and labour.",
-    "- Any increase in material cost, taxes, transport, or vendor pricing after quotation approval may lead to revised costing.",
+    "- Prices are based on approved specifications and current market material rates.",
     "- Customizations requested after final approval will be charged additionally."
   ]);
 
-  printTermBlock("4. Payment Terms", [
-    "Payment schedule shall generally be as follows:",
+  printTermBlock("4. Payment Schedule", [
     "- 10% Advance – Booking & Design Initiation",
-    "- 40% – Before Production/Execution",
-    "- 40% – During Execution Stage",
-    "- 10% – Before Final Handover",
-    "All payments must be made as per agreed timelines. Delay in payment may lead to work suspension and revised delivery timelines."
+    "- 40% – Before Factory Production / Execution Commencement",
+    "- 40% – During Site Execution Stage",
+    "- 10% – Before Final Handover & Clearance"
   ]);
 
-  printTermBlock("5. Project Timeline", [
-    "- Timelines are estimated based on project scope and site conditions.",
-    "- Delays caused due to civil issues, approvals, client-side delays, vendor delays, material shortages, force majeure events, or changes in design shall not be considered the company's liability.",
-    "- Working days exclude Sundays and public holidays unless otherwise specified."
+  printTermBlock("5. Project Timeline & Delays", [
+    "- Timelines are estimated based on project scope and site readiness.",
+    "- Delays caused due to civil issues, client-side approvals, vendor delays, or force majeure events shall not be company liability."
   ]);
 
-  printTermBlock("6. Client Responsibilities", [
-    "The client shall:",
-    "- Provide timely approvals and decisions.",
-    "- Ensure site accessibility and basic utilities like electricity and water.",
-    "- Clear all dues as per payment schedule.",
-    "- Coordinate with society management/building authorities for permissions if required."
+  printTermBlock("6. Modular Furniture Warranty", [
+    "- 5-Year warranty for modular furniture manufacturing defects.",
+    "- Hardware warranty shall be as per respective brand manufacturer policy (Ebco, Hettich, etc.).",
+    "- Moisture damage, seepage from existing structure, or unauthorized modifications are excluded."
   ]);
 
-  printTermBlock("7. Material & Finishes", [
-    "- Natural variations in wood, veneer, marble, laminates, fabric, stone, and other materials are normal and not considered defects.",
-    "- Shade differences may occur due to lighting and batch variation.",
-    "- Availability of selected materials is subject to market conditions."
+  printTermBlock("7. Dispute Resolution & Jurisdiction", [
+    "Any disputes arising shall be subject to the exclusive jurisdiction of Pune, Maharashtra courts only."
   ]);
 
-  printTermBlock("8. Warranty", [
-    "Modular Furniture & Interior Work Warranty",
-    "- Warranty period: 5 years for modular furniture manufacturing defects.",
-    "- Hardware warranty shall be as per respective brand manufacturer policy.",
-    "- Electrical appliances/accessories carry manufacturer warranty only.",
-    "- Polish, paint touch-ups, fabric wear, glass breakage, seepage, plumbing leakage from existing structure, mishandling, moisture damage, termite issues due to site conditions, or unauthorized modifications are not covered under warranty."
-  ]);
+  // Signatures Section
+  if (p2Y > 680) {
+    doc.addPage();
+    p2Y = 40;
+  } else {
+    p2Y += 12;
+  }
 
-  printTermBlock("9. Cancellation Policy", [
-    "- Booking amount/design fees are non-refundable.",
-    "- In case of project cancellation after production/execution initiation, charges for completed work, materials procured, labour, and applicable damages shall be recoverable from the client."
-  ]);
+  doc.setDrawColor(226, 232, 240);
+  doc.line(40, p2Y, 555, p2Y);
+  p2Y += 20;
 
-  printTermBlock("10. Ownership of Designs", [
-    "All drawings, concepts, renders, and designs remain intellectual property of VELORA ANTARAAL unless otherwise agreed in writing. Unauthorized copying or execution through third parties is prohibited."
-  ]);
-
-  printTermBlock("11. Photography & Portfolio Rights", [
-    "The company reserves the right to photograph completed projects for portfolio, social media, website, and marketing purposes unless the client specifically requests confidentiality in writing."
-  ]);
-
-  printTermBlock("12. Limitation of Liability", [
-    "The company shall not be liable for:",
-    "- Structural defects of the property",
-    "- Existing site issues",
-    "- Delays due to external agencies/vendors",
-    "- Damages caused after handover due to misuse or negligence"
-  ]);
-
-  printTermBlock("13. Force Majeure", [
-    "The company shall not be responsible for delays or non-performance caused by events beyond reasonable control including natural disasters, strikes, government restrictions, pandemics, transport disruptions, or supply chain interruptions."
-  ]);
-
-  printTermBlock("14. Dispute Resolution", [
-    "Any disputes arising shall be subject to the jurisdiction of Pune, Maharashtra courts only."
-  ]);
-
-  printTermBlock("15. Acceptance", [
-    "Approval of quotation/work order and payment of advance shall be considered acceptance of these Terms & Conditions."
-  ]);
-
-  // Signatures Section (Matching Screenshot 3 Bottom)
-  p2Y += 10;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text("Client Signature: _______________________", 40, p2Y);
+  doc.text("Client Acceptance Signature: _______________________", 40, p2Y);
   doc.text("Date: _______________________", 40, p2Y + 16);
 
   doc.setFont("helvetica", "bold");
-  doc.text("Authorized Signatory", 40, p2Y + 36);
-  doc.text("VELORA ANTARAAL", 40, p2Y + 48);
+  doc.text("For VELORA ANTARAAL", 555, p2Y, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.text("Authorized Signatory", 555, p2Y + 22, { align: "right" });
 
-  if (isPrint) {
-    try {
-      doc.autoPrint();
-      const blobUrl = doc.output("bloburl");
-      window.open(blobUrl, "_blank");
-    } catch (e) {
-      doc.save(`${invNum}.pdf`);
-    }
-  } else {
-    doc.save(`${invNum}.pdf`);
-  }
+  doc.setDrawColor(217, 119, 6);
+  doc.line(40, 788, 555, 788);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 83, 9);
+  doc.text("SPACES WITHIN, DESIGNED BEAUTIFULLY", 297.5, 802, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text("+91 86055 26603  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
+
+  doc.save(`Tax_Invoice_${invNum}.pdf`);
 };
 
 /**
@@ -1806,10 +1803,10 @@ export const numberToWordsIN = (num) => {
  */
 export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
   const id = typeof invoiceOrId === "object" ? (invoiceOrId?._id || invoiceOrId?.invoiceNumber) : invoiceOrId;
-  const filename = customFilename || (typeof invoiceOrId === "object" ? `${invoiceOrId?.invoiceNumber || "Invoice"}.pdf` : `Invoice_${id}.pdf`);
+  const filename = customFilename || (typeof invoiceOrId === "object" ? `Tax_Invoice_${invoiceOrId?.invoiceNumber || "Invoice"}.pdf` : `Tax_Invoice_${id}.pdf`);
 
   // Instant client-side download if full object is passed
-  if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber)) {
+  if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber || invoiceOrId.billTo)) {
     try {
       generateClientSideInvoicePdf(invoiceOrId, false);
       return;
@@ -1836,29 +1833,611 @@ export const downloadInvoicePdf = async (invoiceOrId, customFilename) => {
     console.warn("Backend Invoice download failed, using client fallback:", err);
   }
 
-  const invData = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(id), clientName: "Valued Client", grandTotal: 468800 };
+  const invData = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(id), clientName: "Valued Client", grandTotal: 65000 };
   generateClientSideInvoicePdf(invData, false);
 };
 
 /**
- * Direct Print Invoice Function
+ * Direct High-Resolution Print / Save as PDF Function for Tax Invoices
  */
-export const printInvoice = async (invoiceOrId) => {
-  if (typeof invoiceOrId === "object" && (invoiceOrId.clientName || invoiceOrId.invoiceNumber)) {
-    generateClientSideInvoicePdf(invoiceOrId, true);
+export const printInvoice = (invoiceOrId, options = {}) => {
+  if (!invoiceOrId) return;
+
+  const invoice = typeof invoiceOrId === "object" ? invoiceOrId : { invoiceNumber: String(invoiceOrId) };
+  const includeTerms = options.includeTerms !== false;
+  const invNum = invoice.invoiceNumber || "NCI006";
+  const clientName = invoice.billTo?.name || invoice.clientName || invoice.billedTo || "Valued Client";
+  const clientPhone = invoice.billTo?.phone || invoice.clientPhone || "";
+  const clientEmail = invoice.billTo?.email || invoice.clientEmail || "";
+  const clientAddress = invoice.billTo?.address || invoice.clientAddress || "Pune, Maharashtra";
+
+  const shipName = invoice.shipTo?.name || (invoice.sameAsBillTo ? clientName : clientName);
+  const shipPhone = invoice.shipTo?.phone || (invoice.sameAsBillTo ? clientPhone : clientPhone);
+  const shipEmail = invoice.shipTo?.email || (invoice.sameAsBillTo ? clientEmail : clientEmail);
+  const shipAddress = invoice.shipTo?.address || (invoice.sameAsBillTo ? clientAddress : clientAddress);
+
+  const projName = invoice.projectName || invoice.clientName || clientName;
+  const projNumber = invoice.projectNumber || "PRJ-2026-012";
+  const formattedDate = invoice.formattedDate || invoice.invoiceDate || new Date().toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
+  const dueDate = invoice.dueDate || "--";
+
+  const grandTotal = Number(invoice.totalAmount || invoice.dueAmount || invoice.grandTotal || 0);
+  const subtotal = Number(invoice.subTotal || invoice.subtotal || grandTotal);
+  const gstTotal = Number(invoice.taxAmount || invoice.gstTotal || 0);
+  const taxPercent = invoice.taxPercent || 0;
+
+  const rawItems = (invoice.items && invoice.items.length > 0)
+    ? invoice.items
+    : [
+        { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
+      ];
+
+  const paymentQrCode = invoice.paymentQrCode || localStorage.getItem("velora_payment_qr_code") || "";
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("Please allow popups to print / save invoice as PDF.");
     return;
   }
-  try {
-    const id = typeof invoiceOrId === "object" ? (invoiceOrId?._id || invoiceOrId?.invoiceNumber) : invoiceOrId;
-    const res = await erpApi.getInvoiceById(id);
-    if (res?.success && res.data) {
-      generateClientSideInvoicePdf(res.data, true);
-      return;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tax_Invoice_${invNum}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @page {
+      size: A4;
+      margin: 8mm 10mm;
     }
-  } catch {
-    // Fallback
-  }
-  downloadInvoicePdf(invoiceOrId);
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+      border: 1px solid #e2e8f0;
+      position: relative;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: #fef3c7;
+      border: 1.5px solid #d97706;
+      border-radius: 8px;
+      color: #b45309;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .brand-subtitle {
+      font-size: 10px;
+      font-weight: 700;
+      color: #78716c;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .company-info {
+      font-size: 11.5px;
+      color: #334155;
+      line-height: 1.4;
+      max-width: 420px;
+    }
+    .invoice-title-box {
+      text-align: right;
+    }
+    .invoice-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: #1d4ed8;
+      letter-spacing: 1px;
+      margin: 0 0 6px 0;
+    }
+    .total-value-banner {
+      background: #1d4ed8;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 6px;
+      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.15);
+    }
+    .total-value-banner .val {
+      font-size: 20px;
+      font-weight: 900;
+      font-family: monospace;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px 14px;
+      font-size: 12px;
+      color: #475569;
+      margin-top: 8px;
+      text-align: right;
+    }
+    .meta-grid strong {
+      color: #0f172a;
+    }
+    .party-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .party-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+    .party-card-title {
+      font-weight: 900;
+      font-size: 11px;
+      color: #1d4ed8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .party-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+    table.invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+    table.invoice-table th {
+      background: #1d4ed8;
+      color: #ffffff;
+      padding: 8px 10px;
+      font-weight: 800;
+      border: 1px solid #1e40af;
+      font-size: 11.5px;
+    }
+    table.invoice-table td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+    table.invoice-table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    .totals-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 10px;
+      margin-bottom: 16px;
+      gap: 20px;
+    }
+    .words-box {
+      font-size: 11.5px;
+      color: #475569;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 12px;
+      flex: 1;
+    }
+    .words-box strong {
+      color: #0f172a;
+    }
+    .summary-card {
+      width: 320px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+    .summary-row.grand {
+      background: #fef3c7;
+      border-top: 1.5px solid #d97706;
+      border-bottom: none;
+      color: #b45309;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 10px 14px;
+    }
+    .bottom-info-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1.5px solid #e2e8f0;
+    }
+    .bank-card {
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #1d4ed8;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .bank-card h4 {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      color: #1d4ed8;
+      font-weight: 900;
+    }
+    .qr-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-card img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+    .qr-card .qr-fallback {
+      width: 90px;
+      height: 90px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: #1d4ed8;
+    }
+    .tc-page-container {
+      page-break-before: always;
+      break-before: page;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px dashed #cbd5e1;
+    }
+    .tc-header {
+      font-size: 16px;
+      font-weight: 900;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #d97706;
+      margin-bottom: 12px;
+    }
+    .tc-list {
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: #334155;
+      padding-left: 18px;
+      margin: 0 0 16px 0;
+    }
+    .tc-list li {
+      margin-bottom: 8px;
+    }
+    .signatures-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 36px;
+      padding-top: 12px;
+      font-size: 12px;
+      break-inside: avoid;
+    }
+    .footer-bar {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1.5px solid #d97706;
+      text-align: center;
+      font-size: 10.5px;
+      color: #78716c;
+      break-inside: avoid;
+    }
+    .footer-bar strong {
+      color: #b45309;
+    }
+    @media print {
+      body {
+        margin: 0;
+        background: #fff;
+      }
+      .page-container {
+        border: none;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .tc-page-container {
+        page-break-before: always;
+        break-before: page;
+        border-top: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="background: #0f172a; color: #fff; padding: 10px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-weight: 900; font-size: 13.5px; color: #f59e0b; letter-spacing: 0.5px;">VELORA LUXURY TAX INVOICE (${invNum})</span>
+      <span style="color: #94a3b8; font-size: 11.5px;">| Print or Select "Save as PDF"</span>
+    </div>
+
+    <!-- Live In-Preview T&C Toggle Switch -->
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
+        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 15px; height: 15px; accent-color: #f59e0b; cursor: pointer;" />
+        <span>Include Terms & Conditions (T&C)</span>
+      </label>
+
+      <button onclick="window.print()" style="background: #1d4ed8; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12px; cursor: pointer; transition: background 0.2s;">
+        Print / Save PDF
+      </button>
+      <button onclick="window.close()" style="background: #334155; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <!-- Brand Header -->
+    <div class="header-row">
+      <div>
+        <div class="brand-badge">
+          <span>VELORA ANTARAAL</span>
+        </div>
+        <div class="brand-subtitle">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</div>
+        <div class="company-info">
+          <div>Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Wakad Chowk, Wakad, Pune - 411057, Maharashtra</div>
+          <div>Phone: +91 86055 26603 / 80555 26603  |  Email: info@velora.family</div>
+          <div><strong>GSTIN:</strong> 27CHCPS9945R1Z4  |  <strong>PAN:</strong> CHCPS9945R  |  <strong>State:</strong> Maharashtra (27)</div>
+        </div>
+      </div>
+
+      <div class="invoice-title-box">
+        <h1 class="invoice-title">TAX INVOICE</h1>
+        <div class="total-value-banner">
+          <span style="font-size: 12px; font-weight: 600;">Total Value:</span>
+          <span class="val">₹ ${(grandTotal).toLocaleString("en-IN")}</span>
+        </div>
+
+        <div class="meta-grid">
+          <div><span>Invoice No:</span> <strong>${invNum}</strong></div>
+          <div><span>Date:</span> <strong>${formattedDate}</strong></div>
+          <div><span>Project PID:</span> <strong>${projNumber}</strong></div>
+          <div><span>Due Date:</span> <strong>${dueDate}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-Column Bill To & Ship To -->
+    <div class="party-grid">
+      <div class="party-card">
+        <div class="party-card-title">Bill To (Client Details)</div>
+        <div class="party-name">${clientName}</div>
+        ${clientPhone ? `<div><strong>Phone:</strong> (+91) ${clientPhone}</div>` : ""}
+        ${clientEmail ? `<div><strong>Email:</strong> ${clientEmail}</div>` : ""}
+        <div><strong>Address:</strong> ${clientAddress}</div>
+      </div>
+
+      <div class="party-card">
+        <div class="party-card-title">Ship To / Site Details</div>
+        <div class="party-name">${shipName}</div>
+        ${shipPhone ? `<div><strong>Phone:</strong> (+91) ${shipPhone}</div>` : ""}
+        ${shipEmail ? `<div><strong>Email:</strong> ${shipEmail}</div>` : ""}
+        <div><strong>Site Address:</strong> ${shipAddress}</div>
+      </div>
+    </div>
+
+    <!-- Line Items Table -->
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th style="width: 32px; text-align: center;">SN</th>
+          <th style="text-align: left;">Service / Goods Description</th>
+          <th style="width: 70px; text-align: center;">HSN/SAC</th>
+          <th style="width: 45px; text-align: center;">Qty</th>
+          <th style="width: 50px; text-align: center;">Unit</th>
+          <th style="width: 85px; text-align: right;">Unit Rate</th>
+          <th style="width: 55px; text-align: center;">GST %</th>
+          <th style="width: 80px; text-align: right;">GST (₹)</th>
+          <th style="width: 95px; text-align: right;">Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rawItems.map((it, idx) => {
+          const rate = Number(it.rate) || 0;
+          const qty = Number(it.quantity || it.qty) || 1;
+          const gstP = Number(it.gstPercent) || 0;
+          const gstA = Number(it.gstAmount) || 0;
+          const tot = Number(it.total) || (rate * qty + gstA);
+
+          return `
+            <tr>
+              <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
+              <td>
+                <div style="font-weight: 800; color: #0f172a;">${it.serviceDescription || it.productName || it.name || "Interior Scope"}</div>
+                ${it.description ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">${it.description}</div>` : ""}
+              </td>
+              <td style="text-align: center; font-family: monospace; color: #64748b;">${it.hsnSac || "9954"}</td>
+              <td style="text-align: center; font-weight: 700;">${qty}</td>
+              <td style="text-align: center; color: #64748b;">${it.unit || it.uom || "1"}</td>
+              <td style="text-align: right; font-weight: 700;">₹ ${(rate).toLocaleString("en-IN")}</td>
+              <td style="text-align: center; font-weight: 600;">${gstP}%</td>
+              <td style="text-align: right; color: #64748b;">₹ ${(gstA).toLocaleString("en-IN")}</td>
+              <td style="text-align: right; font-weight: 900; color: #0f172a;">₹ ${(tot).toLocaleString("en-IN")}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+
+    <!-- Commercial Totals & Amount in Words -->
+    <div class="totals-wrap">
+      <div class="words-box">
+        <div><strong>Amount in Words:</strong></div>
+        <div style="margin-top: 3px; font-weight: 600; color: #0f172a;">${numberToWordsIN(grandTotal)}</div>
+        <div style="margin-top: 8px; font-size: 11px; color: #64748b;">
+          <strong>Notes:</strong> ${invoice.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Sub Total (Taxable)</span>
+          <span>₹ ${(subtotal).toLocaleString("en-IN")}</span>
+        </div>
+        ${gstTotal > 0 ? `
+          <div class="summary-row">
+            <span>Tax Amount (GST ${taxPercent}%)</span>
+            <span>₹ ${(gstTotal).toLocaleString("en-IN")}</span>
+          </div>
+        ` : ""}
+        <div class="summary-row grand">
+          <span>Grand Total</span>
+          <span>₹ ${(grandTotal).toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Details & Payment Instructions + QR Code -->
+    <div class="bottom-info-grid">
+      <div class="bank-card">
+        <h4>Bank Details & Payment Instructions</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 11.5px; color: #334155;">
+          <div>Account Holder: <strong>VELORA ANTARAAL</strong></div>
+          <div>Account Number: <strong>50200073374185</strong></div>
+          <div>IFSC Code: <strong>HDFC0000282</strong></div>
+          <div>Branch: <strong>WAKAD, PUNE</strong></div>
+          <div>Bank Name: <strong>HDFC Bank</strong></div>
+          <div>Account Type: <strong>Current Account</strong></div>
+        </div>
+      </div>
+
+      <div class="qr-card">
+        <div style="font-size: 11px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Scan to Pay (UPI)</div>
+        ${paymentQrCode ? `
+          <img src="${paymentQrCode}" alt="PhonePe QR Code" onerror="this.style.display='none'" />
+        ` : `
+          <div class="qr-fallback">
+            <span style="font-size: 14px;">📱</span>
+            <span>PhonePe / UPI</span>
+            <span style="font-size: 8px; color: #64748b;">ACCEPTED HERE</span>
+          </div>
+        `}
+      </div>
+    </div>
+
+    <!-- DEDICATED TERMS & CONDITIONS SECTION -->
+    <div id="tc-page-section" class="tc-page-container" style="${includeTerms ? '' : 'display: none;'}">
+      <div class="tc-header">TERMS & CONDITIONS — VELORA ANTARAAL</div>
+      <ol class="tc-list">
+        <li><strong>1. Scope of Work: </strong>The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, modular furniture design, civil execution, electrical work, false ceiling, and turnkey execution as agreed in the final quotation/work order. Any work outside the approved quotation shall be treated as additional work and billed separately.</li>
+        <li><strong>2. Design & Execution Process: </strong>1. Initial consultation & site survey | 2. Concept design and layout planning | 3. 3D Visualization & material selection | 4. Execution signoff and project handover.</li>
+        <li><strong>3. Quotation & Pricing: </strong>All quotations are valid for 15 days from the date of issue. Prices are based on current market rates of materials and labour. Customizations requested after final approval will be charged additionally.</li>
+        <li><strong>4. Payment Terms: </strong>10% Advance (Booking & Design Initiation) | 40% (Before Factory Production / Execution) | 40% (During Site Execution Stage) | 10% (Before Final Handover). All payments must be made as per agreed timelines.</li>
+        <li><strong>5. Project Timeline: </strong>Timelines are estimated based on project scope and site conditions. Delays caused due to civil issues, client-side approvals, vendor delays, or force majeure events shall not be company liability.</li>
+        <li><strong>6. Modular Furniture Warranty: </strong>5-Year warranty for modular furniture manufacturing defects. Hardware warranty shall be as per respective brand manufacturer policy (Ebco, Hettich, etc.). Moisture damage or unauthorized modifications are not covered.</li>
+        <li><strong>7. Ownership & Intellectual Property: </strong>All drawings, 3D renders, and designs remain intellectual property of VELORA ANTARAAL unless agreed otherwise in writing.</li>
+        <li><strong>8. Dispute Resolution: </strong>Any disputes arising shall be subject to the jurisdiction of Pune, Maharashtra courts only.</li>
+      </ol>
+
+      <div class="signatures-row">
+        <div>
+          <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+          <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Date: ___________________________</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-weight: 800; color: #b45309; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="margin: 28px 0 0 0; color: #475569;">Authorized Signatory</p>
+        </div>
+      </div>
+
+      <div class="footer-bar">
+        <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
+        <div>+91 86055 26603 | +91 80555 26603  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+      </div>
+    </div>
+
+    <!-- Signatures Row when T&C is excluded -->
+    <div id="standalone-signatures" style="${includeTerms ? 'display: none;' : 'display: block;'}">
+      <div class="signatures-row">
+        <div>
+          <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+          <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Date: ___________________________</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-weight: 800; color: #b45309; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="margin: 28px 0 0 0; color: #475569;">Authorized Signatory</p>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
+        <div>+91 86055 26603 | +91 80555 26603  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.toggleTerms = function(show) {
+      var tcEl = document.getElementById('tc-page-section');
+      var standaloneSig = document.getElementById('standalone-signatures');
+      if (tcEl) tcEl.style.display = show ? 'block' : 'none';
+      if (standaloneSig) standaloneSig.style.display = show ? 'none' : 'block';
+    };
+  </script>
+</body>
+</html>
+  `;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 };
 
 /**

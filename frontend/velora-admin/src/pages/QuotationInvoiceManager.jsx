@@ -1136,6 +1136,23 @@ export default function QuotationInvoiceManager() {
                 Back to Invoices
               </button>
               <button
+                type="button"
+                onClick={() => {
+                  printInvoice({
+                    ...formData,
+                    subTotal,
+                    taxAmount: totalTax,
+                    totalAmount: grandTotal,
+                    dueAmount: grandTotal,
+                    paymentQrCode: paymentQrCode
+                  });
+                }}
+                className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Printer size={13} />
+                <span>Print Invoice</span>
+              </button>
+              <button
                 onClick={() => handleOpenPdfPreview()}
                 className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition cursor-pointer flex items-center gap-1.5"
               >
@@ -1793,6 +1810,35 @@ export default function QuotationInvoiceManager() {
                         <td className="py-3.5 px-5 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="relative flex items-center justify-center gap-1.5 text-stone-400">
                             <button
+                              onClick={() => {
+                                printInvoice({
+                                  invoiceNumber: inv.invoiceNumber,
+                                  clientName: inv.billedTo || inv.billTo?.name || inv.clientName,
+                                  clientPhone: inv.billTo?.phone || inv.clientPhone,
+                                  clientEmail: inv.billTo?.email || inv.clientEmail,
+                                  clientAddress: inv.billTo?.address || inv.clientAddress,
+                                  projectName: inv.projectName,
+                                  projectNumber: inv.projectNumber,
+                                  invoiceDate: inv.invoiceDate,
+                                  formattedDate: inv.formattedDate,
+                                  dueDate: inv.dueDate,
+                                  taxPercent: inv.taxPercent,
+                                  subTotal: inv.subTotal || inv.dueAmount || inv.totalAmount,
+                                  taxAmount: inv.taxAmount,
+                                  grandTotal: inv.totalAmount || inv.dueAmount || 65000,
+                                  totalAmount: inv.totalAmount || inv.dueAmount || 65000,
+                                  items: inv.items,
+                                  notes: inv.notes,
+                                  paymentQrCode: paymentQrCode
+                                });
+                              }}
+                              className="p-1.5 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              title="Print Invoice"
+                            >
+                              <Printer size={14} className="text-amber-600" />
+                            </button>
+
+                            <button
                               onClick={() => handleEditInvoice(inv)}
                               className="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                               title="Edit Invoice"
@@ -1811,13 +1857,42 @@ export default function QuotationInvoiceManager() {
 
                               {/* Dropdown Menu (Screenshot 5) */}
                               {activeDropdownId === inv._id && (
-                                <div className="absolute right-0 mt-1 w-32 bg-white border border-stone-200 rounded-xl shadow-xl py-1 z-30 animate-in fade-in text-left">
+                                <div className="absolute right-0 mt-1 w-36 bg-white border border-stone-200 rounded-xl shadow-xl py-1 z-30 animate-in fade-in text-left">
                                   <button
                                     onClick={() => handleOpenPdfPreview(inv)}
                                     className="w-full px-3 py-2 text-left text-xs font-bold text-stone-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2 cursor-pointer"
                                   >
                                     <Eye size={13} className="text-blue-600" />
-                                    <span>View</span>
+                                    <span>View Preview</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      printInvoice({
+                                        invoiceNumber: inv.invoiceNumber,
+                                        clientName: inv.billedTo || inv.billTo?.name || inv.clientName,
+                                        clientPhone: inv.billTo?.phone || inv.clientPhone,
+                                        clientEmail: inv.billTo?.email || inv.clientEmail,
+                                        clientAddress: inv.billTo?.address || inv.clientAddress,
+                                        projectName: inv.projectName,
+                                        projectNumber: inv.projectNumber,
+                                        invoiceDate: inv.invoiceDate,
+                                        formattedDate: inv.formattedDate,
+                                        dueDate: inv.dueDate,
+                                        taxPercent: inv.taxPercent,
+                                        subTotal: inv.subTotal || inv.dueAmount || inv.totalAmount,
+                                        taxAmount: inv.taxAmount,
+                                        grandTotal: inv.totalAmount || inv.dueAmount || 65000,
+                                        totalAmount: inv.totalAmount || inv.dueAmount || 65000,
+                                        items: inv.items,
+                                        notes: inv.notes,
+                                        paymentQrCode: paymentQrCode
+                                      });
+                                      setActiveDropdownId(null);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-xs font-bold text-stone-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Printer size={13} className="text-amber-600" />
+                                    <span>Print</span>
                                   </button>
                                   <button
                                     onClick={() => {
@@ -1828,8 +1903,10 @@ export default function QuotationInvoiceManager() {
                                         clientEmail: inv.billTo?.email || inv.clientEmail,
                                         clientAddress: inv.billTo?.address || inv.clientAddress,
                                         projectName: inv.projectName,
+                                        projectNumber: inv.projectNumber,
                                         grandTotal: inv.totalAmount || inv.dueAmount || 65000,
                                         items: inv.items,
+                                        notes: inv.notes,
                                         paymentQrCode: paymentQrCode
                                       });
                                       setActiveDropdownId(null);
@@ -1837,7 +1914,7 @@ export default function QuotationInvoiceManager() {
                                     className="w-full px-3 py-2 text-left text-xs font-bold text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
                                   >
                                     <Download size={13} className="text-stone-500" />
-                                    <span>Download</span>
+                                    <span>Download PDF</span>
                                   </button>
                                   <button
                                     onClick={() => handleEditInvoice(inv)}

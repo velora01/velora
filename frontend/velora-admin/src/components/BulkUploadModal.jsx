@@ -12,6 +12,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
+
+  
+
   // Generate and download a comprehensive CSV template
   const handleDownloadSample = () => {
     const headers = [

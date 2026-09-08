@@ -172,8 +172,15 @@ export const erpApi = {
   // User Management
   getUsers: async (params) => (await api.get("/erp/users", { params })).data,
   createUser: async (data) => (await api.post("/erp/users", data)).data,
+  updateUser: async (id, data) => (await api.put(`/erp/users/${id}`, data)).data,
   updateUserRole: async (id, data) => (await api.put(`/erp/users/${id}/role`, data)).data,
+  deleteUser: async (id) => (await api.delete(`/erp/users/${id}`)).data,
   getRoles: async () => (await api.get("/erp/roles")).data,
+
+  // Settings & SMTP
+  getSettings: async () => (await api.get("/erp/settings")).data,
+  updateSettings: async (data) => (await api.post("/erp/settings", data)).data,
+  testEmail: async (data) => (await api.post("/erp/settings/test-email", data)).data,
 
   // Activity Logs & Reports
   getActivityLogs: async (params) => (await api.get("/erp/activity-logs", { params })).data,

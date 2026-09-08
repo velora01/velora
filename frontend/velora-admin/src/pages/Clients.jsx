@@ -137,18 +137,44 @@ export default function Clients() {
       const boqList = resBOQs?.data || [];
       setAllBOQs(boqList);
 
-      let clientList = resClients?.data || [];
+      const rawClients = resClients?.data || [];
+      const clientMap = new Map();
 
-      // Ensure all clients present in BOQs exist in the clients table
+      // Normalize client key helper
+      const getClientKey = (c) => {
+        const p = (c.phone || "").replace(/\D/g, "").slice(-10);
+        if (p) return `p_${p}`;
+        const n = (c.name || "").trim().toLowerCase();
+        if (n) return `n_${n}`;
+        return `id_${c._id || c.clientCode}`;
+      };
+
+      // Add real client records
+      rawClients.forEach((c) => {
+        const key = getClientKey(c);
+        if (key && !clientMap.has(key)) {
+          // Attach relevant BOQs
+          const clientBoqs = boqList.filter((b) => {
+            const bPhone = (b.clientPhone || "").replace(/\D/g, "").slice(-10);
+            const bName = (b.clientName || "").trim().toLowerCase();
+            return (bPhone && bPhone === (c.phone || "").replace(/\D/g, "").slice(-10)) ||
+                   (bName && bName === (c.name || "").trim().toLowerCase());
+          });
+          clientMap.set(key, { ...c, boqs: clientBoqs.length > 0 ? clientBoqs : (c.boqs || []) });
+        }
+      });
+
+      // For any BOQ whose client is truly missing from DB, add single fallback entry
       boqList.forEach((b, idx) => {
         if (b.clientName) {
-          const match = clientList.find(
-            (c) =>
-              c.name?.toLowerCase() === b.clientName?.toLowerCase() ||
-              (b.clientPhone && c.phone === b.clientPhone)
-          );
-          if (!match) {
-            clientList.push({
+          const fakeClient = {
+            name: b.clientName,
+            phone: b.clientPhone || "",
+            email: b.clientEmail || ""
+          };
+          const key = getClientKey(fakeClient);
+          if (key && !clientMap.has(key)) {
+            clientMap.set(key, {
               _id: b._id || `boq-cl-${idx}`,
               clientCode: `VEL-CL-${1010 + idx}`,
               name: b.clientName,
@@ -172,7 +198,7 @@ export default function Clients() {
         }
       });
 
-      setClients(clientList);
+      setClients(Array.from(clientMap.values()));
     } catch (err) {
       console.error("Failed to load clients & BOQs:", err);
     } finally {
@@ -361,7 +387,7 @@ export default function Clients() {
               setSelectedClient(row);
               setActiveClientTab("overview");
             }}
-            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
             title="View 360° Profile"
           >
             <Eye size={14} />
@@ -715,7 +741,7 @@ export default function Clients() {
                     }
                   });
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
               >
                 <Receipt size={14} />
                 <span>Generate Tax Invoice</span>
@@ -859,7 +885,7 @@ export default function Clients() {
                 <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
                   <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                     <h4 className="font-extrabold text-stone-900 text-xs">Project Master File</h4>
-                    <span className="font-bold font-mono text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
+                    <span className="font-bold font-mono text-[10px] bg-amber-50 text-amber-900 px-2 py-0.5 rounded border border-amber-200">
                       PRJ-2026-008
                     </span>
                   </div>
@@ -922,7 +948,7 @@ export default function Clients() {
                             }
                           });
                         }}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
                       >
                         <Sparkles size={11} className="text-amber-300 fill-amber-300" />
                         <span>Auto Invoice</span>
@@ -1044,7 +1070,7 @@ export default function Clients() {
                     onClick={() => {
                       navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
                     }}
-                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
+                    className="px-3 py-1.5 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
                   >
                     <Plus size={13} />
                     <span>Create Tax Invoice</span>
@@ -1082,7 +1108,7 @@ export default function Clients() {
                           }
                         });
                       }}
-                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] font-bold text-xs rounded-xl border border-amber-200 transition cursor-pointer flex items-center gap-1.5"
                       title="Preview Tax Invoice Template"
                     >
                       <Eye size={14} />

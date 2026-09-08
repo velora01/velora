@@ -24,6 +24,7 @@ import { getCurrentUser, logout } from "../services/authService";
 
 export default function AdminLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [adminUser] = useState(
     getCurrentUser() || { name: "Admin", email: "admin@veloradesign.com", role: "Super Admin" }
   );
@@ -51,9 +52,9 @@ export default function AdminLayout({ children }) {
     { path: "/invoices", name: "Invoice", icon: <FileText size={17} />, aliases: ["/payments"] },
     { path: "/reports", name: "Reports", icon: <BarChart3 size={17} /> },
     { path: "/tasks", name: "Approvals", icon: <CheckCircle size={17} /> },
-    { path: "/users", name: "User Management", icon: <ShieldCheck size={17} />, hasSubmenu: true },
+    { path: "/users", name: "User Management", icon: <ShieldCheck size={17} /> },
     { path: "/inventory", name: "Library", icon: <Package size={17} />, hasSubmenu: true, aliases: ["/factory"] },
-    { path: "/logs", name: "Settings", icon: <Settings size={17} />, hasSubmenu: true, aliases: ["/calendar"] }
+    { path: "/settings", name: "Settings", icon: <Settings size={17} />, aliases: ["/logs", "/calendar"] }
   ];
 
   // Helper to determine active title
@@ -67,6 +68,9 @@ export default function AdminLayout({ children }) {
     if (location.pathname.startsWith("/library/component") || location.pathname === "/library" || location.pathname === "/inventory") {
       return "Component";
     }
+    if (location.pathname.startsWith("/settings")) {
+      return "Settings";
+    }
     const current = navItems.find(
       (item) => item.path === location.pathname || item.aliases?.includes(location.pathname)
     );
@@ -76,7 +80,7 @@ export default function AdminLayout({ children }) {
   const isBOQPage = location.pathname.startsWith("/boq") || location.pathname === "/estimates";
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-stone-800 flex font-sans antialiased">
+    <div className="min-h-screen bg-[#FAF9F5] text-stone-800 flex font-sans antialiased" onClick={() => isProfileOpen && setIsProfileOpen(false)}>
       {/* Mobile Top Navigation */}
       {!isBOQPage && (
         <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-[#E8DFCE] px-4 flex items-center justify-between z-40 shadow-xs">
@@ -217,15 +221,15 @@ export default function AdminLayout({ children }) {
         {/* Top Navbar Header - Hidden on BOQ Page */}
         {!isBOQPage && (
           <header className="hidden md:flex items-center justify-between h-14 px-6 bg-white border-b border-[#EAE3D2] sticky top-0 z-30 shadow-2xs">
-            {/* Left: Page Title only (no V logo, no CRM word) */}
+            {/* Left: Page Title */}
             <div className="flex items-center">
               <h1 className="text-base font-bold text-stone-900 tracking-tight">
                 {getCurrentPageTitle()}
               </h1>
             </div>
 
-            {/* Right: Notifications Bell & Golden User Avatar Badge */}
-            <div className="flex items-center gap-4">
+            {/* Right: Notifications Bell & Real User Profile Header */}
+            <div className="flex items-center gap-4 relative">
               {/* Notification Bell with golden dot */}
               <Link
                 to="/notifications"
@@ -236,14 +240,77 @@ export default function AdminLayout({ children }) {
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#D4AF37] ring-2 ring-white" />
               </Link>
 
-              {/* Profile Avatar (Golden circle with user initial) */}
-              <div className="flex items-center gap-2.5 pl-2 border-l border-[#EAE3D2]">
-                <div
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] text-stone-950 font-black text-xs flex items-center justify-center shadow-xs cursor-pointer select-none"
-                  title={`${adminUser?.name || "Admin"} (${adminUser?.role || "Super Admin"})`}
+              {/* Real User Profile Avatar & Role Badge Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsProfileOpen(!isProfileOpen);
+                  }}
+                  className="flex items-center gap-2.5 pl-2 py-1 pr-1 border-l border-[#EAE3D2] rounded-xl hover:bg-stone-50 transition cursor-pointer"
                 >
-                  {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "N"}
-                </div>
+                  <div className="text-right hidden sm:block">
+                    <div className="text-xs font-bold text-stone-900 leading-tight flex items-center justify-end gap-1">
+                      <span>{adminUser?.name || "Admin"}</span>
+                      {adminUser?.role === "Super Admin" && <Crown size={12} className="text-[#9E7B1D]" />}
+                    </div>
+                    <span className="text-[10px] font-semibold text-[#9E7B1D] bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                      {adminUser?.role || "Super Admin"}
+                    </span>
+                  </div>
+
+                  <div
+                    className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] text-stone-950 font-black text-xs flex items-center justify-center shadow-xs select-none"
+                  >
+                    {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "A"}
+                  </div>
+                </button>
+
+                {/* Profile Dropdown Menu */}
+                {isProfileOpen && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-11 w-64 bg-white border border-[#EAE3D2] rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 space-y-2 text-xs"
+                  >
+                    <div className="p-2 bg-gradient-to-br from-stone-900 to-stone-850 rounded-xl text-white">
+                      <div className="font-black text-sm text-[#D4AF37]">{adminUser?.name || "Admin User"}</div>
+                      <div className="text-[11px] text-stone-300 truncate">{adminUser?.email || "admin@velora.family"}</div>
+                      <div className="mt-1.5 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-amber-200 border border-[#D4AF37]/40">
+                        {adminUser?.role || "Super Admin"}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      <Link
+                        to="/settings"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-stone-700 hover:bg-amber-50 hover:text-[#9E7B1D] font-semibold transition"
+                      >
+                        <Settings size={15} />
+                        <span>Settings & QR Hub</span>
+                      </Link>
+
+                      <Link
+                        to="/users"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-stone-700 hover:bg-amber-50 hover:text-[#9E7B1D] font-semibold transition"
+                      >
+                        <ShieldCheck size={15} />
+                        <span>User Management & Staff</span>
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-stone-100 pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 font-bold transition cursor-pointer"
+                      >
+                        <LogOut size={15} />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </header>

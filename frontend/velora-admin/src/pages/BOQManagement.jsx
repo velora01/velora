@@ -92,10 +92,8 @@ export default function BOQManagement() {
   const [includeTermsInPrint, setIncludeTermsInPrint] = useState(true);
   const [quotationModalTab, setQuotationModalTab] = useState("preview"); // "preview" | "tc_template"
 
-  // Measurement Unit State (Screenshot 1)
-  const [measurementUnit, setMeasurementUnit] = useState("Feet.inch"); // Feet.inch | Millimeter
-  const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
-  const [pendingSelectedEnquiry, setPendingSelectedEnquiry] = useState(null);
+  // Measurement Unit State (Default: Feet & Inches permanently)
+  const [measurementUnit, setMeasurementUnit] = useState("Feet.inch");
 
   // Custom Mix Modal State
   const [isCustomMixModalOpen, setIsCustomMixModalOpen] = useState(false);
@@ -105,9 +103,9 @@ export default function BOQManagement() {
     typeSource: "Elite",
     rateSource: "Elite",
     descSource: "Elite",
-    lengthFt: 1,
+    lengthFt: 0,
     lengthIn: 0,
-    heightFt: 1,
+    heightFt: 0,
     heightIn: 0,
     depthFt: 0,
     depthIn: 0,
@@ -550,32 +548,27 @@ export default function BOQManagement() {
     setIsSelectClientModalOpen(true);
   };
 
-  // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Open Measurement Unit Modal
+  // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Directly Open Builder in Feet.inch
   const handleSelectEnquiryToCreateBOQ = (enquiry) => {
-    setPendingSelectedEnquiry(enquiry);
     setIsSelectClientModalOpen(false);
-    setIsMeasurementModalOpen(true);
-  };
-
-  // When user selects Measurement Unit (Feet.inch / Millimeter) -> Open builder in draft mode
-  const handleConfirmMeasurementUnit = () => {
-    const enquiry = pendingSelectedEnquiry || { name: "Client", enquiryNo: `ENQ-2026-019` };
+    const targetEnquiry = enquiry || { name: "Client", enquiryNo: `ENQ-2026-019` };
     const randomSuffix = Math.floor(100 + Math.random() * 900);
     const boqNumber = `BOQ-2026-${randomSuffix}`;
-    const enquiryNo = enquiry.enquiryNo || `ENQ-2026-${randomSuffix}`;
+    const enquiryNo = targetEnquiry.enquiryNo || `ENQ-2026-${randomSuffix}`;
 
-    // Create BOQ draft populated with standard spaces ready to customize
+    // Create BOQ draft populated with standard spaces ready to customize (Feet & Inches by default)
     const newBOQ = {
       _id: `temp_${Date.now()}`,
       boqNumber,
       enquiryNo,
-      lead: enquiry._id,
-      enquiryDate: enquiry.enquiryDate || new Date().toISOString().split("T")[0],
-      clientName: enquiry.name || "Client",
-      clientEmail: enquiry.email || "",
-      clientPhone: enquiry.phone || "",
+      lead: targetEnquiry._id,
+      enquiryDate: targetEnquiry.enquiryDate || new Date().toISOString().split("T")[0],
+      clientName: targetEnquiry.name || "Client",
+      clientEmail: targetEnquiry.email || "",
+      clientPhone: targetEnquiry.phone || "",
       numberOfSpaces: defaultStandardSpaces.length,
       activePackage: "Standard",
+      measurementUnit: "Feet.inch",
       subtotal: 0,
       gstTotal: 0,
       grandTotal: 0,
@@ -585,10 +578,8 @@ export default function BOQManagement() {
 
     setActiveBOQ(newBOQ);
     setActiveSpaceIdx(0);
-    setIsMeasurementModalOpen(false);
-    setPendingSelectedEnquiry(null);
     setViewMode("builder");
-    setSuccessToast(`Draft BOQ initialized for ${enquiry.name}. Add items and click Save!`);
+    setSuccessToast(`Draft BOQ initialized for ${targetEnquiry.name}. Add items and click Save!`);
     setTimeout(() => setSuccessToast(""), 3500);
   };
 
@@ -648,11 +639,8 @@ export default function BOQManagement() {
         const qty = Number(item.qty) || 1;
         const rate = Number(item.rate) || 0;
 
-        let calculatedSqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : Number(item.sqft) || 1;
-        if (calculatedSqft <= 0) calculatedSqft = 1;
-
+        let calculatedSqft = l > 0 && h > 0 ? Number((l * h * qty).toFixed(3)) : 0;
         let amount = Math.round(calculatedSqft * rate);
-        if (amount <= 0 && rate > 0) amount = rate * qty;
 
         spaceSum += amount;
         return { ...item, sqft: calculatedSqft, amount };
@@ -749,12 +737,12 @@ export default function BOQManagement() {
       const vConfig = comp[key] || {};
       const unit = vConfig.unit || comp.standard?.unit || comp.unit || {};
 
-      const lengthFt = unit.lengthFt !== undefined && (unit.lengthFt > 0 || unit.lengthIn > 0) ? unit.lengthFt : 1;
-      const lengthIn = unit.lengthIn || 0;
-      const heightFt = unit.heightFt !== undefined && (unit.heightFt > 0 || unit.heightIn > 0) ? unit.heightFt : 1;
-      const heightIn = unit.heightIn || 0;
-      const depthFt = unit.depthFt || 0;
-      const depthIn = unit.depthIn || 0;
+      const lengthFt = 0;
+      const lengthIn = 0;
+      const heightFt = 0;
+      const heightIn = 0;
+      const depthFt = 0;
+      const depthIn = 0;
 
       // Base rate from standard tier or component root
       const baseRate = comp.standard?.rate || comp.rate || 1500;
@@ -781,7 +769,7 @@ export default function BOQManagement() {
 
       const l = lengthFt + lengthIn / 12;
       const h = heightFt + heightIn / 12;
-      const sqft = parseFloat((l * h || 1).toFixed(3));
+      const sqft = l > 0 && h > 0 ? parseFloat((l * h).toFixed(3)) : 0;
       const amount = Math.round(sqft * rate);
 
       const newItem = {
@@ -943,37 +931,39 @@ export default function BOQManagement() {
 
   // Open Custom Mix Modal for a palette component
   const handleOpenCustomMix = (comp) => {
-    setCustomMixComponent(comp);
+    const targetComp = comp || { name: "Custom Item" };
+    setCustomMixComponent(targetComp);
 
-    const eliteUnit = comp.elite?.unit || {};
-    const eliteType = comp.elite?.type || "Box";
-    const eliteRate = comp.elite?.rate || 2200;
-    const eliteDesc = comp.elite?.description || comp.description || "";
+    const eliteType = targetComp.elite?.type || "Box";
+    const eliteRate = targetComp.elite?.rate || 2200;
+    const eliteDesc = targetComp.elite?.description || targetComp.description || "";
 
     // Gather all candidate images
-    const candidatePhotos = [
-      ...(comp.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
-      ...(comp.premium?.images || []).map((i) => ({ ...i, variant: "Premium" })),
-      ...(comp.standard?.images || []).map((i) => ({ ...i, variant: "Standard" })),
-      ...(comp.images || []).map((i) => ({ ...i, variant: "General" }))
-    ];
+    const candidatePhotos = targetComp.elite
+      ? [
+          ...(targetComp.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
+          ...(targetComp.premium?.images || []).map((i) => ({ ...i, variant: "Premium" })),
+          ...(targetComp.standard?.images || []).map((i) => ({ ...i, variant: "Standard" })),
+          ...(targetComp.images || []).map((i) => ({ ...i, variant: "General" }))
+        ]
+      : [];
 
     setCustomMixState({
       dimSource: "Elite",
       typeSource: "Elite",
       rateSource: "Elite",
       descSource: "Elite",
-      lengthFt: eliteUnit.lengthFt || 2,
-      lengthIn: eliteUnit.lengthIn || 0,
-      heightFt: eliteUnit.heightFt || 2,
-      heightIn: eliteUnit.heightIn || 8,
-      depthFt: eliteUnit.depthFt || 2,
-      depthIn: eliteUnit.depthIn || 0,
+      lengthFt: 0,
+      lengthIn: 0,
+      heightFt: 0,
+      heightIn: 0,
+      depthFt: 0,
+      depthIn: 0,
       type: eliteType,
       rate: eliteRate,
       qty: 1,
       description: eliteDesc,
-      selectedPhotos: candidatePhotos.slice(0, 1).map((p) => ({ url: p.url, caption: p.name || comp.name }))
+      selectedPhotos: candidatePhotos.slice(0, 1).map((p) => ({ url: p.url, caption: p.name || targetComp.name }))
     });
     setIsCustomMixModalOpen(true);
   };
@@ -981,36 +971,32 @@ export default function BOQManagement() {
   // Apply Custom Mix to Space
   const handleApplyCustomMix = () => {
     if (!customMixComponent || !activeBOQ) return;
-    const sqft = parseFloat(
-      (
-        (customMixState.lengthFt + customMixState.lengthIn / 12) *
-        (customMixState.heightFt + customMixState.heightIn / 12) || 1
-      ).toFixed(3)
-    );
-
-
-    const amount = Math.round(sqft * customMixState.rate * (customMixState.qty || 1));
+    const l = (Number(customMixState.lengthFt) || 0) + (Number(customMixState.lengthIn) || 0) / 12;
+    const h = (Number(customMixState.heightFt) || 0) + (Number(customMixState.heightIn) || 0) / 12;
+    const qty = Number(customMixState.qty) || 1;
+    const rate = Number(customMixState.rate) || 0;
+    const sqft = l > 0 && h > 0 ? parseFloat((l * h).toFixed(3)) : 0;
+    const amount = Math.round(sqft * rate * qty);
 
     const mixedItem = {
       name: customMixComponent.name,
       typeVariant: customMixState.type,
-      lengthFt: customMixState.lengthFt,
-      lengthIn: customMixState.lengthIn,
-      heightFt: customMixState.heightFt,
-      heightIn: customMixState.heightIn,
-      depthFt: customMixState.depthFt,
-      depthIn: customMixState.depthIn,
-      qty: customMixState.qty || 1,
+      lengthFt: customMixState.lengthFt || 0,
+      lengthIn: customMixState.lengthIn || 0,
+      heightFt: customMixState.heightFt || 0,
+      heightIn: customMixState.heightIn || 0,
+      depthFt: customMixState.depthFt || 0,
+      depthIn: customMixState.depthIn || 0,
+      qty,
       description: customMixState.description,
       sqft,
-      rate: customMixState.rate,
+      rate,
       amount,
       photos: customMixState.selectedPhotos
     };
 
     handleAddComponentToSpace(customMixComponent, mixedItem);
     setIsCustomMixModalOpen(false);
-    
   };
 
   // Open Image Picker Modal for an existing line item in active space
@@ -1672,7 +1658,7 @@ export default function BOQManagement() {
                   boqList.map((row) => (
                     <tr key={row._id} className="hover:bg-amber-50/20 transition">
                       {/* Enquiry No Link */}
-                      <td className="py-3.5 px-4 font-bold text-teal-600 hover:text-teal-700 whitespace-nowrap">
+                      <td className="py-3.5 px-4 font-bold text-[#9E7B1D] hover:text-[#8C6B17] whitespace-nowrap">
                         <button
                           onClick={() => handleOpenBuilder(row)}
                           className="hover:underline cursor-pointer font-mono"
@@ -1689,7 +1675,7 @@ export default function BOQManagement() {
                       {/* Name */}
                       <td className="py-3.5 px-4 font-bold text-stone-900">
                         <span
-                          className="hover:text-blue-600 cursor-pointer transition"
+                          className="hover:text-[#9E7B1D] cursor-pointer transition"
                           onClick={() => handleOpenBuilder(row)}
                         >
                           {row.clientName}
@@ -1727,7 +1713,7 @@ export default function BOQManagement() {
                           <button
                             onClick={() => handleOpenBuilder(row)}
                             title="Edit BOQ"
-                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-[#9E7B1D] hover:text-[#8C6B17] hover:bg-amber-50 rounded-lg transition cursor-pointer"
                           >
                             <Edit2 size={16} />
                           </button>
@@ -1833,7 +1819,7 @@ export default function BOQManagement() {
                   value={clientSearchQuery}
                   onChange={(e) => setClientSearchQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-stone-300 rounded-full text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-blue-500 transition shadow-2xs"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-stone-300 rounded-full text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-400 transition shadow-2xs"
                 />
               </div>
 
@@ -1842,7 +1828,7 @@ export default function BOQManagement() {
                 <span className="text-xs font-bold text-stone-800">
                   Select Enquiry to continue
                 </span>
-                <span className="text-[10.5px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10.5px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                   {filteredEnquiries.length} Available without BOQ
                 </span>
               </div>
@@ -1853,16 +1839,16 @@ export default function BOQManagement() {
                   <div
                     key={enquiry._id || enquiry.enquiryNo}
                     onClick={() => handleSelectEnquiryToCreateBOQ(enquiry)}
-                    className="p-3.5 bg-white border border-stone-200 hover:border-blue-500 hover:bg-blue-50/20 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
+                    className="p-3.5 bg-white border border-stone-200 hover:border-amber-400 hover:bg-amber-50/30 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
                   >
                     {/* Circle Avatar with First Letter */}
-                    <div className="w-10 h-10 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-blue-100 group-hover:text-blue-700 transition">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-[#D4AF37] group-hover:text-stone-950 transition">
                       {enquiry.name ? enquiry.name.charAt(0) : "E"}
                     </div>
 
                     {/* Name and Enquiry Number */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-stone-900 truncate group-hover:text-blue-600 transition">
+                      <h4 className="text-xs font-bold text-stone-900 truncate group-hover:text-[#9E7B1D] transition">
                         {enquiry.name}
                       </h4>
                       <p className="text-[11px] text-stone-500 font-mono truncate">
@@ -1870,7 +1856,7 @@ export default function BOQManagement() {
                       </p>
                     </div>
 
-                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">
+                    <span className="text-[10px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">
                       Select →
                     </span>
                   </div>
@@ -1908,88 +1894,14 @@ export default function BOQManagement() {
                 )}
               </div>
 
-              {/* Bottom Right Close Button (Screenshot Reference) */}
+              {/* Bottom Right Close Button */}
               <div className="pt-2 flex justify-end">
                 <button
                   type="button"
                   onClick={() => setIsSelectClientModalOpen(false)}
-                  className="px-6 py-1.5 text-xs font-bold text-blue-600 border border-blue-500 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                  className="px-6 py-1.5 text-xs font-bold text-stone-700 border border-stone-300 hover:bg-stone-100 rounded-lg transition cursor-pointer"
                 >
                   Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* MODAL: MEASUREMENT UNIT (Screenshot 1 Reference) */}
-        {/* ========================================================================= */}
-        {isMeasurementModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-            <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-md overflow-hidden p-6 space-y-5 animate-in zoom-in-95">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-stone-900 mx-auto">Measurement Unit</h3>
-                <button
-                  onClick={() => setIsMeasurementModalOpen(false)}
-                  className="text-stone-400 hover:text-stone-700 p-1 -mr-2"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Radio Selection: Feet.inch vs Millimeter (Screenshot 1) */}
-              <div className="space-y-3 pt-1">
-                <span className="block text-xs font-semibold text-stone-700">Select Unit</span>
-
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
-                    <input
-                      type="radio"
-                      name="measurementUnit"
-                      value="Feet.inch"
-                      checked={measurementUnit === "Feet.inch"}
-                      onChange={(e) => setMeasurementUnit(e.target.value)}
-                      className="text-blue-600 focus:ring-blue-500 w-4 h-4"
-                    />
-                    <span>Feet.inch</span>
-                  </label>
-
-                  <label className="flex items-center gap-2.5 text-xs text-stone-800 font-medium cursor-pointer">
-                    <input
-                      type="radio"
-                      name="measurementUnit"
-                      value="Millimeter"
-                      checked={measurementUnit === "Millimeter"}
-                      onChange={(e) => setMeasurementUnit(e.target.value)}
-                      className="text-blue-600 focus:ring-blue-500 w-4 h-4"
-                    />
-                    <span>Millimeter</span>
-                  </label>
-                </div>
-
-                {/* Note (Screenshot 1) */}
-                <p className="text-[11px] text-stone-500 leading-relaxed pt-2">
-                  Note: This unit will be applied to all the measurements and calculations in this BOQ.
-                </p>
-              </div>
-
-              {/* Buttons (Screenshot 1) */}
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsMeasurementModalOpen(false)}
-                  className="px-5 py-2 text-xs font-semibold text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-xl transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmMeasurementUnit}
-                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
-                >
-                  Save & Continue
                 </button>
               </div>
             </div>
@@ -2078,7 +1990,7 @@ export default function BOQManagement() {
 
           <button
             onClick={() => setIsAddSpaceOpen(true)}
-            className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl transition cursor-pointer"
           >
             <Plus size={13} />
             <span>Add Space</span>
@@ -2099,7 +2011,7 @@ export default function BOQManagement() {
 
           <button
             onClick={handleSaveBOQ}
-            className="inline-flex items-center gap-1.5 px-6 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] rounded-xl shadow-xs transition cursor-pointer"
           >
             <Save size={13} />
             <span>Save</span>
@@ -2111,7 +2023,7 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={() => setAutoSave(!autoSave)}
-              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${autoSave ? "bg-blue-600" : "bg-stone-300"
+              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${autoSave ? "bg-[#9E7B1D]" : "bg-stone-300"
                 }`}
             >
               <div
@@ -2671,7 +2583,7 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={handleSaveBOQ}
-              className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] rounded-xl shadow-md transition cursor-pointer"
             >
               <Save size={14} />
               <span>Save BOQ</span>

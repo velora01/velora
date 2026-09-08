@@ -71,6 +71,7 @@ export default function EnquiryManagement() {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToast, setSuccessToast] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -148,22 +149,22 @@ export default function EnquiryManagement() {
   const pipelineStages = [
     { key: "Inquiry", label: "New Inquiry", color: "bg-[#D4AF37]" },
     { key: "Booking", label: "Site Visit / Booking", color: "bg-amber-500" },
-    { key: "Design Phase", label: "Design Phase", color: "bg-[#9E7B1D]" },
-    { key: "Proposal", label: "Proposal / BOQ Sent", color: "bg-stone-600" },
-    { key: "Under Installation", label: "Execution", color: "bg-emerald-600" },
-    { key: "Delivered", label: "Delivered / Won", color: "bg-teal-600" },
-    { key: "Lost", label: "Lost", color: "bg-rose-500" }
+    { key: "Proposal", label: "Design & Proposal", color: "bg-[#9E7B1D]" },
+    { key: "Design Phase", label: "3D Design Signoff", color: "bg-[#B8860B]" },
+    { key: "Under Installation", label: "Factory & Site Execution", color: "bg-emerald-600" },
+    { key: "Completed", label: "Handover Completed", color: "bg-emerald-700" }
   ];
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Helper to normalize unique key for an enquiry
   const getEnquiryKey = (item) => {
-    const cleanPhone = (item.phone || item.clientPhone || "").replace(/\D/g, "").slice(-10);
-    if (cleanPhone) return `phone_${cleanPhone}`;
+    if (!item) return "";
+    const cleanPhone = (item.phone || item.clientPhone || item.contactPhone || "").replace(/\D/g, "").slice(-10);
+    if (cleanPhone && cleanPhone.length >= 7) return `phone_${cleanPhone}`;
     const cleanName = (item.name || item.clientName || "").trim().toLowerCase();
     if (cleanName) return `name_${cleanName}`;
-    return `id_${item._id || item.enquiryNo || Date.now()}`;
+    const enqNo = (item.enquiryNo || "").trim().toLowerCase();
+    if (enqNo) return `enq_${enqNo}`;
+    return `id_${item._id || Date.now()}`;
   };
 
   // Fetch Enquiries from Backend API & Local Storage (Strictly Deduplicated)

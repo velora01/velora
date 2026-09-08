@@ -22,6 +22,7 @@ import ReportsAnalytics from "./pages/ReportsAnalytics";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import UserManagement from "./pages/UserManagement";
 import ActivityAuditLogs from "./pages/ActivityAuditLogs";
+import SettingsManager from "./pages/SettingsManager";
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/reports" element={<ReportsAnalytics />} />
                 <Route path="/notifications" element={<NotificationsCenter />} />
                 <Route path="/users" element={<UserManagement />} />
+                <Route path="/settings" element={<SettingsManager />} />
                 <Route path="/logs" element={<ActivityAuditLogs />} />
               </Routes>
             </AdminLayout>

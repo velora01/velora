@@ -16,7 +16,8 @@ import { getProductionItems, createProductionOrder, updateProductionStatus } fro
 import { getInstallations, createInstallation, updateInstallationStatus } from "../controllers/installationController.js";
 import { getSiteVisits, createSiteVisit, updateSiteVisit } from "../controllers/siteVisitController.js";
 import { getEvents, createEvent } from "../controllers/calendarController.js";
-import { getUsers, createUser, updateUserRole, getRoles } from "../controllers/userManagementController.js";
+import { getUsers, createUser, updateUser, updateUserRole, deleteUser, getRoles } from "../controllers/userManagementController.js";
+import { getSettings, updateSettings, testEmail } from "../controllers/settingsController.js";
 import { getActivityLogs } from "../controllers/activityLogController.js";
 import { getDashboardAnalytics, exportReportExcel } from "../controllers/reportController.js";
 
@@ -31,6 +32,11 @@ router.get("/reports/export/:type", exportReportExcel);
 
 // Middleware: All other ERP management endpoints require JWT protection
 router.use(protect);
+
+// Settings
+router.get("/settings", getSettings);
+router.post("/settings", checkRole(["Admin", "Super Admin"]), updateSettings);
+router.post("/settings/test-email", checkRole(["Admin", "Super Admin"]), testEmail);
 
 // Dashboard Analytics
 router.get("/dashboard/analytics", getDashboardAnalytics);
@@ -123,10 +129,12 @@ router.put("/site-visits/:id", updateSiteVisit);
 router.get("/calendar", getEvents);
 router.post("/calendar", createEvent);
 
-// Users & Roles
+// Users & Roles (Admin & Super Admin only)
 router.get("/users", checkRole(["Admin", "Super Admin"]), getUsers);
 router.post("/users", checkRole(["Admin", "Super Admin"]), createUser);
+router.put("/users/:id", checkRole(["Admin", "Super Admin"]), updateUser);
 router.put("/users/:id/role", checkRole(["Admin", "Super Admin"]), updateUserRole);
+router.delete("/users/:id", checkRole(["Admin", "Super Admin"]), deleteUser);
 router.get("/roles", getRoles);
 
 // Activity & Reports

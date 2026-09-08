@@ -1,19 +1,27 @@
 import Lead from "../models/Lead.js";
 import WebsiteLead from "../models/WebsiteLead.js";
 import Client from "../models/Client.js";
+import User from "../models/User.js";
 import { logActivity } from "../services/auditService.js";
 import { generateExcelReport, generatePdfDoc } from "../services/exportService.js";
+import { sendStaffAssignmentEmail, sendAdminActivityNotification } from "../services/email.service.js";
 
 // Helper to auto-create or associate client from enquiry
 export const syncClientFromLead = async (lead) => {
   try {
     if (!lead || !lead.phone) return null;
-    let client = await Client.findOne({
-      $or: [
-        { phone: lead.phone },
-        { email: lead.email && lead.email.trim() ? lead.email.trim() : "non_existent_placeholder@velora.com" }
-      ]
-    });
+    const cleanPhone = String(lead.phone).replace(/\D/g, "").slice(-10);
+    const query = [
+      { phone: { $regex: cleanPhone && cleanPhone.length >= 7 ? cleanPhone : lead.phone, $options: "i" } }
+    ];
+    if (lead.email && lead.email.trim()) {
+      query.push({ email: { $regex: `^${lead.email.trim()}$`, $options: "i" } });
+    }
+    if (lead.name && lead.name.trim()) {
+      query.push({ name: { $regex: `^${lead.name.trim()}$`, $options: "i" } });
+    }
+
+    let client = await Client.findOne({ $or: query });
 
     if (!client) {
       const cCount = await Client.countDocuments();
@@ -140,6 +148,35 @@ export const createLead = async (req, res) => {
       description: `Created enquiry for ${lead.name} (${lead.phone})`,
       targetId: lead._id
     });
+
+    // Send email to assigned staff if assigned
+    const handlerName = lead.handledBy || lead.designedBy || lead.assignedTo;
+    if (handlerName && handlerName !== "Admin") {
+      try {
+        const staffUser = await User.findOne({ name: { $regex: handlerName, $options: "i" } });
+        if (staffUser?.email) {
+          sendStaffAssignmentEmail({
+            staffEmail: staffUser.email,
+            staffName: staffUser.name,
+            clientName: lead.name,
+            clientPhone: lead.phone,
+            enquiryNo: lead.enquiryNo,
+            projectType: lead.projectType,
+            budget: lead.budget,
+            assignedBy: req.user?.name || "Admin"
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    // Send Admin activity notification
+    sendAdminActivityNotification({
+      actionType: "New Enquiry Generated",
+      performedBy: req.user?.name || "Admin",
+      role: req.user?.role || "Admin",
+      clientName: lead.name,
+      details: `Enquiry ${lead.enquiryNo} created with budget ${lead.budget || "N/A"}`
+    }).catch(() => {});
 
     res.status(201).json({ success: true, data: lead });
   } catch (err) {

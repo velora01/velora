@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import erpApi from "../services/erpService";
+import { getCurrentUser } from "../services/authService";
+import { getActiveCompanySettings } from "../constants/companySettings";
 import {
   DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
   calculateMilestones,
@@ -452,25 +454,46 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
 
   currentY = doc.lastAutoTable.finalY + 16;
 
-  // 2. Bank Account Details
+  // 2. Bank Account Details & Payment QR Code
+  const companySettings = getActiveCompanySettings();
+  const currentUser = getCurrentUser() || { name: "Admin", role: "Super Admin" };
+
+  const bankName = companySettings.bankName || tcTemplate.bankDetails?.bankName || "HDFC Bank Ltd";
+  const accHolder = companySettings.accountHolderName || tcTemplate.bankDetails?.accountHolder || "VELORA INTERIORS PRIVATE LIMITED";
+  const accNum = companySettings.accountNumber || tcTemplate.bankDetails?.accountNumber || "50200067891234";
+  const ifsc = companySettings.ifscCode || tcTemplate.bankDetails?.ifsc || "HDFC0001234";
+  const branch = companySettings.branch || tcTemplate.bankDetails?.branch || "Wakad, Pune";
+  const accType = companySettings.accountType || tcTemplate.bankDetails?.accountType || "Current Account";
+  const upiId = companySettings.upiId || "velora.interiors@hdfcbank";
+
   doc.setDrawColor(168, 50, 50);
   doc.setLineWidth(3);
-  doc.line(40, currentY, 40, currentY + 54);
+  doc.line(40, currentY, 40, currentY + 62);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(168, 50, 50);
-  doc.text("Bank Account Details", 48, currentY + 12);
+  doc.text("Bank Account Details & Payment QR", 48, currentY + 12);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(28, 25, 23);
-  doc.text(`Account Holder: ${tcTemplate.bankDetails.accountHolder}`, 48, currentY + 24);
-  doc.text(`Account Number: ${tcTemplate.bankDetails.accountNumber}`, 48, currentY + 34);
-  doc.text(`IFSC: ${tcTemplate.bankDetails.ifsc}`, 48, currentY + 44);
-  doc.text(`Branch: ${tcTemplate.bankDetails.branch}    |    Account Type: ${tcTemplate.bankDetails.accountType}`, 48, currentY + 54);
+  doc.text(`Bank Name: ${bankName}    |    Account Holder: ${accHolder}`, 48, currentY + 24);
+  doc.text(`Account Number: ${accNum}    |    Account Type: ${accType}`, 48, currentY + 35);
+  doc.text(`IFSC Code: ${ifsc}    |    Branch: ${branch}`, 48, currentY + 46);
+  doc.text(`UPI ID: ${upiId}`, 48, currentY + 57);
 
-  currentY += 68;
+  // Render QR Code image if configured
+  if (companySettings.qrCodeUrl) {
+    try {
+      const qrDataUrl = await loadImageDataUrl(companySettings.qrCodeUrl);
+      if (qrDataUrl) {
+        doc.addImage(qrDataUrl, "PNG", 485, currentY + 2, 60, 60);
+      }
+    } catch (e) {}
+  }
+
+  currentY += 76;
 
   // 3. Terms and Conditions (16 Points matching PDF)
   doc.setDrawColor(168, 50, 50);
@@ -487,7 +510,8 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFontSize(8);
   doc.setTextColor(40, 40, 40);
 
-  tcTemplate.termsList.forEach((item, idx) => {
+  const activeTermsList = companySettings.termsAndConditions?.termsList || tcTemplate.termsList;
+  activeTermsList.forEach((item, idx) => {
     if (currentY > 780) {
       doc.addPage();
       currentY = 40;
@@ -506,7 +530,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(28, 25, 23);
-  doc.text(tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )", 40, currentY + 4);
+  doc.text(companySettings.termsAndConditions?.note || tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )", 40, currentY + 4);
   currentY += 18;
 
   // 4. Material Details
@@ -524,7 +548,8 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFontSize(8);
   doc.setTextColor(40, 40, 40);
 
-  tcTemplate.materialDetails.forEach((mat, mIdx) => {
+  const activeMaterialDetails = companySettings.termsAndConditions?.materialDetails || tcTemplate.materialDetails;
+  activeMaterialDetails.forEach((mat, mIdx) => {
     if (currentY > 780) {
       doc.addPage();
       currentY = 40;
@@ -551,7 +576,8 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFontSize(8);
   doc.setTextColor(40, 40, 40);
 
-  tcTemplate.warrantyDetails.forEach((wText, wIdx) => {
+  const activeWarrantyDetails = companySettings.termsAndConditions?.warrantyDetails || tcTemplate.warrantyDetails;
+  activeWarrantyDetails.forEach((wText, wIdx) => {
     if (currentY > 780) {
       doc.addPage();
       currentY = 40;
@@ -562,8 +588,8 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     currentY += (lines.length * 9.5) + 2;
   });
 
-  // 6. Signatures and Footer
-  if (currentY > 730) {
+  // 6. Signatures and Prepared-By User Stamp
+  if (currentY > 710) {
     doc.addPage();
     currentY = 40;
   } else {
@@ -580,6 +606,12 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFont("helvetica", "normal");
   doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
 
+  // User Prepared/Printed by Stamp
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(7.5);
+  doc.setTextColor(120, 113, 108);
+  doc.text(`Prepared & Printed by: ${currentUser?.name || "Admin"} (${currentUser?.role || "Staff"}) on ${new Date().toLocaleDateString("en-IN")} ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`, 40, currentY + 44);
+
   doc.setDrawColor(212, 175, 55);
   doc.line(40, 788, 555, 788);
 
@@ -591,7 +623,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(100, 100, 100);
-  doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
+  doc.text(`${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 80555 26603"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra"}`, 297.5, 814, { align: "center" });
 
   doc.save(`${boqNum}.pdf`);
 };
@@ -679,6 +711,19 @@ export const printBOQQuotation = (boq, options = {}) => {
 
   const tcTemplate = getActiveTermsTemplate();
   const milestones = calculateMilestones(grandTotal, tcTemplate.paymentPlan);
+
+  const companySettings = getActiveCompanySettings();
+  const currentUser = getCurrentUser() || { name: "Admin", role: "Super Admin" };
+  const userStamp = `Prepared & Printed by: ${currentUser?.name || "Admin"} (${currentUser?.role || "Staff"}) on ${new Date().toLocaleDateString("en-IN")} ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+
+  const bankName = companySettings.bankName || tcTemplate.bankDetails?.bankName || "HDFC Bank Ltd";
+  const accHolder = companySettings.accountHolderName || tcTemplate.bankDetails?.accountHolder || "VELORA INTERIORS PRIVATE LIMITED";
+  const accNum = companySettings.accountNumber || tcTemplate.bankDetails?.accountNumber || "50200067891234";
+  const ifsc = companySettings.ifscCode || tcTemplate.bankDetails?.ifsc || "HDFC0001234";
+  const branch = companySettings.branch || tcTemplate.bankDetails?.branch || "Wakad, Pune";
+  const accType = companySettings.accountType || tcTemplate.bankDetails?.accountType || "Current Account";
+  const upiId = companySettings.upiId || "velora.interiors@hdfcbank";
+  const qrUrl = companySettings.qrCodeUrl || "";
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
@@ -1279,34 +1324,44 @@ export const printBOQQuotation = (boq, options = {}) => {
         </tbody>
       </table>
 
-      <!-- 2. Bank Account Details -->
-      <div class="bank-card">
-        <h4>Bank Account Details</h4>
-        <div class="bank-grid">
-          <div>Account Holder: <strong>${tcTemplate.bankDetails.accountHolder}</strong></div>
-          <div>Account Number: <strong>${tcTemplate.bankDetails.accountNumber}</strong></div>
-          <div>IFSC: <strong>${tcTemplate.bankDetails.ifsc}</strong></div>
-          <div>Branch: <strong>${tcTemplate.bankDetails.branch}</strong></div>
-          <div>Account Type: <strong>${tcTemplate.bankDetails.accountType}</strong></div>
+      <!-- 2. Bank Account Details & Universal Payment QR -->
+      <div class="bank-card" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+        <div>
+          <h4>Bank Account Details</h4>
+          <div class="bank-grid">
+            <div>Bank Name: <strong>${bankName}</strong></div>
+            <div>Account Holder: <strong>${accHolder}</strong></div>
+            <div>Account Number: <strong>${accNum}</strong></div>
+            <div>IFSC: <strong>${ifsc}</strong></div>
+            <div>Branch: <strong>${branch}</strong></div>
+            <div>Account Type: <strong>${accType}</strong></div>
+            <div>UPI ID: <strong>${upiId}</strong></div>
+          </div>
         </div>
+        ${qrUrl ? `
+          <div style="text-align: center; padding: 6px; background: #fff; border: 1px solid #d6d3d1; border-radius: 8px; min-width: 90px;">
+            <img src="${qrUrl}" alt="Scan to Pay QR" style="width: 80px; height: 80px; object-fit: contain; display: block; margin: 0 auto;" />
+            <div style="font-size: 10px; font-weight: 800; color: #1c1917; margin-top: 4px;">Scan to Pay</div>
+          </div>
+        ` : ""}
       </div>
 
       <!-- 3. Terms and Conditions (16 Clauses) -->
       <div class="accent-bar-title">Terms and Conditions</div>
       <ol class="tc-list">
-        ${tcTemplate.termsList.map((item) => `
+        ${(companySettings.termsAndConditions?.termsList || tcTemplate.termsList).map((item) => `
           <li><strong>${item.title ? `${item.title}: ` : ""}</strong>${item.text}</li>
         `).join("")}
       </ol>
 
       <div class="tc-note-box">
-        ${tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )"}
+        ${companySettings.termsAndConditions?.note || tcTemplate.note || "Note : Debris removal / Deep cleaning charges shall be charged at actuals.( Borne by the client )"}
       </div>
 
       <!-- 4. Material Details -->
       <div class="accent-bar-title" style="margin-top: 24px;">Material Details:</div>
       <ol class="tc-list">
-        ${tcTemplate.materialDetails.map((mat) => `
+        ${(companySettings.termsAndConditions?.materialDetails || tcTemplate.materialDetails).map((mat) => `
           <li><strong>${mat.title}: </strong>${mat.text}</li>
         `).join("")}
       </ol>
@@ -1314,7 +1369,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       <!-- 5. Warranty Details -->
       <div class="accent-bar-title" style="margin-top: 24px;">WARRANTY Details:</div>
       <ol class="tc-list">
-        ${tcTemplate.warrantyDetails.map((wText) => `
+        ${(companySettings.termsAndConditions?.warrantyDetails || tcTemplate.warrantyDetails).map((wText) => `
           <li>${wText}</li>
         `).join("")}
       </ol>
@@ -1323,6 +1378,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       <div class="signatures-row">
         <div>
           <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+          <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
           <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
@@ -1332,7 +1388,7 @@ export const printBOQQuotation = (boq, options = {}) => {
 
       <div class="footer-bar">
         <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
-        <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra, India"}</div>
       </div>
     </div>
 
@@ -1341,6 +1397,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       <div class="signatures-row">
         <div>
           <p style="font-weight: 600;">Client Acceptance Signature: ___________________________</p>
+          <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
           <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
@@ -1349,7 +1406,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       </div>
       <div class="footer-bar">
         <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
-        <div>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</div>
+        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra, India"}</div>
       </div>
     </div>
   </div>

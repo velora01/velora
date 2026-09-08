@@ -630,14 +630,14 @@ export default function QuotationInvoiceManager() {
       try {
         const saved = localStorage.getItem("velora_local_invoices");
         if (saved) localInvs = JSON.parse(saved);
-      } catch (e) {}
+      } catch (e) { }
 
       // 2. Read backend invoices
       let apiInvs = [];
       try {
         const res = await erpApi.getInvoices({ limit: 100 });
         if (res?.data) apiInvs = res.data;
-      } catch (e) {}
+      } catch (e) { }
 
       // Merge invoices uniquely
       const invMap = new Map();
@@ -664,13 +664,13 @@ export default function QuotationInvoiceManager() {
       try {
         const savedEnqs = localStorage.getItem("velora_custom_enquiries");
         if (savedEnqs) localEnqs = JSON.parse(savedEnqs);
-      } catch (e) {}
+      } catch (e) { }
 
       let apiEnqs = [];
       try {
         const resLeads = await erpApi.getLeads({ limit: 100 });
         if (resLeads?.data) apiEnqs = resLeads.data;
-      } catch (e) {}
+      } catch (e) { }
 
       const enqMap = new Map();
       [...localEnqs, ...apiEnqs, ...baseEnquiriesList].forEach((enq) => {
@@ -741,7 +741,7 @@ export default function QuotationInvoiceManager() {
     return invoices.some((inv) => {
       const invPhone = (inv.billTo?.phone || inv.clientPhone || "").replace(/\D/g, "").slice(-10);
       const invName = (inv.billedTo || inv.billTo?.name || inv.clientName || inv.projectName || "").trim().toLowerCase();
-      
+
       const phoneMatch = Boolean(enqPhone && invPhone && enqPhone === invPhone);
       const nameMatch = Boolean(enqName && invName && enqName === invName);
       return phoneMatch || nameMatch;
@@ -779,7 +779,7 @@ export default function QuotationInvoiceManager() {
         setPaymentQrCode(base64Str);
         try {
           localStorage.setItem("velora_payment_qr_code", base64Str);
-        } catch (err) {}
+        } catch (err) { }
         showToast("PhonePe Payment QR code uploaded successfully!");
       }
     };
@@ -791,7 +791,7 @@ export default function QuotationInvoiceManager() {
     setPaymentQrCode("");
     try {
       localStorage.removeItem("velora_payment_qr_code");
-    } catch (err) {}
+    } catch (err) { }
     showToast("QR code removed.");
   };
 
@@ -984,7 +984,7 @@ export default function QuotationInvoiceManager() {
 
     try {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
-    } catch (err) {}
+    } catch (err) { }
 
     showToast(`Invoice ${invoiceRecord.invoiceNumber} created and added to list!`);
     setViewMode("list");
@@ -997,7 +997,7 @@ export default function QuotationInvoiceManager() {
     setInvoices(updated);
     try {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
-    } catch (err) {}
+    } catch (err) { }
     setActiveDropdownId(null);
     showToast(`Invoice ${inv.invoiceNumber} deleted.`);
   };
@@ -1019,9 +1019,6 @@ export default function QuotationInvoiceManager() {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SELECT PROJECT TO CONTINUE MODAL (EXACT MATCH TO REFERENCE SCREENSHOT) */}
-      {/* ========================================================================= */}
       {isSelectEnquiryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in select-none">
           <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 p-6 space-y-4">
@@ -1533,7 +1530,7 @@ export default function QuotationInvoiceManager() {
               {/* Card 5: Other Details & Payment QR Code Upload Section */}
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
                 <h3 className="font-extrabold text-sm text-stone-900 border-b border-stone-100 pb-2">Other Details</h3>
-                
+
                 <div>
                   <label className="block font-semibold text-stone-600 mb-1 text-xs">Notes</label>
                   <textarea
@@ -2016,25 +2013,22 @@ export default function QuotationInvoiceManager() {
               <div className="hidden md:flex items-center gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800">
                 <button
                   onClick={() => setActivePdfPage(1)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    activePdfPage === 1 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${activePdfPage === 1 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                    }`}
                 >
                   Page 1: Invoice
                 </button>
                 <button
                   onClick={() => setActivePdfPage(2)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    activePdfPage === 2 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${activePdfPage === 2 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                    }`}
                 >
                   Page 2: Terms
                 </button>
                 <button
                   onClick={() => setActivePdfPage(3)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    activePdfPage === 3 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${activePdfPage === 3 ? "bg-blue-600 text-white shadow-xs" : "text-stone-400 hover:text-white"
+                    }`}
                 >
                   Page 3: Contract & Sign
                 </button>
@@ -2103,11 +2097,10 @@ export default function QuotationInvoiceManager() {
 
                 <button
                   onClick={() => setActivePdfPage(1)}
-                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
-                    activePdfPage === 1
-                      ? "border-blue-500 bg-blue-500/10 shadow-lg"
-                      : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
-                  }`}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${activePdfPage === 1
+                    ? "border-blue-500 bg-blue-500/10 shadow-lg"
+                    : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
+                    }`}
                 >
                   <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="flex justify-between items-center mb-1">
@@ -2133,11 +2126,10 @@ export default function QuotationInvoiceManager() {
 
                 <button
                   onClick={() => setActivePdfPage(2)}
-                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
-                    activePdfPage === 2
-                      ? "border-blue-500 bg-blue-500/10 shadow-lg"
-                      : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
-                  }`}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${activePdfPage === 2
+                    ? "border-blue-500 bg-blue-500/10 shadow-lg"
+                    : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
+                    }`}
                 >
                   <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="w-16 h-2 bg-stone-800 rounded-xs mb-1" />
@@ -2156,11 +2148,10 @@ export default function QuotationInvoiceManager() {
 
                 <button
                   onClick={() => setActivePdfPage(3)}
-                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${
-                    activePdfPage === 3
-                      ? "border-blue-500 bg-blue-500/10 shadow-lg"
-                      : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
-                  }`}
+                  className={`w-full p-2.5 rounded-2xl border text-left transition cursor-pointer ${activePdfPage === 3
+                    ? "border-blue-500 bg-blue-500/10 shadow-lg"
+                    : "border-stone-800 hover:border-stone-700 bg-stone-900/50"
+                    }`}
                 >
                   <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="space-y-1 my-1">

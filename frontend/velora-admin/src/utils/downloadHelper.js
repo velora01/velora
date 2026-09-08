@@ -72,6 +72,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
 
   const spaces = (boq?.spaces && boq.spaces.length > 0) ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
 
+
   let spacesSubtotal = 0;
   spaces.forEach((sp) => {
     let sSum = 0;
@@ -1136,11 +1137,11 @@ export const printBOQQuotation = (boq, options = {}) => {
 
     <!-- Space-by-Space Tables matching Image 1 to 4 -->
     ${spaces.map((space) => {
-      const sItems = (space.items && space.items.length > 0) ? space.items : [
-        { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
-      ];
+    const sItems = (space.items && space.items.length > 0) ? space.items : [
+      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
+    ];
 
-      return `
+    return `
         <div class="space-block">
           <div class="space-title-bar">${space.name}</div>
           <table class="item-table">
@@ -1157,15 +1158,15 @@ export const printBOQQuotation = (boq, options = {}) => {
             </thead>
             <tbody>
               ${sItems.map((it, idx) => {
-                const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
-                const rate = Number(it.rate) || 0;
-                const qty = Number(it.qty) || 1;
-                const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
-                const dims = (it.lengthFt || it.heightFt)
-                  ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
-                  : "";
+      const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
+      const rate = Number(it.rate) || 0;
+      const qty = Number(it.qty) || 1;
+      const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
+      const dims = (it.lengthFt || it.heightFt)
+        ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
+        : "";
 
-                return `
+      return `
                   <tr>
                     <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
                     <td>
@@ -1184,12 +1185,12 @@ export const printBOQQuotation = (boq, options = {}) => {
                     <td style="text-align: right; font-weight: 900;">₹ ${(amt).toLocaleString("en-IN")}</td>
                   </tr>
                 `;
-              }).join("")}
+    }).join("")}
             </tbody>
           </table>
         </div>
       `;
-    }).join("")}
+  }).join("")}
 
     <!-- SUMMARY SECTION MATCHING IMAGE 4 & 5 -->
     <div class="summary-section">
@@ -1205,14 +1206,14 @@ export const printBOQQuotation = (boq, options = {}) => {
         </thead>
         <tbody>
           ${spaces.map((sp, idx) => {
-            let sSum = 0;
-            (sp.items || []).forEach((it) => {
-              sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
-            });
-            if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
-            const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
+    let sSum = 0;
+    (sp.items || []).forEach((it) => {
+      sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+    });
+    if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+    const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
 
-            return `
+    return `
               <tr>
                 <td style="text-align: center; font-weight: 800;">${idx + 1}</td>
                 <td style="font-weight: 800; text-transform: uppercase;">${sp.name}</td>
@@ -1220,7 +1221,7 @@ export const printBOQQuotation = (boq, options = {}) => {
                 <td style="text-align: right; font-weight: 900;">₹ ${sSum.toLocaleString("en-IN")}</td>
               </tr>
             `;
-          }).join("")}
+  }).join("")}
         </tbody>
       </table>
     </div>
@@ -1377,7 +1378,7 @@ export const numberToWordsIN = (num) => {
   if (!num || isNaN(num)) return "Zero Rupees Only";
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
   const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
+
   const inWords = (n) => {
     if ((n = n.toString()).length > 9) return 'overflow';
     let n_arr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
@@ -1419,7 +1420,7 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const gold = [158, 123, 29]; // #9E7B1D
 
   // --- PAGE 1: TAX INVOICE ---
-  
+
   // Brand Header Logo Badge (Top Left)
   doc.setFillColor(254, 243, 199);
   doc.roundedRect(40, 35, 120, 48, 4, 4, "F");
@@ -1535,8 +1536,8 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const rawItems = (invoice?.items && invoice.items.length > 0)
     ? invoice.items
     : [
-        { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
-      ];
+      { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
+    ];
 
   const tableBody = rawItems.map((it, idx) => [
     String(idx + 1),
@@ -1869,8 +1870,8 @@ export const printInvoice = (invoiceOrId, options = {}) => {
   const rawItems = (invoice.items && invoice.items.length > 0)
     ? invoice.items
     : [
-        { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
-      ];
+      { serviceDescription: "Interior Design & Turnkey Execution", hsnSac: "9954", quantity: 1, unit: "LS", rate: grandTotal || 65000, gstPercent: 0, gstAmount: 0, total: grandTotal || 65000 }
+    ];
 
   const paymentQrCode = invoice.paymentQrCode || localStorage.getItem("velora_payment_qr_code") || "";
 
@@ -2291,13 +2292,13 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       </thead>
       <tbody>
         ${rawItems.map((it, idx) => {
-          const rate = Number(it.rate) || 0;
-          const qty = Number(it.quantity || it.qty) || 1;
-          const gstP = Number(it.gstPercent) || 0;
-          const gstA = Number(it.gstAmount) || 0;
-          const tot = Number(it.total) || (rate * qty + gstA);
+    const rate = Number(it.rate) || 0;
+    const qty = Number(it.quantity || it.qty) || 1;
+    const gstP = Number(it.gstPercent) || 0;
+    const gstA = Number(it.gstAmount) || 0;
+    const tot = Number(it.total) || (rate * qty + gstA);
 
-          return `
+    return `
             <tr>
               <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
               <td>
@@ -2313,7 +2314,7 @@ export const printInvoice = (invoiceOrId, options = {}) => {
               <td style="text-align: right; font-weight: 900; color: #0f172a;">₹ ${(tot).toLocaleString("en-IN")}</td>
             </tr>
           `;
-        }).join("")}
+  }).join("")}
       </tbody>
     </table>
 

@@ -44,16 +44,16 @@ export default function TaskManagement() {
         <div className="bg-white border border-slate-200 p-1 rounded-xl flex items-center gap-1 shadow-xs">
           <button
             onClick={() => setViewMode("kanban")}
-            className={`p-1.5 rounded-lg text-xs font-bold transition ${
-              viewMode === "kanban" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+            className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+              viewMode === "kanban" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <LayoutGrid size={16} />
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className={`p-1.5 rounded-lg text-xs font-bold transition ${
-              viewMode === "table" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+            className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+              viewMode === "table" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <List size={16} />

@@ -38,7 +38,7 @@ export default function PaymentsManager() {
       render: (row) => (
         <button
           onClick={() => downloadReceiptPdf(row)}
-          className="flex items-center gap-1 px-2.5 py-1 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059] transition cursor-pointer"
+          className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition cursor-pointer"
         >
           <Download size={12} />
           <span>Receipt</span>

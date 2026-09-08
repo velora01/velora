@@ -305,7 +305,7 @@ export default function Clients() {
       header: "Client ID",
       key: "clientCode",
       render: (row) => (
-        <span className="font-mono font-bold text-xs text-stone-600 bg-stone-100 px-2 py-0.5 rounded">
+        <span className="font-mono font-bold text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
           {row.clientId || row.clientCode}
         </span>
       )
@@ -316,8 +316,8 @@ export default function Clients() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-extrabold text-stone-900 block">{row.name}</span>
-          <span className="text-[10px] text-stone-400 font-semibold">{row.city || "Pune"}</span>
+          <span className="font-extrabold text-slate-900 block">{row.name}</span>
+          <span className="text-[10px] text-slate-500 font-semibold">{row.city || "Pune"}</span>
         </div>
       )
     },
@@ -325,8 +325,8 @@ export default function Clients() {
       header: "Contact Details",
       render: (row) => (
         <div className="space-y-0.5">
-          <span className="block font-semibold text-stone-800">{row.phone}</span>
-          <span className="block text-[10px] text-stone-400 truncate max-w-[140px]">{row.email}</span>
+          <span className="block font-semibold text-slate-800">{row.phone}</span>
+          <span className="block text-[10px] text-slate-500 truncate max-w-[140px]">{row.email}</span>
         </div>
       )
     },
@@ -334,12 +334,12 @@ export default function Clients() {
       header: "Project Requirements",
       render: (row) => (
         <div className="space-y-1">
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
             <Home size={11} />
             {row.projectType || "3BHK Luxury"}
           </span>
-          <span className="block text-[10px] text-stone-500 font-medium">
-            Budget: <b className="text-stone-700">{row.budgetRange || "₹25L - ₹40L"}</b>
+          <span className="block text-[10px] text-slate-500 font-medium">
+            Budget: <b className="text-slate-700">{row.budgetRange || "₹25L - ₹40L"}</b>
           </span>
         </div>
       )
@@ -351,7 +351,7 @@ export default function Clients() {
         const grand = comm.grandTotal || (row.name?.includes("PREM") ? 468800 : 0);
         return (
           <div>
-            <span className="font-mono font-extrabold text-stone-900 block">
+            <span className="font-mono font-extrabold text-slate-900 block">
               ₹{grand.toLocaleString("en-IN")}
             </span>
             <span className="text-[10px] text-emerald-600 font-semibold">
@@ -370,8 +370,8 @@ export default function Clients() {
             row.status === "Active"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : row.status === "Completed"
-              ? "bg-sky-50 text-sky-800 border-sky-200"
-              : "bg-stone-50 text-stone-600 border-stone-200"
+              ? "bg-blue-50 text-blue-800 border-blue-200"
+              : "bg-slate-100 text-slate-600 border-slate-200"
           }`}
         >
           {row.status}
@@ -387,14 +387,14 @@ export default function Clients() {
               setSelectedClient(row);
               setActiveClientTab("overview");
             }}
-            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
             title="View 360° Profile"
           >
             <Eye size={14} />
           </button>
           <button
             onClick={() => handleOpenEditModal(row)}
-            className="p-1.5 text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
             title="Edit Client Requirements"
           >
             <Edit2 size={14} />
@@ -415,7 +415,7 @@ export default function Clients() {
           </button>
           <button
             onClick={() => handleDeleteClient(row._id, row.name)}
-            className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
             title="Delete Client"
           >
             <Trash2 size={14} />
@@ -429,7 +429,7 @@ export default function Clients() {
     <div className="space-y-6">
       {/* Toast Notification */}
       {successToast && (
-        <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{successToast}</span>
         </div>
@@ -439,22 +439,22 @@ export default function Clients() {
       {!selectedClient && (
         <>
           {/* Header */}
-          <div className="flex flex-wrap justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
+          <div className="flex flex-wrap justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-stone-900 tracking-tight">Clients Directory</h1>
-                <span className="text-xs font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clients Directory</h1>
+                <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
                   {clients.length} Registered
                 </span>
               </div>
-              <p className="text-xs text-stone-500 mt-1 font-medium">
+              <p className="text-xs text-slate-500 mt-1 font-medium">
                 Velora Antaraal • Connected Enquiry &rarr; Client 360° &rarr; BOQ Estimates &rarr; Tax Invoices
               </p>
             </div>
 
             <button
               onClick={handleOpenAddModal}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
             >
               <Plus size={16} />
               <span>Add New Client</span>
@@ -479,19 +479,19 @@ export default function Clients() {
       {/* ADD / EDIT CLIENT MODAL */}
       {/* ========================================================================= */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-[#9E7B1D]" />
-                <h3 className="font-extrabold text-sm text-stone-900">
+                <Sparkles size={16} className="text-blue-600" />
+                <h3 className="font-extrabold text-sm text-slate-900">
                   {editingClientId ? "Modify Client & Requirements" : "Add New Client Profile"}
                 </h3>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -507,13 +507,13 @@ export default function Clients() {
 
               {/* Section 1: Contact Details */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
                   <User size={13} />
                   <span>1. Contact & Identity</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Client Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -522,12 +522,12 @@ export default function Clients() {
                       placeholder="e.g. PREM SHUKLA"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Phone Number <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -536,59 +536,59 @@ export default function Clients() {
                       placeholder="e.g. 78000 20496"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Email Address</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
                     <input
                       type="email"
                       placeholder="e.g. premshukla@gmail.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">City</label>
+                    <label className="block font-semibold text-slate-700 mb-1">City</label>
                     <input
                       type="text"
                       placeholder="e.g. Pune / Mumbai"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block font-semibold text-stone-700 mb-1">Site / Delivery Address</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Site / Delivery Address</label>
                     <input
                       type="text"
                       placeholder="e.g. 402, WAKAD CHOWK, AUNDH HINJEWADI ROAD, WAKAD, PUNE, 411057"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Section 2: Project Scope & Requirement Customization */}
-              <div className="space-y-3 pt-3 border-t border-[#EAE3D2]">
-                <h4 className="text-xs font-bold text-[#9E7B1D] uppercase tracking-wider flex items-center gap-1.5">
+              <div className="space-y-3 pt-3 border-t border-slate-200">
+                <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
                   <Palette size={13} />
                   <span>2. Project Requirements & Preferences</span>
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Project Type</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Project Type</label>
                     <select
                       value={formData.projectType}
                       onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                      className="w-full h-9 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       {projectTypesList.map((t) => (
                         <option key={t} value={t}>
@@ -599,11 +599,11 @@ export default function Clients() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Preferred Styling / Theme</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Preferred Styling / Theme</label>
                     <select
                       value={formData.preferredStyle}
                       onChange={(e) => setFormData({ ...formData, preferredStyle: e.target.value })}
-                      className="w-full h-9 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       {stylesList.map((s) => (
                         <option key={s} value={s}>
@@ -614,11 +614,11 @@ export default function Clients() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Budget Range</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Budget Range</label>
                     <select
                       value={formData.budgetRange}
                       onChange={(e) => setFormData({ ...formData, budgetRange: e.target.value })}
-                      className="w-full h-9 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       {budgetRangesList.map((b) => (
                         <option key={b} value={b}>
@@ -629,11 +629,11 @@ export default function Clients() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-stone-700 mb-1">Status</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full h-9 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full h-9 px-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       <option value="Active">Active</option>
                       <option value="Lead">Lead</option>
@@ -645,17 +645,17 @@ export default function Clients() {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EAE3D2]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 bg-stone-100 text-stone-700 rounded-xl font-bold hover:bg-stone-200 transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 rounded-xl font-black shadow-xs hover:opacity-95 transition cursor-pointer"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-xs transition cursor-pointer"
                 >
                   {editingClientId ? "Save Requirements" : "Create Client"}
                 </button>
@@ -671,11 +671,11 @@ export default function Clients() {
       {selectedClient && (
         <div className="space-y-6 animate-in fade-in">
           {/* Top Executive Header with Back Navigation & Quick Actions */}
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSelectedClient(null)}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition cursor-pointer"
                 title="Return to Clients Directory"
               >
                 <ArrowRight size={14} className="rotate-180" />
@@ -684,23 +684,23 @@ export default function Clients() {
 
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-xl font-black text-stone-900 tracking-tight">
+                  <h1 className="text-xl font-black text-slate-900 tracking-tight">
                     {selectedClient.salutation ? `${selectedClient.salutation} ` : ""}{selectedClient.name}
                   </h1>
-                  <span className="font-mono font-bold text-xs text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
+                  <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-lg">
                     {selectedClient.clientId || selectedClient.clientCode || "VLA-CL-1001"}
                   </span>
                   <span
                     className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
                       selectedClient.status === "Active"
                         ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                        : "bg-stone-100 text-stone-700 border-stone-200"
+                        : "bg-slate-100 text-slate-700 border-slate-200"
                     }`}
                   >
                     {selectedClient.status || "Active"}
                   </span>
                 </div>
-                <p className="text-xs text-stone-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {selectedClient.phone} • {selectedClient.email || "No email"} • {selectedClient.city || "Pune, Maharashtra"}
                 </p>
               </div>
@@ -710,7 +710,7 @@ export default function Clients() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => handleOpenEditModal(selectedClient)}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition cursor-pointer"
               >
                 <Edit2 size={13} />
                 <span>Edit Client</span>
@@ -726,7 +726,7 @@ export default function Clients() {
                     }
                   });
                 }}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-xs transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
               >
                 <FileSpreadsheet size={14} />
                 <span>Open in BOQ Builder</span>
@@ -741,7 +741,7 @@ export default function Clients() {
                     }
                   });
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
               >
                 <Receipt size={14} />
                 <span>Generate Tax Invoice</span>
@@ -754,36 +754,36 @@ export default function Clients() {
             {/* Left Sidebar Navigation Tags / Tabs (3 cols) */}
             <div className="lg:col-span-3 space-y-4">
               {/* Profile Card */}
-              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs space-y-3">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-stone-900 text-[#D4AF37] font-black text-sm flex items-center justify-center shadow-xs">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
                     {selectedClient.name?.substring(0, 2).toUpperCase() || "CL"}
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-sm text-stone-900 line-clamp-1">{selectedClient.name}</h3>
-                    <span className="text-[11px] text-stone-400 font-medium block">
+                    <h3 className="font-extrabold text-sm text-slate-900 line-clamp-1">{selectedClient.name}</h3>
+                    <span className="text-[11px] text-slate-500 font-medium block">
                       {selectedClient.projectType || "Turnkey Project"}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-stone-50 rounded-xl space-y-1.5 text-xs border border-stone-100">
+                <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 text-xs border border-slate-100">
                   <div className="flex justify-between">
-                    <span className="text-stone-400">Total Commercials:</span>
-                    <span className="font-mono font-bold text-stone-900">
+                    <span className="text-slate-500">Total Commercials:</span>
+                    <span className="font-mono font-bold text-slate-900">
                       ₹{(selectedClient.commercialSummary?.grandTotal || (selectedClient.name?.includes("PREM") ? 468800 : 525000)).toLocaleString("en-IN")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-stone-400">Style:</span>
-                    <span className="font-bold text-stone-700">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
+                    <span className="text-slate-500">Style:</span>
+                    <span className="font-bold text-slate-700">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Vertical Navigation Tags / Tabs */}
-              <div className="bg-white p-2 rounded-2xl border border-stone-200 shadow-2xs space-y-1">
-                <div className="px-3 py-1.5 text-[10px] font-black text-stone-400 uppercase tracking-wider">
+              <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <div className="px-3 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                   Client Workspace
                 </div>
                 {[
@@ -803,15 +803,15 @@ export default function Clients() {
                       onClick={() => setActiveClientTab(tab.id)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl font-bold text-xs transition cursor-pointer text-left ${
                         active
-                          ? "bg-stone-900 text-white shadow-xs"
-                          : "text-stone-700 hover:bg-stone-100"
+                          ? "bg-blue-600 text-white shadow-xs"
+                          : "text-slate-700 hover:bg-slate-100"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
-                        <Icon size={15} className={active ? "text-[#D4AF37]" : "text-stone-500"} />
+                        <Icon size={15} className={active ? "text-white" : "text-slate-500"} />
                         <span className="font-bold">{tab.label}</span>
                       </div>
-                      <ArrowRight size={13} className={active ? "text-[#D4AF37]" : "text-stone-300"} />
+                      <ArrowRight size={13} className={active ? "text-white" : "text-slate-300"} />
                     </button>
                   );
                 })}
@@ -823,383 +823,383 @@ export default function Clients() {
               {/* 1. OVERVIEW TAB */}
               {activeClientTab === "overview" && (
                 <div className="space-y-4 animate-in fade-in">
-                  <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
-                  <h4 className="font-extrabold text-stone-900 text-xs flex items-center gap-1.5 border-b border-stone-100 pb-2">
-                    <User size={13} className="text-[#9E7B1D]" />
-                    <span>Basic Client Information</span>
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-stone-700 text-xs">
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Client ID</span>
-                      <span className="font-bold font-mono">{selectedClient.clientId || selectedClient.clientCode}</span>
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                    <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                      <User size={13} className="text-blue-600" />
+                      <span>Basic Client Information</span>
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 text-slate-700 text-xs">
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Client ID</span>
+                        <span className="font-bold font-mono text-slate-900">{selectedClient.clientId || selectedClient.clientCode}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Client Name</span>
+                        <span className="font-bold text-slate-900">{selectedClient.name}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Phone Number</span>
+                        <span className="font-medium text-slate-800">{selectedClient.phone}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Email Address</span>
+                        <span className="font-medium text-slate-800">{selectedClient.email || "N/A"}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="block text-slate-400 text-[10px] font-semibold">Site Address</span>
+                        <span className="font-medium text-slate-800">{selectedClient.address || "Pune, Maharashtra"}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Client Name</span>
-                      <span className="font-bold text-stone-900">{selectedClient.name}</span>
-                    </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Phone Number</span>
-                      <span className="font-medium">{selectedClient.phone}</span>
-                    </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Email Address</span>
-                      <span className="font-medium">{selectedClient.email || "N/A"}</span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="block text-stone-400 text-[10px] font-semibold">Site Address</span>
-                      <span className="font-medium">{selectedClient.address || "Pune, Maharashtra"}</span>
+                  </div>
+
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                    <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                      <Home size={13} className="text-blue-600" />
+                      <span>Project & Style Requirements</span>
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 text-slate-700 text-xs">
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Project Type</span>
+                        <span className="font-bold text-slate-900">{selectedClient.projectType || "3BHK Luxury Apartment"}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Location</span>
+                        <span className="font-medium text-slate-800">{selectedClient.city || "Pune"}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Design Styling</span>
+                        <span className="font-medium text-slate-800">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400 text-[10px] font-semibold">Budget Range</span>
+                        <span className="font-bold text-blue-600">{selectedClient.budgetRange || "₹25L - ₹40L"}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+              )}
 
-                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
-                  <h4 className="font-extrabold text-stone-900 text-xs flex items-center gap-1.5 border-b border-stone-100 pb-2">
-                    <Home size={13} className="text-[#9E7B1D]" />
-                    <span>Project & Style Requirements</span>
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-stone-700 text-xs">
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Project Type</span>
-                      <span className="font-bold text-stone-900">{selectedClient.projectType || "3BHK Luxury Apartment"}</span>
-                    </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Location</span>
-                      <span className="font-medium">{selectedClient.city || "Pune"}</span>
-                    </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Design Styling</span>
-                      <span className="font-medium">{selectedClient.preferredStyle || "Modern Contemporary"}</span>
-                    </div>
-                    <div>
-                      <span className="block text-stone-400 text-[10px] font-semibold">Budget Range</span>
-                      <span className="font-bold text-[#9E7B1D]">{selectedClient.budgetRange || "₹25L - ₹40L"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 2. PROJECT TAB */}
-            {activeClientTab === "project" && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
-                  <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-                    <h4 className="font-extrabold text-stone-900 text-xs">Project Master File</h4>
-                    <span className="font-bold font-mono text-[10px] bg-amber-50 text-amber-900 px-2 py-0.5 rounded border border-amber-200">
-                      PRJ-2026-008
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-stone-700">
-                    <div className="flex justify-between">
-                      <span className="text-stone-400">Project Scope:</span>
-                      <span className="font-bold">Turnkey Interior Execution</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-400">Current Stage:</span>
-                      <span className="px-2 py-0.5 bg-amber-50 text-[#9E7B1D] rounded font-bold">In Production</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-400">Handover Timeline:</span>
-                      <span className="font-medium">45 Days from Sign-off</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 3. BOQ & PRODUCTS TAB */}
-            {activeClientTab === "boq" && (() => {
-              const clientBOQ = allBOQs.find((b) => b.clientName?.toLowerCase() === selectedClient.name?.toLowerCase()) || (selectedClient.boqs && selectedClient.boqs[0]);
-              const sampleProducts = getClientSampleProducts(selectedClient);
-
-              return (
+              {/* 2. PROJECT TAB */}
+              {activeClientTab === "project" && (
                 <div className="space-y-4 animate-in fade-in">
-                  <div className="flex flex-wrap items-center justify-between gap-2 bg-[#FAF9F5] p-3 rounded-2xl border border-amber-200">
-                    <div>
-                      <span className="font-extrabold text-xs text-stone-900 block">
-                        {clientBOQ ? `${clientBOQ.boqNumber || "BOQ-2026-018"} • ${clientBOQ.activePackage || "Standard"} Specification` : "Configured BOQ Products"}
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <h4 className="font-extrabold text-slate-900 text-xs">Project Master File</h4>
+                      <span className="font-bold font-mono text-[10px] bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+                        PRJ-2026-008
                       </span>
-                      <span className="text-[10px] text-stone-500 font-medium">
-                        Total Estimate: <b className="font-mono text-stone-900">₹{((clientBOQ?.grandTotal) || (selectedClient.name?.includes("PREM") ? 468800 : 525000)).toLocaleString("en-IN")}</b>
+                    </div>
+                    <div className="space-y-2 text-slate-700 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Project Scope:</span>
+                        <span className="font-bold">Turnkey Interior Execution</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Current Stage:</span>
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">In Production</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Handover Timeline:</span>
+                        <span className="font-medium">45 Days from Sign-off</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. BOQ & PRODUCTS TAB */}
+              {activeClientTab === "boq" && (() => {
+                const clientBOQ = allBOQs.find((b) => b.clientName?.toLowerCase() === selectedClient.name?.toLowerCase()) || (selectedClient.boqs && selectedClient.boqs[0]);
+                const sampleProducts = getClientSampleProducts(selectedClient);
+
+                return (
+                  <div className="space-y-4 animate-in fade-in">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                      <div>
+                        <span className="font-extrabold text-xs text-slate-900 block">
+                          {clientBOQ ? `${clientBOQ.boqNumber || "BOQ-2026-018"} • ${clientBOQ.activePackage || "Standard"} Specification` : "Configured BOQ Products"}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Total Estimate: <b className="font-mono text-slate-900">₹{((clientBOQ?.grandTotal) || (selectedClient.name?.includes("PREM") ? 468800 : 525000)).toLocaleString("en-IN")}</b>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {clientBOQ && (
+                          <button
+                            onClick={() => downloadBOQPdf(clientBOQ)}
+                            className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs"
+                          >
+                            <Download size={11} />
+                            <span>PDF</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            navigate("/invoices", {
+                              state: {
+                                createFromBOQ: true,
+                                boqData: clientBOQ || {
+                                  clientName: selectedClient.name,
+                                  clientPhone: selectedClient.phone,
+                                  clientEmail: selectedClient.email,
+                                  grandTotal: selectedClient.commercialSummary?.grandTotal || 468800
+                                }
+                              }
+                            });
+                          }}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                        >
+                          <Sparkles size={11} />
+                          <span>Auto Invoice</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
+                          }}
+                          className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline cursor-pointer pl-1"
+                        >
+                          <span>BOQ Editor</span>
+                          <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Spaces / Products List */}
+                    {clientBOQ && clientBOQ.spaces && clientBOQ.spaces.length > 0 ? (
+                      <div className="space-y-3">
+                        {clientBOQ.spaces.map((sp, sIdx) => (
+                          <div key={sIdx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                            <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                              <span className="font-bold text-slate-900 text-xs">{sp.name}</span>
+                              <span className="font-mono font-bold text-xs text-blue-600">
+                                ₹{(sp.roomTotal || 0).toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                            {sp.items && sp.items.length > 0 ? (
+                              <div className="divide-y divide-slate-100 p-2 space-y-1">
+                               {sp.items.map((it, iIdx) => (
+                                  <div key={iIdx} className="flex items-center justify-between p-1.5 text-xs">
+                                    <div>
+                                      <span className="font-bold text-slate-900 block">{it.name}</span>
+                                      <span className="text-[10px] text-slate-400">
+                                        {it.packageVariant || "Standard"} • {it.lengthFt ? `${it.lengthFt}ft × ${it.heightFt || 1}ft` : "Custom"} • Qty: {it.qty || 1}
+                                      </span>
+                                    </div>
+                                    <span className="font-mono font-bold text-slate-900">
+                                      ₹{(it.amount || (it.rate * (it.qty || 1))).toLocaleString("en-IN")}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="p-2 text-slate-400 text-[11px] italic">Turnkey space fitout included</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {sampleProducts.map((p, idx) => (
+                          <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-xs">
+                            <div className="space-y-0.5">
+                              <span className="font-bold text-slate-900 text-xs block">{p.name}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {p.category} • Size: {p.dimensions} • Qty: {p.qty} {p.unit}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-mono font-bold text-slate-900 text-xs block">
+                                ₹{p.total.toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                @ ₹{p.rate.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* 4. PRICING & COMMERCIALS TAB */}
+              {activeClientTab === "pricing" && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                    <h4 className="font-extrabold text-slate-900 text-xs border-b border-slate-100 pb-2">
+                      Commercial Summary & Financial Breakdown
+                    </h4>
+                    <div className="space-y-2 text-slate-700 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Products Subtotal:</span>
+                        <span className="font-bold font-mono text-slate-900">
+                          ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Total Discount:</span>
+                        <span className="font-bold font-mono text-emerald-600">₹0</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Additional Charges (Installation & Transport):</span>
+                        <span className="font-mono text-slate-700">₹0</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">GST / Tax Amount:</span>
+                        <span className="font-mono text-slate-700">₹0</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-900 text-white rounded-xl flex items-center justify-between font-extrabold text-sm shadow-xs mt-3">
+                        <span>Grand Total Amount</span>
+                        <span className="font-mono text-base text-blue-400">
+                          ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. INVOICES TAB */}
+              {activeClientTab === "invoices" && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-xs text-slate-900">Tax Invoices</span>
+                    <button
+                      onClick={() => {
+                        navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
+                      }}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus size={13} />
+                      <span>Create Tax Invoice</span>
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold font-mono text-xs text-slate-900 block">
+                          {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
+                        </span>
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
+                          Issued
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        Issued: {new Date().toLocaleDateString("en-IN")} • Velora Turnkey Interior Execution
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      {clientBOQ && (
-                        <button
-                          onClick={() => downloadBOQPdf(clientBOQ)}
-                          className="px-2.5 py-1 bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1 shadow-2xs"
-                        >
-                          <Download size={11} />
-                          <span>PDF</span>
-                        </button>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <div className="text-right mr-2">
+                        <span className="text-[10px] text-slate-400 font-medium block">Grand Total</span>
+                        <span className="font-mono font-bold text-sm text-slate-900">
+                          ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+
                       <button
                         onClick={() => {
                           navigate("/invoices", {
                             state: {
-                              createFromBOQ: true,
-                              boqData: clientBOQ || {
-                                clientName: selectedClient.name,
-                                clientPhone: selectedClient.phone,
-                                clientEmail: selectedClient.email,
-                                grandTotal: selectedClient.commercialSummary?.grandTotal || 468800
-                              }
+                              openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"
                             }
                           });
                         }}
-                        className="px-3 py-1 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition cursor-pointer flex items-center gap-1.5"
+                        title="Preview Tax Invoice Template"
                       >
-                        <Sparkles size={11} className="text-amber-300 fill-amber-300" />
-                        <span>Auto Invoice</span>
+                        <Eye size={14} />
+                        <span>Preview</span>
                       </button>
+
                       <button
                         onClick={() => {
-                          navigate("/boq", { state: { clientName: selectedClient.name, clientPhone: selectedClient.phone } });
+                          const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
+                          const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                          printInvoice({
+                            invoiceNumber: invNum,
+                            clientName: selectedClient.name,
+                            clientPhone: selectedClient.phone,
+                            clientEmail: selectedClient.email,
+                            clientAddress: selectedClient.address,
+                            projectName: `${selectedClient.name} Residence`,
+                            grandTotal: totalAmt,
+                            subtotal: totalAmt
+                          });
                         }}
-                        className="flex items-center gap-1 text-[11px] font-bold text-[#9E7B1D] hover:underline cursor-pointer pl-1"
+                        className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                        title="Print Tax Invoice"
                       >
-                        <span>BOQ Editor</span>
-                        <ArrowRight size={12} />
+                        <Printer size={14} />
+                        <span>Print Invoice</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
+                          const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                          downloadInvoicePdf({
+                            invoiceNumber: invNum,
+                            clientName: selectedClient.name,
+                            clientPhone: selectedClient.phone,
+                            clientEmail: selectedClient.email,
+                            clientAddress: selectedClient.address,
+                            projectName: `${selectedClient.name} Residence`,
+                            grandTotal: totalAmt,
+                            subtotal: totalAmt
+                          });
+                        }}
+                        className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                        title="Download Luxury Tax Invoice PDF"
+                      >
+                        <Download size={14} />
+                        <span>Download PDF</span>
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
 
-                  {/* Spaces / Products List */}
-                  {clientBOQ && clientBOQ.spaces && clientBOQ.spaces.length > 0 ? (
-                    <div className="space-y-3">
-                      {clientBOQ.spaces.map((sp, sIdx) => (
-                        <div key={sIdx} className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs">
-                          <div className="px-3.5 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
-                            <span className="font-bold text-stone-900 text-xs">{sp.name}</span>
-                            <span className="font-mono font-bold text-xs text-[#9E7B1D]">
-                              ₹{(sp.roomTotal || 0).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                          {sp.items && sp.items.length > 0 ? (
-                            <div className="divide-y divide-stone-100 p-2 space-y-1">
-                              {sp.items.map((it, iIdx) => (
-                                <div key={iIdx} className="flex items-center justify-between p-1.5 text-xs">
-                                  <div>
-                                    <span className="font-bold text-stone-900 block">{it.name}</span>
-                                    <span className="text-[10px] text-stone-400">
-                                      {it.packageVariant || "Standard"} • {it.lengthFt ? `${it.lengthFt}ft × ${it.heightFt || 1}ft` : "Custom"} • Qty: {it.qty || 1}
-                                    </span>
-                                  </div>
-                                  <span className="font-mono font-bold text-stone-900">
-                                    ₹{(it.amount || (it.rate * (it.qty || 1))).toLocaleString("en-IN")}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="p-2 text-stone-400 text-[11px] italic">Turnkey space fitout included</div>
-                          )}
+              {/* 6. DOCUMENTS & NOTES TAB */}
+              {(activeClientTab === "documents" || activeClientTab === "notes") && (
+                <div className="space-y-3 animate-in fade-in">
+                  <div className="space-y-3">
+                    <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
+                      <PhoneCall size={14} className="text-blue-600" />
+                      <span>Communication & Consultation Logs</span>
+                    </h4>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Record discussion notes / client requirements..."
+                        value={newLog}
+                        onChange={(e) => setNewLog(e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={handleAddLog}
+                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                      >
+                        Record
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {(selectedClient.communicationHistory || []).map((log, idx) => (
+                        <div key={idx} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-0.5">
+                          <p className="font-semibold text-slate-800 text-xs">{log.summary}</p>
+                          <span className="text-[10px] text-slate-400 block">
+                            {log.channel} • {new Date(log.timestamp).toLocaleString("en-IN")}
+                          </span>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {sampleProducts.map((p, idx) => (
-                        <div key={idx} className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between gap-3 shadow-2xs">
-                          <div className="space-y-0.5">
-                            <span className="font-bold text-stone-900 text-xs block">{p.name}</span>
-                            <span className="text-[10px] text-stone-400 font-medium">
-                              {p.category} • Size: {p.dimensions} • Qty: {p.qty} {p.unit}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-mono font-bold text-stone-900 text-xs block">
-                              ₹{p.total.toLocaleString("en-IN")}
-                            </span>
-                            <span className="text-[10px] text-stone-400 font-mono">
-                              @ ₹{p.rate.toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* 4. PRICING & COMMERCIALS TAB */}
-            {activeClientTab === "pricing" && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
-                  <h4 className="font-extrabold text-stone-900 text-xs border-b border-stone-100 pb-2">
-                    Commercial Summary & Financial Breakdown
-                  </h4>
-                  <div className="space-y-2 text-stone-700 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">Products Subtotal:</span>
-                      <span className="font-bold font-mono text-stone-900">
-                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">Total Discount:</span>
-                      <span className="font-bold font-mono text-emerald-600">₹0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">Additional Charges (Installation & Transport):</span>
-                      <span className="font-mono text-stone-700">₹0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">GST / Tax Amount:</span>
-                      <span className="font-mono text-stone-700">₹0</span>
-                    </div>
-                    <div className="p-3 bg-[#0A1128] text-white rounded-xl flex items-center justify-between font-extrabold text-sm shadow-xs mt-3">
-                      <span>Grand Total Amount</span>
-                      <span className="font-mono text-base">
-                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
-                      </span>
-                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* 5. INVOICES TAB */}
-            {activeClientTab === "invoices" && (
-              <div className="space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-xs text-stone-900">Tax Invoices</span>
-                  <button
-                    onClick={() => {
-                      navigate("/invoices", { state: { createFromClient: true, client: selectedClient } });
-                    }}
-                    className="px-3 py-1.5 bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] text-white font-bold text-[11px] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
-                  >
-                    <Plus size={13} />
-                    <span>Create Tax Invoice</span>
-                  </button>
-                </div>
-
-                <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold font-mono text-xs text-stone-900 block">
-                        {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
-                      </span>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
-                        Issued
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-stone-500 block mt-0.5">
-                      Issued: {new Date().toLocaleDateString("en-IN")} • Velora Turnkey Interior Execution
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="text-right mr-2">
-                      <span className="text-[10px] text-stone-400 font-medium block">Grand Total</span>
-                      <span className="font-mono font-bold text-sm text-stone-900">
-                        ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        navigate("/invoices", {
-                          state: {
-                            openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"
-                          }
-                        });
-                      }}
-                      className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] font-bold text-xs rounded-xl border border-amber-200 transition cursor-pointer flex items-center gap-1.5"
-                      title="Preview Tax Invoice Template"
-                    >
-                      <Eye size={14} />
-                      <span>Preview</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
-                        const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
-                        printInvoice({
-                          invoiceNumber: invNum,
-                          clientName: selectedClient.name,
-                          clientPhone: selectedClient.phone,
-                          clientEmail: selectedClient.email,
-                          clientAddress: selectedClient.address,
-                          projectName: `${selectedClient.name} Residence`,
-                          grandTotal: totalAmt,
-                          subtotal: totalAmt
-                        });
-                      }}
-                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
-                      title="Print Tax Invoice"
-                    >
-                      <Printer size={14} />
-                      <span>Print Invoice</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
-                        const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
-                        downloadInvoicePdf({
-                          invoiceNumber: invNum,
-                          clientName: selectedClient.name,
-                          clientPhone: selectedClient.phone,
-                          clientEmail: selectedClient.email,
-                          clientAddress: selectedClient.address,
-                          projectName: `${selectedClient.name} Residence`,
-                          grandTotal: totalAmt,
-                          subtotal: totalAmt
-                        });
-                      }}
-                      className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
-                      title="Download Luxury Tax Invoice PDF"
-                    >
-                      <Download size={14} />
-                      <span>Download PDF</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 6. DOCUMENTS & NOTES TAB */}
-            {(activeClientTab === "documents" || activeClientTab === "notes") && (
-              <div className="space-y-3 animate-in fade-in">
-                <div className="space-y-3">
-                  <h4 className="font-black text-stone-900 text-xs flex items-center gap-1.5">
-                    <PhoneCall size={14} className="text-[#9E7B1D]" />
-                    <span>Communication & Consultation Logs</span>
-                  </h4>
-
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Record discussion notes / client requirements..."
-                      value={newLog}
-                      onChange={(e) => setNewLog(e.target.value)}
-                      className="flex-1 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 text-xs focus:outline-none focus:border-[#D4AF37]"
-                    />
-                    <button
-                      onClick={handleAddLog}
-                      className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#B38E2D] text-stone-950 font-bold rounded-xl text-xs transition cursor-pointer"
-                    >
-                      Record
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {(selectedClient.communicationHistory || []).map((log, idx) => (
-                      <div key={idx} className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl space-y-0.5">
-                        <p className="font-semibold text-stone-800">{log.summary}</p>
-                        <span className="text-[10px] text-stone-400 block">
-                          {log.channel} • {new Date(log.timestamp).toLocaleString("en-IN")}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
               )}
             </div>
           </div>

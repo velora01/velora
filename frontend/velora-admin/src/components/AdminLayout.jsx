@@ -80,38 +80,38 @@ export default function AdminLayout({ children }) {
   const isBOQPage = location.pathname.startsWith("/boq") || location.pathname === "/estimates";
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-stone-800 flex font-sans antialiased" onClick={() => isProfileOpen && setIsProfileOpen(false)}>
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased" onClick={() => isProfileOpen && setIsProfileOpen(false)}>
       {/* Mobile Top Navigation */}
       {!isBOQPage && (
-        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-[#E8DFCE] px-4 flex items-center justify-between z-40 shadow-xs">
-          <span className="font-black text-sm text-[#9E7B1D] tracking-wider">VELORA</span>
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-40 shadow-xs">
+          <span className="font-black text-sm text-blue-600 tracking-wider">VELORA</span>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1.5 text-stone-600 hover:bg-amber-50 rounded-lg transition"
+            className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       )}
 
-      {/* Sidebar Panel - Clean Luxury Gold & White Theme */}
+      {/* Sidebar Panel - Clean Executive Royal Blue & White Theme */}
       <aside
-        className={`fixed md:sticky top-0 bottom-0 left-0 w-56 bg-white border-r border-[#EAE3D2] flex flex-col justify-between z-40 transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed md:sticky top-0 bottom-0 left-0 w-56 bg-white border-r border-slate-200 flex flex-col justify-between z-40 transition-transform duration-300 md:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } h-screen overflow-y-auto select-none`}
+        } h-screen overflow-y-auto select-none shadow-xs`}
       >
         <div>
           {/* Brand Header */}
-          <div className="p-4 border-b border-[#EAE3D2] flex items-center gap-2.5 bg-gradient-to-b from-[#FFFDF9] to-white">
-            <div className="h-8 w-8 bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] rounded-xl flex items-center justify-center text-stone-950 font-black shadow-xs">
+          <div className="p-4 border-b border-slate-100 flex items-center gap-2.5 bg-white">
+            <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black shadow-xs">
               <Crown size={15} />
             </div>
             <div>
-              <h2 className="font-extrabold text-sm text-stone-900 tracking-wider">
+              <h2 className="font-extrabold text-sm text-slate-900 tracking-wider">
                 VELORA
               </h2>
-              <span className="text-[9px] text-[#9E7B1D] font-extrabold uppercase tracking-widest block">
-                Luxury Suite
+              <span className="text-[9px] text-blue-600 font-extrabold uppercase tracking-widest block">
+                Executive CRM
               </span>
             </div>
           </div>
@@ -138,14 +138,14 @@ export default function AdminLayout({ children }) {
                     }}
                     className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                       isActive && !isLibrary
-                        ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs font-extrabold"
+                        ? "bg-blue-600 text-white shadow-xs font-bold"
                         : isActive && isLibrary
-                        ? "bg-amber-50/80 text-[#9E7B1D] font-extrabold border border-amber-200/60"
-                        : "text-stone-700 hover:bg-amber-50/70 hover:text-[#9E7B1D]"
+                        ? "bg-blue-50 text-blue-700 font-bold border border-blue-200/80"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className={isActive ? "text-[#9E7B1D]" : "text-[#9E7B1D]"}>
+                      <span className={isActive && !isLibrary ? "text-white" : isActive && isLibrary ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"}>
                         {item.icon}
                       </span>
                       <span>{item.name}</span>
@@ -154,13 +154,13 @@ export default function AdminLayout({ children }) {
                       <ChevronRight
                         size={14}
                         className={`transition-transform ${
-                          isLibraryActive ? "rotate-90 text-[#9E7B1D]" : "text-stone-400"
+                          isLibraryActive ? "rotate-90 text-blue-600" : "text-slate-400"
                         }`}
                       />
                     )}
                   </Link>
 
-                  {/* Expandable Submenu for Library (Screenshot 3) */}
+                  {/* Expandable Submenu for Library */}
                   {isLibrary && isLibraryActive && (
                     <div className="pl-9 pr-2 py-1 space-y-0.5 animate-in slide-in-from-top-1">
                       {[
@@ -188,8 +188,8 @@ export default function AdminLayout({ children }) {
                             onClick={() => setIsSidebarOpen(false)}
                             className={`block px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                               isSubActive
-                                ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 font-extrabold shadow-2xs"
-                                : "text-stone-600 hover:text-stone-950 hover:bg-amber-50/50"
+                                ? "bg-blue-600 text-white font-bold shadow-2xs"
+                                : "text-slate-600 hover:text-slate-950 hover:bg-slate-100"
                             }`}
                           >
                             {sub.name}
@@ -205,10 +205,10 @@ export default function AdminLayout({ children }) {
         </div>
 
         {/* Footer Logout & User Profile */}
-        <div className="p-3 border-t border-[#EAE3D2] bg-[#FFFDF9] space-y-2">
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
           >
             <LogOut size={15} />
             <span>Sign Out</span>
@@ -220,24 +220,24 @@ export default function AdminLayout({ children }) {
       <main className={`flex-1 min-w-0 ${isBOQPage ? "pt-0" : "pt-14 md:pt-0"} overflow-y-auto h-screen flex flex-col`}>
         {/* Top Navbar Header - Hidden on BOQ Page */}
         {!isBOQPage && (
-          <header className="hidden md:flex items-center justify-between h-14 px-6 bg-white border-b border-[#EAE3D2] sticky top-0 z-30 shadow-2xs">
+          <header className="hidden md:flex items-center justify-between h-14 px-6 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
             {/* Left: Page Title */}
             <div className="flex items-center">
-              <h1 className="text-base font-bold text-stone-900 tracking-tight">
+              <h1 className="text-base font-bold text-slate-900 tracking-tight">
                 {getCurrentPageTitle()}
               </h1>
             </div>
 
             {/* Right: Notifications Bell & Real User Profile Header */}
             <div className="flex items-center gap-4 relative">
-              {/* Notification Bell with golden dot */}
+              {/* Notification Bell with blue dot */}
               <Link
                 to="/notifications"
-                className="relative p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition"
+                className="relative p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition"
                 title="Notifications"
               >
                 <Bell size={18} />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#D4AF37] ring-2 ring-white" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white" />
               </Link>
 
               {/* Real User Profile Avatar & Role Badge Dropdown */}
@@ -247,20 +247,20 @@ export default function AdminLayout({ children }) {
                     e.stopPropagation();
                     setIsProfileOpen(!isProfileOpen);
                   }}
-                  className="flex items-center gap-2.5 pl-2 py-1 pr-1 border-l border-[#EAE3D2] rounded-xl hover:bg-stone-50 transition cursor-pointer"
+                  className="flex items-center gap-2.5 pl-2 py-1 pr-1 border-l border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   <div className="text-right hidden sm:block">
-                    <div className="text-xs font-bold text-stone-900 leading-tight flex items-center justify-end gap-1">
+                    <div className="text-xs font-bold text-slate-900 leading-tight flex items-center justify-end gap-1">
                       <span>{adminUser?.name || "Admin"}</span>
-                      {adminUser?.role === "Super Admin" && <Crown size={12} className="text-[#9E7B1D]" />}
+                      {adminUser?.role === "Super Admin" && <Crown size={12} className="text-blue-600" />}
                     </div>
-                    <span className="text-[10px] font-semibold text-[#9E7B1D] bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                    <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
                       {adminUser?.role || "Super Admin"}
                     </span>
                   </div>
 
                   <div
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] via-[#C5A059] to-[#9E7B1D] text-stone-950 font-black text-xs flex items-center justify-center shadow-xs select-none"
+                    className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs flex items-center justify-center shadow-xs select-none"
                   >
                     {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "A"}
                   </div>
@@ -270,12 +270,12 @@ export default function AdminLayout({ children }) {
                 {isProfileOpen && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute right-0 top-11 w-64 bg-white border border-[#EAE3D2] rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 space-y-2 text-xs"
+                    className="absolute right-0 top-11 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 space-y-2 text-xs"
                   >
-                    <div className="p-2 bg-gradient-to-br from-stone-900 to-stone-850 rounded-xl text-white">
-                      <div className="font-black text-sm text-[#D4AF37]">{adminUser?.name || "Admin User"}</div>
-                      <div className="text-[11px] text-stone-300 truncate">{adminUser?.email || "admin@velora.family"}</div>
-                      <div className="mt-1.5 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-amber-200 border border-[#D4AF37]/40">
+                    <div className="p-3 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl text-white">
+                      <div className="font-black text-sm text-blue-400">{adminUser?.name || "Admin User"}</div>
+                      <div className="text-[11px] text-slate-300 truncate">{adminUser?.email || "admin@velora.family"}</div>
+                      <div className="mt-1.5 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30">
                         {adminUser?.role || "Super Admin"}
                       </div>
                     </div>
@@ -284,7 +284,7 @@ export default function AdminLayout({ children }) {
                       <Link
                         to="/settings"
                         onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-stone-700 hover:bg-amber-50 hover:text-[#9E7B1D] font-semibold transition"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold transition"
                       >
                         <Settings size={15} />
                         <span>Settings & QR Hub</span>
@@ -293,14 +293,14 @@ export default function AdminLayout({ children }) {
                       <Link
                         to="/users"
                         onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-stone-700 hover:bg-amber-50 hover:text-[#9E7B1D] font-semibold transition"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold transition"
                       >
                         <ShieldCheck size={15} />
                         <span>User Management & Staff</span>
                       </Link>
                     </div>
 
-                    <div className="border-t border-stone-100 pt-1">
+                    <div className="border-t border-slate-100 pt-1">
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 font-bold transition cursor-pointer"

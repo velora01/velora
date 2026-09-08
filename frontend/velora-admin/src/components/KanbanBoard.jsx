@@ -11,10 +11,10 @@ export default function KanbanBoard({ columns = [], items = [], onStatusChange, 
             {/* Column Header */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
                 <h3 className="font-bold text-sm text-slate-800 tracking-tight">{col.title}</h3>
               </div>
-              <span className="text-xs bg-slate-100 text-[#9E7B1D] px-2 py-0.5 rounded-full border border-slate-200 font-bold">
+              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200 font-bold">
                 {colItems.length}
               </span>
             </div>
@@ -30,10 +30,10 @@ export default function KanbanBoard({ columns = [], items = [], onStatusChange, 
                   <div
                     key={item._id}
                     onClick={() => onItemClick && onItemClick(item)}
-                    className="bg-slate-50 border border-slate-200 hover:border-[#C5A059] rounded-xl p-3.5 shadow-xs hover:shadow-md transition cursor-pointer space-y-2 group"
+                    className="bg-slate-50 border border-slate-200 hover:border-blue-400 rounded-xl p-3.5 shadow-xs hover:shadow-md transition cursor-pointer space-y-2 group"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#9E7B1D] transition leading-snug">
+                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition leading-snug">
                         {item.title || item.name || item.heading || item.projectName}
                       </h4>
                       <StatusBadge status={item.priority || item.status} />
@@ -44,7 +44,7 @@ export default function KanbanBoard({ columns = [], items = [], onStatusChange, 
                     )}
 
                     {item.budget && (
-                      <p className="text-[11px] text-[#9E7B1D] font-bold">₹{item.budget.toLocaleString ? item.budget.toLocaleString("en-IN") : item.budget}</p>
+                      <p className="text-[11px] text-blue-600 font-bold">₹{item.budget.toLocaleString ? item.budget.toLocaleString("en-IN") : item.budget}</p>
                     )}
 
                     {/* Stage quick move select */}

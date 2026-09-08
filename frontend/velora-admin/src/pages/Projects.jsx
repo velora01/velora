@@ -1112,7 +1112,7 @@ export default function Projects() {
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                           paymentStatus === "Fully Paid"
                             ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                            : "bg-amber-50 text-amber-900 border-amber-200"
+                            : "bg-blue-50 text-blue-800 border-blue-200"
                         }`}>
                           {paymentStatus}
                         </span>
@@ -1188,7 +1188,7 @@ export default function Projects() {
                                   ₹{(totalBudget * 0.4).toLocaleString("en-IN")}
                                 </td>
                                 <td className="py-3 px-4 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
                                     {advancePaid >= totalBudget * 0.9 ? "Cleared" : "Pending Clearance"}
                                   </span>
                                 </td>

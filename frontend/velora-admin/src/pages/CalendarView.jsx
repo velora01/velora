@@ -25,10 +25,10 @@ export default function CalendarView() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-              <CalendarIcon size={18} className="text-[#9E7B1D]" />
+              <CalendarIcon size={18} className="text-blue-600" />
               August 2026 Operational Schedule
             </h3>
           </div>
@@ -49,26 +49,26 @@ export default function CalendarView() {
                 key={i}
                 className={`h-16 p-1.5 rounded-xl border flex flex-col justify-between ${
                   i + 1 === 5
-                    ? "bg-[#FFFBF0] border-[#D4AF37] text-slate-900 font-extrabold shadow-xs"
+                    ? "bg-blue-50/80 border-blue-500 text-blue-900 font-extrabold shadow-xs"
                     : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               >
                 <span>{i + 1}</span>
-                {i + 1 === 5 && <span className="text-[9px] bg-[#D4AF37] text-slate-950 rounded px-1 font-extrabold">3 Tasks</span>}
+                {i + 1 === 5 && <span className="text-[9px] bg-blue-600 text-white rounded px-1 font-bold">3 Tasks</span>}
               </div>
             ))}
           </div>
         </div>
 
         {/* Schedule List */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
           <h3 className="font-extrabold text-base text-slate-900 border-b border-slate-100 pb-3">Today's Agenda</h3>
           <div className="space-y-3">
             {sampleEvents.map((evt, idx) => (
               <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-slate-900">{evt.title}</span>
-                  <span className="text-[10px] text-[#9E7B1D] font-bold bg-[#FFFBF0] px-2 py-0.5 rounded border border-[#E8D49E]">
+                  <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                     {evt.type}
                   </span>
                 </div>

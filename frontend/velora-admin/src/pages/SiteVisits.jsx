@@ -26,7 +26,7 @@ export default function SiteVisits() {
     {
       header: "GPS Location",
       render: (row) => (
-        <span className="flex items-center gap-1 text-[#9E7B1D] font-bold">
+        <span className="flex items-center gap-1 text-blue-600 font-bold">
           <MapPin size={12} />
           {row.gpsCoordinates || "18.5204, 73.8567"}
         </span>

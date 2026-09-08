@@ -159,7 +159,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Calculator size={20} className="text-[#9E7B1D]" />
+            <Calculator size={20} className="text-blue-600" />
             Room-Wise Estimate Creator
           </h2>
           <p className="text-xs text-slate-500 mt-1">Configure room specifications with catalog items or custom entries</p>
@@ -168,15 +168,15 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
         <div className="flex items-center gap-3">
           <button
             onClick={() => addRoom()}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-[#C5A059] transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition cursor-pointer"
           >
-            <Plus size={14} className="text-[#9E7B1D]" />
+            <Plus size={14} className="text-blue-600" />
             <span>Add Custom Room</span>
           </button>
 
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
           >
             <CheckCircle2 size={14} />
             <span>Save & Generate Estimate</span>
@@ -185,14 +185,14 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
       </div>
 
       {/* Quick Space Template Tags */}
-      <div className="flex flex-wrap gap-2 items-center bg-[#FAF9F5] border border-[#E8DCC4]/60 p-3.5 rounded-xl">
+      <div className="flex flex-wrap gap-2 items-center bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mr-1">Quick Add Space:</span>
         {SPACE_TEMPLATES.map((tpl) => (
           <button
             key={tpl}
             type="button"
             onClick={() => addRoom(tpl)}
-            className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-slate-200 hover:border-[#D4AF37] text-[11px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+            className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-[11px] font-bold text-blue-600 rounded-lg transition cursor-pointer"
           >
             + {tpl}
           </button>
@@ -202,7 +202,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
       {/* General Meta Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {!projectId && !leadId && (
-          <div className="sm:col-span-2 bg-[#FAF9F5] border border-slate-200 rounded-xl p-3.5 space-y-3">
+          <div className="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
             <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
               Associate Estimate With
             </label>
@@ -225,8 +225,8 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition border cursor-pointer ${
                     associationType === opt.id
-                      ? "bg-[#D4AF37] text-slate-950 border-[#D4AF37]"
-                      : "bg-white text-slate-500 border-slate-200 hover:text-slate-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   {opt.label}
@@ -246,7 +246,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                     const match = leadList.find((l) => l._id === lId);
                     if (match) setClientName(match.name);
                   }}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value="">-- Choose Lead Profile --</option>
                   {leadList.map((lead) => (
@@ -270,7 +270,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                     const match = projectList.find((p) => p._id === pId);
                     if (match) setClientName(match.clientName);
                   }}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value="">-- Choose Project --</option>
                   {projectList.map((proj) => (
@@ -286,7 +286,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
 
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-            Client Name {associationType !== "manual" && <span className="text-[#9E7B1D] font-bold">(Auto-selected)</span>}
+            Client Name {associationType !== "manual" && <span className="text-blue-600 font-bold">(Auto-selected)</span>}
           </label>
           <input
             type="text"
@@ -294,7 +294,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
             value={clientName}
             disabled={associationType !== "manual" && !projectId && !leadId}
             onChange={(e) => setClientName(e.target.value)}
-            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#C5A059] disabled:opacity-75 disabled:cursor-not-allowed"
+            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-75 disabled:cursor-not-allowed"
           />
         </div>
         <div>
@@ -303,7 +303,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
             type="text"
             value={preparedBy}
             onChange={(e) => setPreparedBy(e.target.value)}
-            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#C5A059]"
+            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
       </div>
@@ -323,7 +323,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                   updated[rIdx].name = e.target.value;
                   setRooms(updated);
                 }}
-                className="bg-transparent font-bold text-sm text-[#9E7B1D] focus:outline-none border-b border-slate-300 w-full sm:w-64"
+                className="bg-transparent font-bold text-sm text-blue-600 focus:outline-none border-b border-slate-300 w-full sm:w-64"
               />
 
               <div className="flex items-center gap-3 self-end sm:self-auto">
@@ -336,7 +336,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                     const mat = materials.find(m => m.name === matName);
                     if (mat) addItemToRoom(rIdx, mat);
                   }}
-                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-[#C5A059] max-w-[170px] shadow-2xs font-semibold cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 max-w-[170px] shadow-2xs font-semibold cursor-pointer"
                 >
                   <option value="">+ Add from Catalog</option>
                   {materials.map((m) => (
@@ -397,7 +397,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               value={item.itemName}
                               onChange={(e) => updateItem(rIdx, iIdx, "itemName", e.target.value)}
                               placeholder="e.g. Wardrobe shutters"
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
                           <td className="py-1.5 px-1">
@@ -406,7 +406,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               value={item.material}
                               onChange={(e) => updateItem(rIdx, iIdx, "material", e.target.value)}
                               placeholder="e.g. Plywood + Laminate"
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
                           <td className="py-1.5 px-1">
@@ -414,7 +414,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               type="number"
                               value={item.quantity}
                               onChange={(e) => updateItem(rIdx, iIdx, "quantity", Number(e.target.value))}
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
                           <td className="py-1.5 px-1">
@@ -422,7 +422,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               type="text"
                               value={item.unit}
                               onChange={(e) => updateItem(rIdx, iIdx, "unit", e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
                           <td className="py-1.5 px-1">
@@ -430,7 +430,7 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               type="number"
                               value={item.price}
                               onChange={(e) => updateItem(rIdx, iIdx, "price", Number(e.target.value))}
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
                           <td className="py-1.5 px-1">
@@ -438,10 +438,10 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
                               type="number"
                               value={item.gstPercent}
                               onChange={(e) => updateItem(rIdx, iIdx, "gstPercent", Number(e.target.value))}
-                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-[#C5A059] focus:outline-none"
+                              className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
                             />
                           </td>
-                          <td className="py-1.5 px-1 font-bold text-[#9E7B1D]">
+                          <td className="py-1.5 px-1 font-bold text-blue-600">
                             ₹{Math.round(lineTotal).toLocaleString("en-IN")}
                           </td>
                           <td className="py-1.5 px-1">
@@ -476,11 +476,11 @@ export default function EstimateBuilder({ onSaveBOQ, initialClientName = "", pro
           </div>
           <div>
             <span className="text-slate-500 block">GST (18%):</span>
-            <span className="font-bold text-[#9E7B1D] text-sm">₹{Math.round(gstTotal).toLocaleString("en-IN")}</span>
+            <span className="font-bold text-blue-600 text-sm">₹{Math.round(gstTotal).toLocaleString("en-IN")}</span>
           </div>
           <div className="pl-4 border-l border-slate-200">
             <span className="text-slate-500 block font-bold uppercase tracking-wider text-[10px]">Grand Total:</span>
-            <span className="font-black text-[#9E7B1D] text-lg">₹{Math.round(grandTotal).toLocaleString("en-IN")}</span>
+            <span className="font-black text-blue-600 text-lg">₹{Math.round(grandTotal).toLocaleString("en-IN")}</span>
           </div>
         </div>
       </div>

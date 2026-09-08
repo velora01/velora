@@ -131,7 +131,7 @@ export default function LeadManagement() {
             e.stopPropagation();
             handleSelectLead(row);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF6ED] border border-[#E8DCC4] rounded-xl text-xs font-bold text-[#9E7B1D] hover:border-[#D4AF37] hover:bg-white transition cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition cursor-pointer"
         >
           <FolderOpen size={12} />
           <span>Manage</span>
@@ -434,7 +434,7 @@ export default function LeadManagement() {
       budget: "₹35L - ₹50L",
       status: "Booking",
       source: "Website",
-      notes: "Client wants a premium bronze-charcoal theme. Interested in high-end modular kitchen finishes (BWP Plywood + Acrylic shutters) and false ceiling design with smart home automation compatibility.",
+      notes: "Client wants a premium contemporary theme. Interested in high-end modular kitchen finishes (BWP Plywood + Acrylic shutters) and false ceiling design with smart home automation compatibility.",
       assignedTo: staffUsers[0]?._id || ""
     });
   };
@@ -453,7 +453,7 @@ export default function LeadManagement() {
             <button
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                viewMode === "table" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+                viewMode === "table" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-800"
               }`}
             >
               <List size={16} />
@@ -461,7 +461,7 @@ export default function LeadManagement() {
             <button
               onClick={() => setViewMode("kanban")}
               className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                viewMode === "kanban" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+                viewMode === "kanban" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-800"
               }`}
             >
               <LayoutGrid size={16} />
@@ -470,7 +470,7 @@ export default function LeadManagement() {
 
           <button
             onClick={() => setIsCreateDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-slate-950 rounded-xl font-bold text-xs shadow-sm hover:opacity-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold text-xs shadow-xs cursor-pointer transition"
           >
             <Plus size={16} />
             <span>Create New Client & Project</span>
@@ -506,16 +506,16 @@ export default function LeadManagement() {
       {isCreateDrawerOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end">
           <div className="w-screen max-w-2xl bg-white border-l border-slate-200 shadow-xl flex flex-col h-full">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-[#FFFDF9]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900">Create New Client & Project Profile</h3>
-                <p className="text-[10px] text-[#9E7B1D] font-extrabold uppercase tracking-wider">Configure client scope, possession details, and style preference</p>
+                <p className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider">Configure client scope, possession details, and style preference</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleAutoFillDummy}
-                  className="px-2.5 py-1 bg-stone-100 border border-stone-200 hover:border-[#D4AF37] hover:bg-white text-[10px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+                  className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-[10px] font-bold text-blue-700 rounded-lg transition cursor-pointer"
                 >
                   ⚡ Auto-Fill Dummy
                 </button>
@@ -529,7 +529,7 @@ export default function LeadManagement() {
               
               {/* SECTION: Client details */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-[#9E7B1D] uppercase tracking-widest border-b border-[#FAF6ED] pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-[10px] font-black text-blue-700 uppercase tracking-widest border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
                   <User size={12} />
                   <span>1. Contact & Admin Details</span>
                 </h4>
@@ -543,7 +543,7 @@ export default function LeadManagement() {
                       placeholder="e.g. Rajesh Sharma"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white"
                     />
                   </div>
                   <div>
@@ -554,7 +554,7 @@ export default function LeadManagement() {
                       placeholder="+91 98XXX XXXXX"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white"
                     />
                   </div>
                 </div>
@@ -567,7 +567,7 @@ export default function LeadManagement() {
                       placeholder="client@gmail.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white"
                     />
                   </div>
                   <div>
@@ -576,7 +576,7 @@ export default function LeadManagement() {
                       type="text"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white"
                     />
                   </div>
                 </div>
@@ -587,7 +587,7 @@ export default function LeadManagement() {
                     <select
                       value={formData.source}
                       onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       <option value="Website">Website</option>
                       <option value="Instagram">Instagram</option>
@@ -601,7 +601,7 @@ export default function LeadManagement() {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       {lifecycleStatuses.map(st => (
                         <option key={st} value={st}>{st}</option>
@@ -613,7 +613,7 @@ export default function LeadManagement() {
                     <select
                       value={formData.assignedTo}
                       onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       <option value="">Unassigned</option>
                       {staffUsers.map(user => (
@@ -625,21 +625,21 @@ export default function LeadManagement() {
 
                 <div>
                   <label className="block text-slate-700 font-bold mb-1 flex items-center gap-1.5">
-                    <Calendar size={13} className="text-[#9E7B1D]" />
+                    <Calendar size={13} className="text-blue-600" />
                     <span>Next Meeting Date</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={formData.nextMeetingDate}
                     onChange={(e) => setFormData({ ...formData, nextMeetingDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white"
                   />
                 </div>
               </div>
 
               {/* SECTION: Interior Design Scope */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-[#9E7B1D] uppercase tracking-widest border-b border-[#FAF6ED] pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-[10px] font-black text-blue-700 uppercase tracking-widest border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
                   <Briefcase size={12} />
                   <span>2. Design & Site Scope Details</span>
                 </h4>
@@ -652,7 +652,7 @@ export default function LeadManagement() {
                       placeholder="e.g. 3BHK Apartment"
                       value={formData.propertyType}
                       onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                     />
                   </div>
                   <div>
@@ -662,7 +662,7 @@ export default function LeadManagement() {
                       placeholder="e.g. 1200"
                       value={formData.siteArea}
                       onChange={(e) => setFormData({ ...formData, siteArea: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                     />
                   </div>
                   <div>
@@ -670,7 +670,7 @@ export default function LeadManagement() {
                     <select
                       value={formData.possessionStatus}
                       onChange={(e) => setFormData({ ...formData, possessionStatus: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       <option value="Possession Handed Over">Possession Handed Over</option>
                       <option value="Under Construction">Under Construction</option>
@@ -686,7 +686,7 @@ export default function LeadManagement() {
                     <select
                       value={formData.stylePreference}
                       onChange={(e) => setFormData({ ...formData, stylePreference: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                     >
                       <option value="Modern">Modern Elegant</option>
                       <option value="Minimalist">Luxury Minimalist</option>
@@ -705,14 +705,14 @@ export default function LeadManagement() {
                       placeholder="e.g. ₹35L - ₹45L"
                       value={formData.budget}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-slate-700 font-bold mb-1 flex items-center gap-1">
-                    <MapPin size={13} className="text-[#9E7B1D]" />
+                    <MapPin size={13} className="text-blue-600" />
                     <span>Site Address</span>
                   </label>
                   <input
@@ -720,23 +720,23 @@ export default function LeadManagement() {
                     placeholder="Site Flat No., Society / Building Name, Street Detail"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-slate-700 font-bold mb-2 flex items-center gap-1">
-                    <Layers size={13} className="text-[#9E7B1D]" />
+                    <Layers size={13} className="text-blue-600" />
                     <span>Scope of Work</span>
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 border border-slate-200 rounded-2xl">
                     {scopeOptions.map((opt) => (
                       <label key={opt} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.scopeOfWork.includes(opt)}
                           onChange={(e) => handleScopeCheckboxChange(opt, e.target.checked, true)}
-                          className="w-3.5 h-3.5 border-slate-300 rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                          className="w-3.5 h-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500"
                         />
                         <span>{opt}</span>
                       </label>
@@ -751,7 +751,7 @@ export default function LeadManagement() {
                     placeholder="Specific design notes, lighting configurations, color palettes, partition designs..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                   />
                 </div>
               </div>
@@ -759,7 +759,7 @@ export default function LeadManagement() {
               <div className="pt-4 border-t border-slate-100">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-slate-950 font-extrabold rounded-xl hover:opacity-95 transition shadow-sm cursor-pointer"
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl transition shadow-xs cursor-pointer"
                 >
                   Create Client Design Profile
                 </button>
@@ -775,15 +775,15 @@ export default function LeadManagement() {
           <div className="w-full max-w-5xl bg-white border-l border-slate-200 shadow-xl flex flex-col h-full animate-slideIn">
             
             {/* Workspace Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 bg-[#D4AF37]/15 rounded-xl border border-[#D4AF37]/35 flex items-center justify-center text-[#9E7B1D]">
+                <div className="h-10 w-10 bg-blue-50 rounded-xl border border-blue-200 flex items-center justify-center text-blue-600">
                   <User size={20} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
                     <h3 className="font-extrabold text-base text-slate-900">{selectedLead.name}</h3>
-                    <span className="text-[10px] bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 px-2 py-0.5 rounded-full font-black border border-[#D4AF37]/20 uppercase">
+                    <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-black border border-blue-200 uppercase">
                       {selectedLead.status}
                     </span>
                   </div>
@@ -802,11 +802,11 @@ export default function LeadManagement() {
             </div>
 
             {/* Workspace Tabs Bar */}
-            <div className="flex border-b border-slate-100 bg-[#FFFDF9] px-6 text-xs">
+            <div className="flex border-b border-slate-100 bg-white px-6 text-xs">
               <button
                 onClick={() => setActiveDetailTab("client")}
                 className={`py-3 px-4 font-bold border-b-2 transition cursor-pointer ${
-                  activeDetailTab === "client" ? "border-[#D4AF37] text-[#9E7B1D]" : "border-transparent text-slate-500 hover:text-slate-800"
+                  activeDetailTab === "client" ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
                 Client Profile
@@ -814,7 +814,7 @@ export default function LeadManagement() {
               <button
                 onClick={() => setActiveDetailTab("project")}
                 className={`py-3 px-4 font-bold border-b-2 transition cursor-pointer ${
-                  activeDetailTab === "project" ? "border-[#D4AF37] text-[#9E7B1D]" : "border-transparent text-slate-500 hover:text-slate-800"
+                  activeDetailTab === "project" ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
                 Design & Site Scope
@@ -822,7 +822,7 @@ export default function LeadManagement() {
               <button
                 onClick={() => setActiveDetailTab("boq")}
                 className={`py-3 px-4 font-bold border-b-2 transition cursor-pointer ${
-                  activeDetailTab === "boq" ? "border-[#D4AF37] text-[#9E7B1D]" : "border-transparent text-slate-500 hover:text-slate-800"
+                  activeDetailTab === "boq" ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
                 Estimates ({leadBOQs.length})
@@ -830,7 +830,7 @@ export default function LeadManagement() {
               <button
                 onClick={() => setActiveDetailTab("create_boq")}
                 className={`py-3 px-4 font-bold border-b-2 transition flex items-center gap-1.5 cursor-pointer ${
-                  activeDetailTab === "create_boq" ? "border-[#D4AF37] text-[#9E7B1D]" : "border-transparent text-slate-500 hover:text-slate-800"
+                  activeDetailTab === "create_boq" ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <Calculator size={13} />
@@ -852,7 +852,7 @@ export default function LeadManagement() {
                         required
                         value={detailFormData.name || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, name: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                     <div>
@@ -862,7 +862,7 @@ export default function LeadManagement() {
                         required
                         value={detailFormData.phone || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, phone: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -874,7 +874,7 @@ export default function LeadManagement() {
                         type="email"
                         value={detailFormData.email || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, email: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                     <div>
@@ -883,7 +883,7 @@ export default function LeadManagement() {
                         type="text"
                         value={detailFormData.city || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, city: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -894,7 +894,7 @@ export default function LeadManagement() {
                       <select
                         value={detailFormData.source || "Website"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, source: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
                       >
                         <option value="Website">Website</option>
                         <option value="Instagram">Instagram</option>
@@ -908,7 +908,7 @@ export default function LeadManagement() {
                       <select
                         value={detailFormData.status || "Booking"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, status: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
                       >
                         {lifecycleStatuses.map(st => (
                           <option key={st} value={st}>{st}</option>
@@ -920,7 +920,7 @@ export default function LeadManagement() {
                       <select
                         value={detailFormData.assignedTo || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, assignedTo: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
                       >
                         <option value="">Unassigned</option>
                         {staffUsers.map(user => (
@@ -932,20 +932,20 @@ export default function LeadManagement() {
 
                   <div>
                     <label className="block text-slate-500 font-bold mb-1 flex items-center gap-1.5">
-                      <Calendar size={13} className="text-[#9E7B1D]" />
+                      <Calendar size={13} className="text-blue-600" />
                       <span>Next Meeting Date</span>
                     </label>
                     <input
                       type="datetime-local"
                       value={detailFormData.nextMeetingDate || ""}
                       onChange={(e) => setDetailFormData({ ...detailFormData, nextMeetingDate: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-bold rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs cursor-pointer transition"
                   >
                     <Save size={14} />
                     <span>Save Changes</span>
@@ -963,7 +963,7 @@ export default function LeadManagement() {
                         type="text"
                         value={detailFormData.propertyType || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, propertyType: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                     <div>
@@ -972,7 +972,7 @@ export default function LeadManagement() {
                         type="number"
                         value={detailFormData.siteArea || 0}
                         onChange={(e) => setDetailFormData({ ...detailFormData, siteArea: Number(e.target.value) })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                     <div>
@@ -980,7 +980,7 @@ export default function LeadManagement() {
                       <select
                         value={detailFormData.possessionStatus || "N/A"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, possessionStatus: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
                       >
                         <option value="Possession Handed Over">Possession Handed Over</option>
                         <option value="Under Construction">Under Construction</option>
@@ -996,7 +996,7 @@ export default function LeadManagement() {
                       <select
                         value={detailFormData.stylePreference || "Modern"}
                         onChange={(e) => setDetailFormData({ ...detailFormData, stylePreference: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none"
                       >
                         <option value="Modern">Modern Elegant</option>
                         <option value="Minimalist">Luxury Minimalist</option>
@@ -1014,7 +1014,7 @@ export default function LeadManagement() {
                         type="text"
                         value={detailFormData.budget || ""}
                         onChange={(e) => setDetailFormData({ ...detailFormData, budget: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1026,23 +1026,23 @@ export default function LeadManagement() {
                       placeholder="Baner, Pune"
                       value={detailFormData.address || ""}
                       onChange={(e) => setDetailFormData({ ...detailFormData, address: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-slate-700 font-bold mb-2 flex items-center gap-1">
-                      <Layers size={13} className="text-[#9E7B1D]" />
+                      <Layers size={13} className="text-blue-600" />
                       <span>Scope of Work</span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FAF9F5] p-3.5 border border-[#E8DCC4] rounded-2xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 border border-slate-200 rounded-2xl">
                       {scopeOptions.map((opt) => (
                         <label key={opt} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={(detailFormData.scopeOfWork || []).includes(opt)}
                             onChange={(e) => handleScopeCheckboxChange(opt, e.target.checked, false)}
-                            className="w-3.5 h-3.5 border-slate-300 rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                            className="w-3.5 h-3.5 border-slate-300 rounded text-blue-600 focus:ring-blue-500"
                           />
                           <span>{opt}</span>
                         </label>
@@ -1056,13 +1056,13 @@ export default function LeadManagement() {
                       rows={4}
                       value={detailFormData.notes || ""}
                       onChange={(e) => setDetailFormData({ ...detailFormData, notes: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#C5A059] focus:bg-white focus:outline-none"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-bold rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs cursor-pointer transition"
                   >
                     <Save size={14} />
                     <span>Save Changes</span>
@@ -1081,7 +1081,7 @@ export default function LeadManagement() {
                       <p>No Estimate generated for this client yet.</p>
                       <button
                         onClick={() => setActiveDetailTab("create_boq")}
-                        className="mt-3 text-xs font-bold text-[#9E7B1D] hover:underline"
+                        className="mt-3 text-xs font-bold text-blue-600 hover:underline cursor-pointer"
                       >
                         Create first Estimate now &rarr;
                       </button>
@@ -1114,13 +1114,13 @@ export default function LeadManagement() {
                               <td className="px-4 py-3.5 text-right text-slate-500">
                                 ₹{Math.round(boq.gstTotal || 0).toLocaleString("en-IN")}
                               </td>
-                              <td className="px-4 py-3.5 text-right font-black text-[#9E7B1D]">
+                              <td className="px-4 py-3.5 text-right font-black text-blue-600">
                                 ₹{Math.round(boq.grandTotal || 0).toLocaleString("en-IN")}
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <button
                                   onClick={() => downloadBOQPdf(boq)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAF6ED] border border-[#E8DCC4] rounded-lg text-[10px] font-bold text-[#9E7B1D] hover:border-[#D4AF37] transition cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[10px] font-bold text-blue-700 hover:bg-blue-100 transition cursor-pointer"
                                   title="Download BOQ Quotation PDF"
                                 >
                                   <Download size={10} />
@@ -1141,14 +1141,14 @@ export default function LeadManagement() {
                 <div className="space-y-6 text-xs">
                   
                   {/* General Config */}
-                  <div className="bg-[#FAF9F5] border border-[#E8DCC4] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-slate-500 font-bold mb-1">Prepared By</label>
                       <input
                         type="text"
                         value={preparedBy}
                         onChange={(e) => setPreparedBy(e.target.value)}
-                        className="w-full px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#C5A059]"
+                        className="w-full px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
@@ -1163,7 +1163,7 @@ export default function LeadManagement() {
                   </div>
 
                   {/* Quick Space Template Tags */}
-                  <div className="flex flex-wrap gap-2 items-center bg-[#FAF9F5] border border-[#E8DCC4]/60 p-3.5 rounded-xl">
+                  <div className="flex flex-wrap gap-2 items-center bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider mr-1">Quick Add Space:</span>
                     {["Living Room", "Master Bedroom", "Modular Kitchen", "Dining Area", "Balcony", "Kids Bedroom", "Bathroom"].map((tpl) => (
                       <button
@@ -1172,7 +1172,7 @@ export default function LeadManagement() {
                         onClick={() => {
                           setBoqRooms([...boqRooms, { name: tpl, items: [] }]);
                         }}
-                        className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-slate-200 hover:border-[#D4AF37] text-[11px] font-bold text-[#9E7B1D] rounded-lg transition cursor-pointer"
+                        className="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-[11px] font-bold text-blue-700 rounded-lg transition cursor-pointer"
                       >
                         + {tpl}
                       </button>
@@ -1194,7 +1194,7 @@ export default function LeadManagement() {
                               updated[rIdx].name = e.target.value;
                               setBoqRooms(updated);
                             }}
-                            className="bg-transparent font-black text-sm text-[#9E7B1D] focus:outline-none border-b border-[#E8DCC4] w-full sm:w-64"
+                            className="bg-transparent font-black text-sm text-blue-700 focus:outline-none border-b border-blue-200 w-full sm:w-64"
                           />
 
                           <div className="flex items-center gap-3 self-end sm:self-auto">
@@ -1218,7 +1218,7 @@ export default function LeadManagement() {
                                   setBoqRooms(updated);
                                 }
                               }}
-                              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-[#C5A059] max-w-[170px] shadow-2xs font-semibold cursor-pointer"
+                              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 max-w-[170px] shadow-2xs font-semibold cursor-pointer"
                             >
                               <option value="">+ Add from Catalog</option>
                               {materials.map((m) => (
@@ -1239,7 +1239,7 @@ export default function LeadManagement() {
                             <button
                               type="button"
                               onClick={() => handleOpenMaterialModal(rIdx, room.items.length)}
-                              className="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-[#9E7B1D] cursor-pointer transition"
+                              className="px-2 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 cursor-pointer transition"
                             >
                               + Create Product
                             </button>
@@ -1291,7 +1291,7 @@ export default function LeadManagement() {
                                           value={item.itemName}
                                           onChange={(e) => updateItem(rIdx, iIdx, "itemName", e.target.value)}
                                           placeholder="e.g. Fluted Wardrobe"
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
@@ -1302,7 +1302,7 @@ export default function LeadManagement() {
                                           value={item.material}
                                           onChange={(e) => updateItem(rIdx, iIdx, "material", e.target.value)}
                                           placeholder="e.g. MDF / Plywood"
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
@@ -1312,7 +1312,7 @@ export default function LeadManagement() {
                                           type="number"
                                           value={item.quantity}
                                           onChange={(e) => updateItem(rIdx, iIdx, "quantity", e.target.value)}
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-right focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-right focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
@@ -1322,7 +1322,7 @@ export default function LeadManagement() {
                                           type="text"
                                           value={item.unit}
                                           onChange={(e) => updateItem(rIdx, iIdx, "unit", e.target.value)}
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-1 py-1 text-center focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-1 py-1 text-center focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
@@ -1332,7 +1332,7 @@ export default function LeadManagement() {
                                           type="number"
                                           value={item.price}
                                           onChange={(e) => updateItem(rIdx, iIdx, "price", e.target.value)}
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-right focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-right focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
@@ -1342,12 +1342,12 @@ export default function LeadManagement() {
                                           type="number"
                                           value={item.gstPercent}
                                           onChange={(e) => updateItem(rIdx, iIdx, "gstPercent", e.target.value)}
-                                          className="w-full bg-white border border-slate-200 rounded-lg px-1 py-1 text-center focus:outline-none focus:border-[#C5A059]"
+                                          className="w-full bg-white border border-slate-200 rounded-lg px-1 py-1 text-center focus:outline-none focus:border-blue-500"
                                         />
                                       </td>
 
                                       {/* Line Total */}
-                                      <td className="py-2 text-right font-bold text-[#9E7B1D]">
+                                      <td className="py-2 text-right font-bold text-blue-600">
                                         ₹{Math.round(lineTotal).toLocaleString("en-IN")}
                                       </td>
 
@@ -1372,10 +1372,10 @@ export default function LeadManagement() {
                   </div>
 
                   {/* Actions & Summary Bar */}
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#FAF9F5] border border-[#E8DCC4] rounded-2xl p-5">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 border border-slate-200 rounded-2xl p-5">
                     <button
                       onClick={() => addRoom()}
-                      className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-[#D4AF37] transition cursor-pointer"
+                      className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer"
                     >
                       + Add New Room / Space
                     </button>
@@ -1387,17 +1387,17 @@ export default function LeadManagement() {
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[10px] uppercase font-bold">GST (18%):</span>
-                        <span className="font-bold text-[#9E7B1D]">₹{Math.round(gstTotal).toLocaleString("en-IN")}</span>
+                        <span className="font-bold text-blue-600">₹{Math.round(gstTotal).toLocaleString("en-IN")}</span>
                       </div>
                       <div className="pl-4 border-l border-slate-200">
                         <span className="text-slate-500 block text-[10px] uppercase font-black">Estimated Cost:</span>
-                        <span className="font-black text-[#9E7B1D] text-base">₹{Math.round(grandTotal).toLocaleString("en-IN")}</span>
+                        <span className="font-black text-blue-600 text-base">₹{Math.round(grandTotal).toLocaleString("en-IN")}</span>
                       </div>
                     </div>
 
                     <button
                       onClick={handleSaveBOQ}
-                      className="px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-black rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xs cursor-pointer transition"
                     >
                       Save & Generate Estimate
                     </button>
@@ -1413,10 +1413,10 @@ export default function LeadManagement() {
       {isMaterialModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-[#FAF9F5]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 font-sans">Add Product to database</h3>
-                <p className="text-[10px] text-[#9E7B1D] font-extrabold uppercase">Save material to use in future estimates</p>
+                <p className="text-[10px] text-blue-600 font-extrabold uppercase">Save material to use in future estimates</p>
               </div>
               <button
                 onClick={() => setIsMaterialModalOpen(false)}
@@ -1435,7 +1435,7 @@ export default function LeadManagement() {
                   placeholder="e.g. Commercial Plywood 19mm"
                   value={newMaterialData.name}
                   onChange={(e) => setNewMaterialData({ ...newMaterialData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
                 />
               </div>
 
@@ -1445,7 +1445,7 @@ export default function LeadManagement() {
                   <select
                     value={newMaterialData.category}
                     onChange={(e) => setNewMaterialData({ ...newMaterialData, category: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500"
                   >
                     <option value="Hardware">Hardware</option>
                     <option value="Plywood">Plywood</option>
@@ -1465,7 +1465,7 @@ export default function LeadManagement() {
                     placeholder="e.g. CenturyPly"
                     value={newMaterialData.brand}
                     onChange={(e) => setNewMaterialData({ ...newMaterialData, brand: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
                   />
                 </div>
               </div>
@@ -1479,7 +1479,7 @@ export default function LeadManagement() {
                     placeholder="sq.ft or unit"
                     value={newMaterialData.unit}
                     onChange={(e) => setNewMaterialData({ ...newMaterialData, unit: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
                   />
                 </div>
                 <div>
@@ -1490,14 +1490,14 @@ export default function LeadManagement() {
                     placeholder="Unit price"
                     value={newMaterialData.unitPrice}
                     onChange={(e) => setNewMaterialData({ ...newMaterialData, unitPrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#C5A059] focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-stone-950 font-black rounded-xl hover:opacity-95 shadow-sm cursor-pointer"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xs cursor-pointer transition"
               >
                 Add to Predefined List
               </button>

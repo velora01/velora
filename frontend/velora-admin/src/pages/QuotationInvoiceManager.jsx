@@ -1144,7 +1144,7 @@ export default function QuotationInvoiceManager() {
                     paymentQrCode: paymentQrCode
                   });
                 }}
-                className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-1.5"
               >
                 <Printer size={13} />
                 <span>Print Invoice</span>
@@ -1829,10 +1829,10 @@ export default function QuotationInvoiceManager() {
                                   paymentQrCode: paymentQrCode
                                 });
                               }}
-                              className="p-1.5 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                               title="Print Invoice"
                             >
-                              <Printer size={14} className="text-amber-600" />
+                              <Printer size={14} className="text-slate-600" />
                             </button>
 
                             <button
@@ -1886,9 +1886,9 @@ export default function QuotationInvoiceManager() {
                                       });
                                       setActiveDropdownId(null);
                                     }}
-                                    className="w-full px-3 py-2 text-left text-xs font-bold text-stone-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-2 cursor-pointer"
+                                    className="w-full px-3 py-2 text-left text-xs font-bold text-stone-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2 cursor-pointer"
                                   >
-                                    <Printer size={13} className="text-amber-600" />
+                                    <Printer size={13} className="text-blue-600" />
                                     <span>Print</span>
                                   </button>
                                   <button
@@ -2104,7 +2104,7 @@ export default function QuotationInvoiceManager() {
                 >
                   <div className="w-full aspect-[1/1.4] bg-white rounded-lg shadow-md p-2 flex flex-col justify-between text-[6px] text-stone-900 overflow-hidden pointer-events-none mb-1.5 border border-stone-300">
                     <div className="flex justify-between items-center mb-1">
-                      <div className="w-12 h-2 bg-amber-500/40 rounded-xs" />
+                      <div className="w-12 h-2 bg-blue-500/40 rounded-xs" />
                       <div className="w-8 h-2 bg-blue-600 rounded-xs" />
                     </div>
                     <div className="h-3 bg-blue-600 rounded-xs my-1" />
@@ -2181,7 +2181,7 @@ export default function QuotationInvoiceManager() {
                       <div className="flex items-start justify-between border-b border-stone-200 pb-5">
                         <div className="space-y-1.5">
                           {/* Velora Antaraal Luxury Logo Badge */}
-                          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300 rounded-xl text-[#9E7B1D] font-black text-sm tracking-wider shadow-2xs">
+                          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 font-black text-sm tracking-wider shadow-2xs">
                             <Building size={16} />
                             <span>VELORA ANTARAAL</span>
                           </div>

@@ -453,33 +453,33 @@ export default function LibraryComponents() {
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Toast Notification */}
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-[#9E7B1D] text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
           <CheckCircle2 size={16} />
           <span>{successToast}</span>
         </div>
       )}
 
       {/* Main Table Card (Screenshot 3 Reference) */}
-      <div className="bg-white border border-[#EAE3D2] rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
         {/* Toolbar Header */}
-        <div className="p-4 sm:p-5 border-b border-[#EAE3D2] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           {/* Left: Search input */}
           <div className="relative w-full sm:w-80">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by component name"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition"
             />
           </div>
 
           {/* Right: Count & + New Component button */}
           <div className="flex items-center gap-4 justify-between sm:justify-end">
-            <div className="text-xs font-bold text-stone-800 select-none">
-              <span>{pagination.total || components.length}</span>{" "}
-              <span className="text-stone-500 font-normal">Components</span>
+            <div className="text-xs font-bold text-slate-800 select-none">
+              <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full mr-1.5">{pagination.total || components.length}</span>{" "}
+              <span className="text-slate-500 font-normal">Components</span>
             </div>
 
             <button
@@ -489,7 +489,7 @@ export default function LibraryComponents() {
                 setErrorMsg("");
                 setIsAddModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
             >
               <Plus size={15} />
               <span>New Component</span>
@@ -502,50 +502,50 @@ export default function LibraryComponents() {
           <table className="w-full text-left border-collapse">
             <thead>
               {/* Header Row */}
-              <tr className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-stone-700 text-xs font-bold">
-                <th className="py-3 px-3 w-10 text-center text-stone-400"></th>
-                <th className="py-3 px-3 w-14 font-semibold text-stone-600">S.No</th>
-                <th className="py-3 px-4 font-bold text-stone-900 min-w-[240px]">Component</th>
+              <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-700 text-xs font-bold">
+                <th className="py-3 px-3 w-10 text-center text-slate-400"></th>
+                <th className="py-3 px-3 w-14 font-semibold text-slate-600">S.No</th>
+                <th className="py-3 px-4 font-bold text-slate-900 min-w-[240px]">Component</th>
                 {/* Elite */}
-                <th colSpan={2} className="py-3 px-4 text-center border-l border-[#EAE3D2] bg-amber-50/40">
-                  <span className="font-extrabold text-[#9E7B1D]">Elite</span>
-                  <div className="grid grid-cols-2 text-[11px] font-semibold text-stone-600 mt-1">
+                <th colSpan={2} className="py-3 px-4 text-center border-l border-slate-200 bg-blue-50/40">
+                  <span className="font-extrabold text-blue-700">Elite</span>
+                  <div className="grid grid-cols-2 text-[11px] font-semibold text-slate-600 mt-1">
                     <span className="text-left">Type</span>
                     <span className="text-right">Rate</span>
                   </div>
                 </th>
                 {/* Premium */}
-                <th colSpan={2} className="py-3 px-4 text-center border-l border-[#EAE3D2]">
-                  <span className="font-extrabold text-stone-800">Premium</span>
-                  <div className="grid grid-cols-2 text-[11px] font-semibold text-stone-600 mt-1">
+                <th colSpan={2} className="py-3 px-4 text-center border-l border-slate-200">
+                  <span className="font-extrabold text-slate-800">Premium</span>
+                  <div className="grid grid-cols-2 text-[11px] font-semibold text-slate-600 mt-1">
                     <span className="text-left">Type</span>
                     <span className="text-right">Rate</span>
                   </div>
                 </th>
                 {/* Standard */}
-                <th colSpan={2} className="py-3 px-4 text-center border-l border-[#EAE3D2] bg-stone-50/50">
-                  <span className="font-extrabold text-stone-800">Standard</span>
-                  <div className="grid grid-cols-2 text-[11px] font-semibold text-stone-600 mt-1">
+                <th colSpan={2} className="py-3 px-4 text-center border-l border-slate-200 bg-slate-50/50">
+                  <span className="font-extrabold text-slate-800">Standard</span>
+                  <div className="grid grid-cols-2 text-[11px] font-semibold text-slate-600 mt-1">
                     <span className="text-left">Type</span>
                     <span className="text-right">Rate</span>
                   </div>
                 </th>
-                <th className="py-3 px-4 text-center border-l border-[#EAE3D2] font-bold text-stone-800 min-w-[120px]">
+                <th className="py-3 px-4 text-center border-l border-slate-200 font-bold text-slate-800 min-w-[120px]">
                   Action
                 </th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-700">
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-stone-400">
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
                     Loading components...
                   </td>
                 </tr>
               ) : components.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-stone-400">
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
                     No components found. Click "+ New Component" to add one.
                   </td>
                 </tr>
@@ -559,26 +559,26 @@ export default function LibraryComponents() {
                   ].filter(Boolean).length;
 
                   return (
-                    <tr key={comp._id || idx} className="hover:bg-amber-50/20 transition">
+                    <tr key={comp._id || idx} className="hover:bg-blue-50/30 transition">
                       {/* Drag Handle */}
-                      <td className="py-3 px-3 text-center text-stone-300">
+                      <td className="py-3 px-3 text-center text-slate-300">
                         <GripVertical size={14} className="mx-auto cursor-grab" />
                       </td>
 
                       {/* S.No */}
-                      <td className="py-3 px-3 font-mono text-stone-500 font-semibold">{idx + 1}</td>
+                      <td className="py-3 px-3 font-mono text-slate-500 font-semibold">{idx + 1}</td>
 
                       {/* Component Name & Space Badge & Image Badges */}
-                      <td className="py-3 px-4 font-semibold text-stone-900">
+                      <td className="py-3 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className="hover:text-[#9E7B1D] transition cursor-pointer"
+                            className="hover:text-blue-600 transition cursor-pointer"
                             onClick={() => handleOpenEdit(comp)}
                           >
                             {comp.name}
                           </span>
                           {comp.relevantSpace && (
-                            <span className="text-[10px] bg-amber-50 text-[#9E7B1D] border border-amber-200 px-1.5 py-0.5 rounded font-medium">
+                            <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-md font-medium">
                               {comp.relevantSpace}
                             </span>
                           )}
@@ -610,17 +610,17 @@ export default function LibraryComponents() {
                         if (compVariants.includes("Elite")) {
                           return (
                             <>
-                              <td className="py-3 px-3 border-l border-[#EAE3D2] bg-amber-50/20 text-stone-700">
+                              <td className="py-3 px-3 border-l border-slate-200 bg-blue-50/20 text-slate-700">
                                 {comp.elite?.type || "Box"}
                               </td>
-                              <td className="py-3 px-3 bg-amber-50/20 text-right font-bold text-[#9E7B1D]">
+                              <td className="py-3 px-3 bg-blue-50/20 text-right font-bold text-blue-700">
                                 ₹{(comp.elite?.rate || comp.elite?.unit?.rate || 2200).toLocaleString("en-IN")}
                               </td>
                             </>
                           );
                         }
                         return (
-                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                          <td colSpan={2} className="py-3 px-3 border-l border-slate-200 bg-slate-50/20 text-center text-slate-300 font-mono">
                             -
                           </td>
                         );
@@ -634,17 +634,17 @@ export default function LibraryComponents() {
                         if (compVariants.includes("Premium")) {
                           return (
                             <>
-                              <td className="py-3 px-3 border-l border-[#EAE3D2] text-stone-700">
+                              <td className="py-3 px-3 border-l border-slate-200 text-slate-700">
                                 {comp.premium?.type || "Box"}
                               </td>
-                              <td className="py-3 px-3 text-right font-bold text-stone-900">
+                              <td className="py-3 px-3 text-right font-bold text-slate-900">
                                 ₹{(comp.premium?.rate || comp.premium?.unit?.rate || 1800).toLocaleString("en-IN")}
                               </td>
                             </>
                           );
                         }
                         return (
-                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                          <td colSpan={2} className="py-3 px-3 border-l border-slate-200 bg-slate-50/20 text-center text-slate-300 font-mono">
                             -
                           </td>
                         );
@@ -658,30 +658,30 @@ export default function LibraryComponents() {
                         if (compVariants.includes("Standard")) {
                           return (
                             <>
-                              <td className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/30 text-stone-700">
+                              <td className="py-3 px-3 border-l border-slate-200 bg-slate-50/30 text-slate-700">
                                 {comp.standard?.type || "Box"}
                               </td>
-                              <td className="py-3 px-3 bg-stone-50/30 text-right font-bold text-stone-900">
+                              <td className="py-3 px-3 bg-slate-50/30 text-right font-bold text-slate-900">
                                 ₹{(comp.standard?.rate || comp.standard?.unit?.rate || 1500).toLocaleString("en-IN")}
                               </td>
                             </>
                           );
                         }
                         return (
-                          <td colSpan={2} className="py-3 px-3 border-l border-[#EAE3D2] bg-stone-50/20 text-center text-stone-300 font-mono">
+                          <td colSpan={2} className="py-3 px-3 border-l border-slate-200 bg-slate-50/20 text-center text-slate-300 font-mono">
                             -
                           </td>
                         );
                       })()}
 
                       {/* Actions */}
-                      <td className="py-3 px-4 border-l border-[#EAE3D2] text-center">
+                      <td className="py-3 px-4 border-l border-slate-200 text-center">
                         <div className="flex items-center justify-center gap-2.5">
                           {/* Edit icon */}
                           <button
                             onClick={() => handleOpenEdit(comp)}
                             title="Edit Component"
-                            className="p-1 text-stone-400 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                           >
                             <Edit2 size={14} />
                           </button>
@@ -691,7 +691,7 @@ export default function LibraryComponents() {
                             type="button"
                             onClick={() => handleToggleVisibility(comp._id, comp.visibility !== false)}
                             className={`w-9 h-5 flex items-center rounded-full p-0.5 transition cursor-pointer ${
-                              comp.visibility !== false ? "bg-[#D4AF37]" : "bg-stone-300"
+                              comp.visibility !== false ? "bg-blue-600" : "bg-slate-300"
                             }`}
                             title={comp.visibility !== false ? "Visible in BOQ" : "Hidden"}
                           >
@@ -706,7 +706,7 @@ export default function LibraryComponents() {
                           <button
                             onClick={() => handleDelete(comp._id)}
                             title="Delete Component"
-                            className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -725,16 +725,16 @@ export default function LibraryComponents() {
       {/* ADD / EDIT COMPONENT MODAL (Matching Reference Screenshots 1, 2, 3, 4) */}
       {/* ========================================================================= */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
-              <h2 className="text-sm font-bold text-stone-900">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <h2 className="text-sm font-bold text-slate-900">
                 {editingComponent ? "Edit Component" : "Add New Component"}
               </h2>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -751,7 +751,7 @@ export default function LibraryComponents() {
 
               {/* 1. Component Name */}
               <div>
-                <label className="block font-semibold text-stone-700 mb-1.5">
+                <label className="block font-semibold text-slate-700 mb-1.5">
                   Component Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -760,7 +760,7 @@ export default function LibraryComponents() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition shadow-2xs"
+                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-2xs"
                 />
               </div>
 
@@ -769,11 +769,11 @@ export default function LibraryComponents() {
                 {/* Variant Multi-Select Dropdown */}
                 <div className="relative" ref={variantDropdownRef}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="font-semibold text-stone-700">Variant</label>
+                    <label className="font-semibold text-slate-700">Variant</label>
                     <button
                       type="button"
                       onClick={handleSelectAllVariants}
-                      className="text-[10px] font-bold text-[#9E7B1D] hover:underline cursor-pointer"
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
                     >
                       Select All (3)
                     </button>
@@ -781,25 +781,25 @@ export default function LibraryComponents() {
                   <button
                     type="button"
                     onClick={() => setIsVariantDropdownOpen(!isVariantDropdownOpen)}
-                    className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 flex items-center justify-between focus:outline-none focus:border-[#D4AF37] transition shadow-2xs cursor-pointer"
+                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 flex items-center justify-between focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
                     <span className="truncate">
                       {formData.selectedVariants.length > 0
                         ? formData.selectedVariants.join(", ")
                         : "Select Variants"}
                     </span>
-                    <ChevronDown size={15} className={`text-stone-400 transition-transform ${isVariantDropdownOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown size={15} className={`text-slate-400 transition-transform ${isVariantDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
 
                   {/* Multi-Select Popover Dropdown */}
                   {isVariantDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#EAE3D2] rounded-xl shadow-xl z-30 p-2 space-y-1 animate-in zoom-in-95 duration-150">
-                      <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 text-[10px] text-stone-400 font-semibold">
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 p-2 space-y-1 animate-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-slate-100 text-[10px] text-slate-400 font-semibold">
                         <span>Select Active Variants</span>
                         <button
                           type="button"
                           onClick={handleSelectAllVariants}
-                          className="text-[#9E7B1D] hover:underline cursor-pointer"
+                          className="text-blue-600 hover:underline cursor-pointer"
                         >
                           All 3
                         </button>
@@ -810,13 +810,13 @@ export default function LibraryComponents() {
                           <div
                             key={v}
                             onClick={() => handleToggleVariantSelection(v)}
-                            className="flex items-center gap-2.5 px-3 py-2 hover:bg-amber-50/70 rounded-lg cursor-pointer text-xs font-medium text-stone-800 select-none transition"
+                            className="flex items-center gap-2.5 px-3 py-2 hover:bg-blue-50 rounded-lg cursor-pointer text-xs font-medium text-slate-800 select-none transition"
                           >
                             <input
                               type="checkbox"
                               checked={isChecked}
                               readOnly
-                              className="w-4 h-4 rounded text-[#D4AF37] focus:ring-[#D4AF37] border-stone-300 pointer-events-none"
+                              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 pointer-events-none"
                             />
                             <span>{v}</span>
                           </div>
@@ -828,11 +828,11 @@ export default function LibraryComponents() {
 
                 {/* Relevant Space Dropdown */}
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1.5">Relevant Space</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Relevant Space</label>
                   <select
                     value={formData.relevantSpace}
                     onChange={(e) => setFormData({ ...formData, relevantSpace: e.target.value })}
-                    className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition shadow-2xs cursor-pointer"
+                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
                     {spacesList.map((s) => (
                       <option key={s} value={s}>
@@ -845,7 +845,7 @@ export default function LibraryComponents() {
 
               {/* Quick Interactive Status Pill Badges */}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-semibold text-stone-500">Active Tabs ({formData.selectedVariants.length}):</span>
+                <span className="text-[11px] font-semibold text-slate-500">Active Tabs ({formData.selectedVariants.length}):</span>
                 {availableVariantKeys.map((v) => {
                   const isActive = formData.selectedVariants.includes(v);
                   return (
@@ -856,11 +856,11 @@ export default function LibraryComponents() {
                       className={`px-3 py-1 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 border ${
                         isActive
                           ? v === "Elite"
-                            ? "bg-amber-100/70 border-amber-300 text-[#9E7B1D]"
+                            ? "bg-blue-100/70 border-blue-300 text-blue-800"
                             : v === "Premium"
                             ? "bg-sky-100/70 border-sky-300 text-sky-800"
                             : "bg-emerald-100/70 border-emerald-300 text-emerald-800"
-                          : "bg-stone-100 border-stone-200 text-stone-400 hover:bg-stone-200"
+                          : "bg-slate-100 border-slate-200 text-slate-400 hover:bg-slate-200"
                       }`}
                     >
                       <span>{isActive ? "✓" : "+"}</span>
@@ -871,8 +871,8 @@ export default function LibraryComponents() {
               </div>
 
               {/* 3. Blue Info Banner Note (Screenshots 1 & 2) */}
-              <div className="flex items-start gap-2.5 p-3 bg-sky-50/80 border border-sky-200 text-sky-900 rounded-xl text-[11px] leading-relaxed">
-                <Info size={16} className="text-sky-600 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 p-3 bg-blue-50 border border-blue-200 text-blue-900 rounded-xl text-[11px] leading-relaxed">
+                <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
                 <span>
                   <b>Note:</b> Variants with images cannot be unselected. Please remove all images from a variant before unselecting it.
                 </span>
@@ -887,12 +887,12 @@ export default function LibraryComponents() {
                   return (
                     <div
                       key={variantName}
-                      className="border border-[#EAE3D2] rounded-2xl overflow-hidden bg-white shadow-2xs space-y-4 pb-4"
+                      className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs space-y-4 pb-4"
                     >
-                      {/* Section Header with Blue/Gold Accent Banner */}
-                      <div className="px-4 py-2.5 bg-gradient-to-r from-sky-50 to-amber-50/40 border-b border-[#EAE3D2] flex items-center justify-between">
-                        <span className="font-extrabold text-sm text-stone-900">{variantName}</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E7B1D] bg-amber-100/60 px-2 py-0.5 rounded-md">
+                      {/* Section Header with Blue Accent Banner */}
+                      <div className="px-4 py-2.5 bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <span className="font-extrabold text-sm text-slate-900">{variantName}</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md">
                           Variant Config
                         </span>
                       </div>
@@ -900,11 +900,11 @@ export default function LibraryComponents() {
                       <div className="px-5 space-y-4">
                         {/* Section Subtitle: In Unit */}
                         <div className="space-y-2">
-                          <span className="block font-bold text-stone-800 text-[11px]">In Unit</span>
+                          <span className="block font-bold text-slate-800 text-[11px]">In Unit</span>
                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                             {/* Length (ft & inch) */}
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">
                                 Length (ft & inch)
                               </label>
                               <div className="grid grid-cols-2 gap-1.5">
@@ -915,7 +915,7 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "lengthFt", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                                 <input
                                   type="number"
@@ -924,14 +924,14 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "lengthIn", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                               </div>
                             </div>
 
                             {/* Height (ft & inch) */}
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">
                                 Height (ft & inch)
                               </label>
                               <div className="grid grid-cols-2 gap-1.5">
@@ -942,7 +942,7 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "heightFt", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                                 <input
                                   type="number"
@@ -951,14 +951,14 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "heightIn", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                               </div>
                             </div>
 
                             {/* Depth (ft & inch) */}
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">
                                 Depth (ft & inch)
                               </label>
                               <div className="grid grid-cols-2 gap-1.5">
@@ -969,7 +969,7 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "depthFt", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                                 <input
                                   type="number"
@@ -978,38 +978,38 @@ export default function LibraryComponents() {
                                   onChange={(e) =>
                                     handleUpdateUnitField(key, "depthIn", Number(e.target.value))
                                   }
-                                  className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                                  className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs"
                                 />
                               </div>
                             </div>
 
                             {/* Rate (per sq.ft) */}
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">
                                 Rate (per sq.ft)
                               </label>
                               <input
                                 type="number"
                                 value={vData.unit?.rate || 0}
                                 onChange={(e) =>
-                                  handleUpdateUnitField(key, "rate", Number(e.target.value))
+                                    handleUpdateUnitField(key, "rate", Number(e.target.value))
                                 }
-                                className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs font-semibold text-stone-800"
+                                className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
                               />
                             </div>
                           </div>
                         </div>
 
                         {/* Section Subtitle: In Type (Screenshots 2, 3, 4) */}
-                        <div className="space-y-2 pt-1 border-t border-[#F0EBE0]">
-                          <span className="block font-bold text-stone-800 text-[11px]">In Type</span>
+                        <div className="space-y-2 pt-1 border-t border-slate-100">
+                          <span className="block font-bold text-slate-800 text-[11px]">In Type</span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">Type</label>
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">Type</label>
                               <select
                                 value={vData.type || "Box"}
                                 onChange={(e) => handleUpdateTypeField(key, "type", e.target.value)}
-                                className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37]"
+                                className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                               >
                                 {typesList.map((t) => (
                                   <option key={t} value={t}>
@@ -1020,7 +1020,7 @@ export default function LibraryComponents() {
                             </div>
 
                             <div>
-                              <label className="block text-[10px] text-stone-500 font-semibold mb-1">
+                              <label className="block text-[10px] text-slate-500 font-semibold mb-1">
                                 Rate (per sq.ft)
                               </label>
                               <input
@@ -1030,18 +1030,18 @@ export default function LibraryComponents() {
                                 onChange={(e) =>
                                   handleUpdateTypeField(key, "rate", Number(e.target.value))
                                 }
-                                className="w-full h-9 px-3 bg-white border border-[#EAE3D2] rounded-lg text-xs font-semibold text-stone-800"
+                                className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
                               />
                             </div>
                           </div>
                         </div>
 
                         {/* Images (Optional) Gallery / Upload Box (Screenshots 3 & 4) */}
-                        <div className="space-y-2 pt-1 border-t border-[#F0EBE0]">
+                        <div className="space-y-2 pt-1 border-t border-slate-100">
                           <div className="flex items-center justify-between">
-                            <span className="block font-bold text-stone-800 text-[11px]">Images (Optional)</span>
+                            <span className="block font-bold text-slate-800 text-[11px]">Images (Optional)</span>
                             {vData.images?.length > 0 && (
-                              <span className="text-[10px] text-stone-400 font-medium">
+                              <span className="text-[10px] text-slate-400 font-medium">
                                 {vData.images.length} image(s) attached
                               </span>
                             )}
@@ -1050,7 +1050,7 @@ export default function LibraryComponents() {
                           {/* Upload Trigger Button & Previews Grid */}
                           <div className="space-y-2.5">
                             <div className="flex items-center gap-3 flex-wrap">
-                              <label className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-dashed border-[#D4AF37] bg-amber-50/50 hover:bg-amber-100/70 text-[#9E7B1D] font-bold text-xs rounded-xl cursor-pointer transition shadow-2xs">
+                              <label className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-dashed border-blue-400 bg-blue-50/50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl cursor-pointer transition shadow-2xs">
                                 {uploadingVariant === key ? (
                                   <Loader2 size={14} className="animate-spin" />
                                 ) : (
@@ -1074,7 +1074,7 @@ export default function LibraryComponents() {
                                 {vData.images.map((img, imgIdx) => (
                                   <div
                                     key={imgIdx}
-                                    className="group relative aspect-square rounded-xl overflow-hidden border border-[#EAE3D2] bg-stone-100 shadow-2xs"
+                                    className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs"
                                   >
                                     <img
                                       src={img.url}
@@ -1082,12 +1082,12 @@ export default function LibraryComponents() {
                                       className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
                                     />
                                     {/* Overlay Actions */}
-                                    <div className="absolute inset-0 bg-stone-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
                                       <button
                                         type="button"
                                         onClick={() => setPreviewImageModal(img.url)}
                                         title="View image"
-                                        className="p-1 rounded-full bg-white/80 text-stone-900 hover:bg-white cursor-pointer"
+                                        className="p-1 rounded-full bg-white/80 text-slate-900 hover:bg-white cursor-pointer"
                                       >
                                         <Eye size={12} />
                                       </button>
@@ -1108,8 +1108,8 @@ export default function LibraryComponents() {
                         </div>
 
                         {/* Variant Description (Screenshots 3 & 4) */}
-                        <div className="space-y-1.5 pt-1 border-t border-[#F0EBE0]">
-                          <label className="block font-semibold text-stone-700 text-[11px]">
+                        <div className="space-y-1.5 pt-1 border-t border-slate-100">
+                          <label className="block font-semibold text-slate-700 text-[11px]">
                             {variantName} - Variant description
                           </label>
                           <textarea
@@ -1117,7 +1117,7 @@ export default function LibraryComponents() {
                             placeholder="Enter description"
                             value={vData.description || ""}
                             onChange={(e) => handleUpdateVariantDescription(key, e.target.value)}
-                            className="w-full p-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
+                            className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
                           />
                         </div>
                       </div>
@@ -1128,24 +1128,24 @@ export default function LibraryComponents() {
 
               {/* General / Fallback Component Description */}
               <div className="pt-1">
-                <label className="block font-semibold text-stone-700 mb-1.5">Component description</label>
+                <label className="block font-semibold text-slate-700 mb-1.5">Component description</label>
                 <textarea
                   rows={2}
                   placeholder="Used in BOQ when a variant has no description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                 />
               </div>
 
               {/* Visibility Toggle Switch (Screenshot 4) */}
               <div className="flex items-center gap-3 pt-1">
-                <span className="font-semibold text-stone-700">Visibility</span>
+                <span className="font-semibold text-slate-700">Visibility</span>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, visibility: !formData.visibility })}
                   className={`w-10 h-5 flex items-center rounded-full p-0.5 transition cursor-pointer ${
-                    formData.visibility ? "bg-[#D4AF37]" : "bg-stone-300"
+                    formData.visibility ? "bg-blue-600" : "bg-slate-300"
                   }`}
                 >
                   <div
@@ -1157,17 +1157,17 @@ export default function LibraryComponents() {
               </div>
 
               {/* Footer Actions */}
-              <div className="pt-4 border-t border-[#EAE3D2] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-5 py-2 font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl transition cursor-pointer"
+                  className="px-5 py-2 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+                  className="px-6 py-2 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                 >
                   Save
                 </button>

@@ -164,7 +164,7 @@ export default function UserManagement() {
     switch (role) {
       case "Super Admin":
       case "Admin":
-        return "bg-amber-100 text-amber-900 border-amber-300 font-black";
+        return "bg-blue-50 text-blue-700 border-blue-200 font-bold";
       case "Designer":
         return "bg-purple-50 text-purple-800 border-purple-200 font-bold";
       case "Sales":
@@ -187,16 +187,16 @@ export default function UserManagement() {
       sortable: true,
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#9E7B1D] text-slate-950 font-black text-sm flex items-center justify-center shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-sm flex items-center justify-center shadow-xs">
             {row.name ? row.name.charAt(0).toUpperCase() : "U"}
           </div>
           <div>
-            <div className="font-bold text-stone-900 text-xs flex items-center gap-1.5">
+            <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
               <span>{row.name}</span>
-              {row.role === "Super Admin" && <Crown size={13} className="text-[#9E7B1D]" />}
+              {row.role === "Super Admin" && <Crown size={13} className="text-blue-600" />}
             </div>
-            <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
-              <Mail size={11} className="text-stone-400" />
+            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+              <Mail size={11} className="text-slate-400" />
               <span>{row.email}</span>
             </div>
           </div>
@@ -206,8 +206,8 @@ export default function UserManagement() {
     {
       header: "Contact Phone",
       render: (row) => (
-        <div className="text-xs text-stone-700 font-medium flex items-center gap-1.5">
-          <Phone size={12} className="text-stone-400" />
+        <div className="text-xs text-slate-700 font-medium flex items-center gap-1.5">
+          <Phone size={12} className="text-slate-400" />
           <span>{row.phone || "—"}</span>
         </div>
       )
@@ -237,7 +237,7 @@ export default function UserManagement() {
           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
             row.isActive !== false
               ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "bg-stone-100 text-stone-500 border-stone-200"
+              : "bg-slate-100 text-slate-500 border-slate-200"
           }`}
         >
           {row.isActive !== false ? <CheckCircle2 size={12} /> : <UserX size={12} />}
@@ -248,7 +248,7 @@ export default function UserManagement() {
     {
       header: "Joined On",
       render: (row) => (
-        <span className="text-xs text-stone-600 font-medium">
+        <span className="text-xs text-slate-600 font-medium">
           {new Date(row.createdAt || Date.now()).toLocaleDateString("en-IN", {
             month: "short",
             day: "2-digit",
@@ -264,7 +264,7 @@ export default function UserManagement() {
           <button
             onClick={() => openEditDrawer(row)}
             title="Edit User"
-            className="p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition-all"
+            className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
           >
             <Edit2 size={15} />
           </button>
@@ -272,7 +272,7 @@ export default function UserManagement() {
             onClick={() => setDeleteConfirmId(row._id)}
             title="Delete User"
             disabled={row._id === loggedInUser?._id}
-            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             <Trash2 size={15} />
           </button>
@@ -293,13 +293,13 @@ export default function UserManagement() {
       {/* Toast Notification */}
       {notification.show && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-semibold transition-all animate-bounce ${
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-semibold transition-all ${
             notification.type === "success"
-              ? "bg-slate-900 border-[#D4AF37]/50 text-amber-300"
+              ? "bg-slate-900 border-blue-500/50 text-blue-200"
               : "bg-red-900 border-red-500/50 text-red-200"
           }`}
         >
-          {notification.type === "success" ? <CheckCircle2 size={20} className="text-[#D4AF37]" /> : <AlertCircle size={20} />}
+          {notification.type === "success" ? <CheckCircle2 size={20} className="text-blue-400" /> : <AlertCircle size={20} />}
           <span>{notification.message}</span>
         </div>
       )}
@@ -307,18 +307,18 @@ export default function UserManagement() {
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-stone-200 space-y-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center gap-3 text-red-600">
               <AlertCircle size={24} />
-              <h3 className="text-lg font-black text-stone-900">Delete User Account</h3>
+              <h3 className="text-lg font-black text-slate-900">Delete User Account</h3>
             </div>
-            <p className="text-xs text-stone-600 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Are you sure you want to permanently delete this user account? This staff member will immediately lose access to the Velora ERP system.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs"
               >
                 Cancel
               </button>
@@ -334,24 +334,22 @@ export default function UserManagement() {
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 border border-[#9E7B1D]/30 p-6 rounded-2xl text-white shadow-md">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#9E7B1D] flex items-center justify-center text-slate-950 font-black shadow-inner">
-              <Shield size={22} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-[#FAF9F5]">User & Access Management (RBAC)</h1>
-              <p className="text-xs text-amber-200/80 mt-0.5">
-                Manage all 8 team roles, staff permissions, login credentials, and audit tracking
-              </p>
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-black shadow-2xs">
+            <Shield size={22} />
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold tracking-tight text-slate-900">User & Access Management (RBAC)</h1>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              Manage all 8 team roles, staff permissions, login credentials, and audit tracking
+            </p>
           </div>
         </div>
 
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] hover:from-[#DFBE5B] hover:to-[#D4AF37] text-slate-950 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Staff Account</span>
@@ -361,36 +359,36 @@ export default function UserManagement() {
       {/* Top Metrics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
         {[
-          { label: "Total Team Members", count: totalCount, icon: Users, color: "text-[#9E7B1D]", bg: "bg-amber-50" },
-          { label: "Admins / Super Admins", count: adminCount, icon: Crown, color: "text-amber-800", bg: "bg-amber-100/50" },
+          { label: "Total Team Members", count: totalCount, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Admins / Super Admins", count: adminCount, icon: Crown, color: "text-indigo-700", bg: "bg-indigo-50" },
           { label: "Designers", count: designerCount, icon: Sparkles, color: "text-purple-700", bg: "bg-purple-50" },
           { label: "Sales Executives", count: salesCount, icon: UserCheck, color: "text-emerald-700", bg: "bg-emerald-50" },
-          { label: "Project Managers", count: pmCount, icon: Shield, color: "text-blue-700", bg: "bg-blue-50" }
+          { label: "Project Managers", count: pmCount, icon: Shield, color: "text-sky-700", bg: "bg-sky-50" }
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="bg-white border border-stone-200 p-4 rounded-2xl shadow-sm space-y-2">
+            <div key={i} className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-stone-500">{stat.label}</span>
+                <span className="text-[11px] font-bold text-slate-500">{stat.label}</span>
                 <div className={`w-7 h-7 rounded-lg ${stat.bg} ${stat.color} flex items-center justify-center`}>
                   <Icon size={14} />
                 </div>
               </div>
-              <div className="text-xl font-black text-stone-900">{stat.count}</div>
+              <div className="text-xl font-black text-slate-900">{stat.count}</div>
             </div>
           );
         })}
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter size={16} className="text-stone-400" />
-          <span className="text-xs font-bold text-stone-700">Filter Role:</span>
+          <Filter size={16} className="text-slate-400" />
+          <span className="text-xs font-bold text-slate-700">Filter Role:</span>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-none focus:border-[#9E7B1D]"
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
           >
             <option value="all">All Roles ({totalCount})</option>
             {ROLES_LIST.map((r) => (
@@ -402,13 +400,13 @@ export default function UserManagement() {
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, phone..."
-            className="w-full pl-9 pr-3.5 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 font-medium focus:outline-none focus:border-[#9E7B1D]"
+            className="w-full pl-9 pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
@@ -430,42 +428,42 @@ export default function UserManagement() {
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-stone-700 font-bold mb-1">Full Legal Name *</label>
+            <label className="block text-slate-700 font-bold mb-1">Full Legal Name *</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. Rohan Sharma"
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium focus:outline-none focus:border-[#9E7B1D]"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-stone-700 font-bold mb-1">Work Email Address *</label>
+            <label className="block text-slate-700 font-bold mb-1">Work Email Address *</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="e.g. rohan@velora.family"
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium focus:outline-none focus:border-[#9E7B1D]"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-stone-700 font-bold mb-1">Phone Number</label>
+            <label className="block text-slate-700 font-bold mb-1">Phone Number</label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="e.g. 9876543210"
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium focus:outline-none focus:border-[#9E7B1D]"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-stone-700 font-bold mb-1">
+            <label className="block text-slate-700 font-bold mb-1">
               {isEditMode ? "New Password (Leave blank to keep unchanged)" : "Account Password *"}
             </label>
             <div className="relative">
@@ -475,18 +473,18 @@ export default function UserManagement() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium focus:outline-none focus:border-[#9E7B1D]"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
               />
-              <KeyRound size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+              <KeyRound size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
           </div>
 
           <div>
-            <label className="block text-stone-700 font-bold mb-1">Assigned Role & Privilege Tier *</label>
+            <label className="block text-slate-700 font-bold mb-1">Assigned Role & Privilege Tier *</label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-semibold focus:outline-none focus:border-[#9E7B1D]"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-blue-500"
             >
               {ROLES_LIST.map((r) => (
                 <option key={r} value={r}>
@@ -497,21 +495,21 @@ export default function UserManagement() {
           </div>
 
           <div className="pt-2">
-            <label className="flex items-center gap-2.5 cursor-pointer font-bold text-stone-700">
+            <label className="flex items-center gap-2.5 cursor-pointer font-bold text-slate-700">
               <input
                 type="checkbox"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 accent-[#9E7B1D] rounded"
+                className="w-4 h-4 accent-blue-600 rounded"
               />
               <span>Account is Active & Permitted to Login</span>
             </label>
           </div>
 
-          <div className="pt-4 border-t border-stone-100">
+          <div className="pt-4 border-t border-slate-100">
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] hover:from-[#DFBE5B] hover:to-[#D4AF37] text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-xs transition-all cursor-pointer"
             >
               {isEditMode ? "Save Changes" : "Create Staff Account"}
             </button>

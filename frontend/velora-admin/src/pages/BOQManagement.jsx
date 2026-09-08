@@ -1588,37 +1588,37 @@ export default function BOQManagement() {
     return (
       <div className="space-y-4 animate-in fade-in duration-200">
         {successToast && (
-          <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-[#9E7B1D] text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
+          <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
             <CheckCircle2 size={16} />
             <span>{successToast}</span>
           </div>
         )}
 
-        <div className="bg-white border border-[#EAE3D2] rounded-2xl shadow-xs overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
           {/* Top Toolbar (Screenshot 1) */}
-          <div className="p-4 sm:p-5 border-b border-[#EAE3D2] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative w-full sm:w-80">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search by Name, Phone, Email"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition"
               />
             </div>
 
             {/* Total Count & + New BOQ Button */}
             <div className="flex items-center gap-4 justify-between sm:justify-end">
-              <div className="text-xs font-bold text-stone-800 select-none">
-                <span>{pagination.total || boqList.length}</span>{" "}
-                <span className="text-stone-500 font-normal">BOQ</span>
+              <div className="text-xs font-bold text-slate-800 select-none">
+                <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full mr-1.5">{pagination.total || boqList.length}</span>{" "}
+                <span className="text-slate-500 font-normal">BOQ</span>
               </div>
 
               <button
                 onClick={handleOpenCreateBOQModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#0088FF] bg-blue-50/70 hover:bg-blue-100 border border-blue-200 rounded-xl transition shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs cursor-pointer"
               >
                 <Plus size={15} />
                 <span>New BOQ</span>
@@ -1629,7 +1629,7 @@ export default function BOQManagement() {
           {/* BOQ Data Table (Screenshot 1) */}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-stone-700 text-xs font-bold">
+              <thead className="bg-slate-50/75 border-b border-slate-200 text-slate-700 text-xs font-bold">
                 <tr>
                   <th className="py-3.5 px-4">Enquiry No</th>
                   <th className="py-3.5 px-4">Enquiry Date</th>
@@ -1641,24 +1641,24 @@ export default function BOQManagement() {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-700">
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                 {loadingList ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-stone-400">
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
                       Loading BOQ entries...
                     </td>
                   </tr>
                 ) : boqList.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-stone-400">
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
                       No BOQ records found. Click "+ New BOQ" to create one.
                     </td>
                   </tr>
                 ) : (
                   boqList.map((row) => (
-                    <tr key={row._id} className="hover:bg-amber-50/20 transition">
+                    <tr key={row._id} className="hover:bg-blue-50/30 transition">
                       {/* Enquiry No Link */}
-                      <td className="py-3.5 px-4 font-bold text-[#9E7B1D] hover:text-[#8C6B17] whitespace-nowrap">
+                      <td className="py-3.5 px-4 font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">
                         <button
                           onClick={() => handleOpenBuilder(row)}
                           className="hover:underline cursor-pointer font-mono"
@@ -1668,14 +1668,14 @@ export default function BOQManagement() {
                       </td>
 
                       {/* Enquiry Date */}
-                      <td className="py-3.5 px-4 text-stone-600 font-medium whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-slate-600 font-medium whitespace-nowrap">
                         {formatDate(row.enquiryDate || row.createdAt)}
                       </td>
 
                       {/* Name */}
-                      <td className="py-3.5 px-4 font-bold text-stone-900">
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
                         <span
-                          className="hover:text-[#9E7B1D] cursor-pointer transition"
+                          className="hover:text-blue-600 cursor-pointer transition"
                           onClick={() => handleOpenBuilder(row)}
                         >
                           {row.clientName}
@@ -1683,18 +1683,20 @@ export default function BOQManagement() {
                       </td>
 
                       {/* Email */}
-                      <td className="py-3.5 px-4 text-stone-500 font-mono">
+                      <td className="py-3.5 px-4 text-slate-500 font-mono">
                         {row.clientEmail || "-"}
                       </td>
 
                       {/* Phone */}
-                      <td className="py-3.5 px-4 text-stone-700 font-mono">
+                      <td className="py-3.5 px-4 text-slate-700 font-mono">
                         {row.clientPhone || "-"}
                       </td>
 
                       {/* No. of Space */}
-                      <td className="py-3.5 px-4 text-center font-bold text-stone-800">
-                        {String(row.spaces?.length || row.numberOfSpaces || 0).padStart(2, "0")}
+                      <td className="py-3.5 px-4 text-center font-bold text-slate-800">
+                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-mono text-xs">
+                          {String(row.spaces?.length || row.numberOfSpaces || 0).padStart(2, "0")}
+                        </span>
                       </td>
 
                       {/* Actions */}
@@ -1704,7 +1706,7 @@ export default function BOQManagement() {
                           <button
                             onClick={() => handleOpenQuotationModal(row)}
                             title="Preview Quotation"
-                            className="p-1.5 text-stone-600 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                           >
                             <Eye size={16} />
                           </button>
@@ -1713,7 +1715,7 @@ export default function BOQManagement() {
                           <button
                             onClick={() => handleOpenBuilder(row)}
                             title="Edit BOQ"
-                            className="p-1.5 text-[#9E7B1D] hover:text-[#8C6B17] hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                           >
                             <Edit2 size={16} />
                           </button>
@@ -1745,8 +1747,8 @@ export default function BOQManagement() {
           </div>
 
           {/* Pagination Bar */}
-          <div className="px-5 py-3.5 border-t border-[#EAE3D2] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600 bg-[#FAF9F5]">
-            <span className="text-stone-400">
+          <div className="px-5 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 bg-slate-50/75">
+            <span className="text-slate-400">
               Showing {boqList.length} of {pagination.total || boqList.length} entries
             </span>
 
@@ -1756,7 +1758,7 @@ export default function BOQManagement() {
                 <select
                   value={pagination.limit}
                   onChange={(e) => setPagination((p) => ({ ...p, limit: Number(e.target.value), page: 1 }))}
-                  className="h-8 px-2 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800 font-semibold focus:outline-none"
+                  className="h-8 px-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500"
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -1764,7 +1766,7 @@ export default function BOQManagement() {
                 </select>
               </div>
 
-              <div className="font-semibold text-stone-700">
+              <div className="font-semibold text-slate-700">
                 {(pagination.page - 1) * pagination.limit + 1} -{" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total || boqList.length)} of{" "}
                 {pagination.total || boqList.length}
@@ -1774,28 +1776,28 @@ export default function BOQManagement() {
                 <button
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((p) => ({ ...p, page: 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 transition"
                 >
                   <ChevronsLeft size={15} />
                 </button>
                 <button
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 transition"
                 >
                   <ChevronLeft size={15} />
                 </button>
                 <button
                   disabled={pagination.page >= pagination.pages}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 transition"
                 >
                   <ChevronRight size={15} />
                 </button>
                 <button
                   disabled={pagination.page >= pagination.pages}
                   onClick={() => setPagination((p) => ({ ...p, page: pagination.pages }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 transition"
                 >
                   <ChevronsRight size={15} />
                 </button>
@@ -1808,27 +1810,27 @@ export default function BOQManagement() {
         {/* MODAL: SELECT ENQUIRY TO CONTINUE (Exact Replica of User Reference Image) */}
         {/* ========================================================================= */}
         {isSelectClientModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-            <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-md overflow-hidden p-6 space-y-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden p-6 space-y-4">
               {/* Search by Name, Phone, Email Pill Input */}
               <div className="relative w-full">
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search by Name, Phone, Email"
                   value={clientSearchQuery}
                   onChange={(e) => setClientSearchQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-stone-300 rounded-full text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-400 transition shadow-2xs"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-2xs"
                 />
               </div>
 
               {/* Subtitle & Available Count Badge */}
               <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold text-stone-800">
+                <span className="text-xs font-bold text-slate-800">
                   Select Enquiry to continue
                 </span>
-                <span className="text-[10.5px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10.5px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
                   {filteredEnquiries.length} Available without BOQ
                 </span>
               </div>
@@ -1839,39 +1841,39 @@ export default function BOQManagement() {
                   <div
                     key={enquiry._id || enquiry.enquiryNo}
                     onClick={() => handleSelectEnquiryToCreateBOQ(enquiry)}
-                    className="p-3.5 bg-white border border-stone-200 hover:border-amber-400 hover:bg-amber-50/30 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
+                    className="p-3.5 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
                   >
                     {/* Circle Avatar with First Letter */}
-                    <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-[#D4AF37] group-hover:text-stone-950 transition">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-blue-600 group-hover:text-white transition">
                       {enquiry.name ? enquiry.name.charAt(0) : "E"}
                     </div>
 
                     {/* Name and Enquiry Number */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-stone-900 truncate group-hover:text-[#9E7B1D] transition">
+                      <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition">
                         {enquiry.name}
                       </h4>
-                      <p className="text-[11px] text-stone-500 font-mono truncate">
+                      <p className="text-[11px] text-slate-500 font-mono truncate">
                         {enquiry.enquiryNo || "ENQ-2026-019"}
                       </p>
                     </div>
 
-                    <span className="text-[10px] font-bold text-[#9E7B1D] bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition">
                       Select →
                     </span>
                   </div>
                 ))}
 
                 {filteredEnquiries.length === 0 && (
-                  <div className="p-6 text-center text-stone-500 bg-stone-50 rounded-2xl border border-stone-200 text-xs space-y-3">
-                    <div className="w-10 h-10 rounded-full bg-amber-100 text-[#9E7B1D] flex items-center justify-center mx-auto">
+                  <div className="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mx-auto">
                       <CheckCircle2 size={20} />
                     </div>
                     <div>
-                      <p className="font-bold text-stone-900">
+                      <p className="font-bold text-slate-900">
                         {clientSearchQuery ? `No enquiries found matching "${clientSearchQuery}"` : "All enquiries already have saved BOQs!"}
                       </p>
-                      <p className="text-[11px] text-stone-500 mt-1">
+                      <p className="text-[11px] text-slate-500 mt-1">
                         {clientSearchQuery
                           ? "Try searching by another name, email or phone."
                           : "Create a new enquiry in the Enquiry section to create a new BOQ."}
@@ -1884,7 +1886,7 @@ export default function BOQManagement() {
                           setIsSelectClientModalOpen(false);
                           navigate("/enquiry");
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 font-black text-xs rounded-xl shadow-xs transition hover:opacity-95 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
                       >
                         <Plus size={14} />
                         <span>Go to Enquiry Section</span>
@@ -1899,7 +1901,7 @@ export default function BOQManagement() {
                 <button
                   type="button"
                   onClick={() => setIsSelectClientModalOpen(false)}
-                  className="px-6 py-1.5 text-xs font-bold text-stone-700 border border-stone-300 hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                  className="px-6 py-1.5 text-xs font-bold text-slate-700 border border-slate-300 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                 >
                   Close
                 </button>
@@ -1917,33 +1919,33 @@ export default function BOQManagement() {
   return (
     <div className="relative min-h-[calc(100vh-80px)] space-y-3 animate-in fade-in duration-150">
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-[#9E7B1D] text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
           <CheckCircle2 size={16} />
           <span>{successToast}</span>
         </div>
       )}
 
       {/* Top Header Bar */}
-      <div className="bg-white border border-[#EAE3D2] rounded-2xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Left: Back button & Category tabs */}
         <div className="flex items-center gap-4 flex-wrap">
           <button
             onClick={handleBackToList}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-blue-600 bg-stone-50 hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-stone-200 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-slate-200 transition cursor-pointer"
           >
             <ArrowLeft size={14} />
             <span>BOQ</span>
           </button>
 
           {/* Categories: Component, Accessories, Appliances, Other Services */}
-          <div className="flex items-center gap-1 p-0.5 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2]">
+          <div className="flex items-center gap-1 p-0.5 bg-slate-50 rounded-xl border border-slate-200">
             {["Component", "Accessories", "Appliances", "Other Services"].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeCategory === cat
-                  ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                  : "text-stone-600 hover:text-stone-950"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-950"
                   }`}
               >
                 {cat}
@@ -1953,18 +1955,18 @@ export default function BOQManagement() {
         </div>
 
         {/* Center: Client Name & BOQ Total */}
-        <div className="flex items-center gap-4 bg-[#FAF9F5] px-3 py-1 rounded-xl border border-[#EAE3D2]">
-          <div className="flex items-center gap-1.5 border-r border-stone-200 pr-3">
-            <User size={13} className="text-[#9E7B1D]" />
+        <div className="flex items-center gap-4 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-1.5 border-r border-slate-200 pr-3">
+            <User size={13} className="text-blue-600" />
             <div>
-              <span className="text-[9px] text-stone-400 block font-bold uppercase leading-none">Name</span>
-              <span className="text-xs font-black text-stone-900 leading-tight">{activeBOQ?.clientName || "Client"}</span>
+              <span className="text-[9px] text-slate-400 block font-bold uppercase leading-none">Name</span>
+              <span className="text-xs font-black text-slate-900 leading-tight">{activeBOQ?.clientName || "Client"}</span>
             </div>
           </div>
 
           <div>
-            <span className="text-[9px] text-stone-400 block font-bold uppercase leading-none">BOQ Total</span>
-            <div className="flex items-center gap-1 text-xs font-black text-[#9E7B1D] leading-tight">
+            <span className="text-[9px] text-slate-400 block font-bold uppercase leading-none">BOQ Total</span>
+            <div className="flex items-center gap-1 text-xs font-black text-blue-600 leading-tight">
               <span>₹{(activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}</span>
             </div>
           </div>
@@ -1974,7 +1976,7 @@ export default function BOQManagement() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => handleOpenQuotationModal(activeBOQ)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
             title="Generate & View Official Quotation"
           >
             <FileText size={13} />
@@ -1983,14 +1985,14 @@ export default function BOQManagement() {
 
           <button
             onClick={handleSaveBOQ}
-            className="px-4 py-1.5 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl shadow-xs transition cursor-pointer"
+            className="px-4 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl shadow-xs transition cursor-pointer"
           >
             Apply
           </button>
 
           <button
             onClick={() => setIsAddSpaceOpen(true)}
-            className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl transition cursor-pointer"
+            className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
           >
             <Plus size={13} />
             <span>Add Space</span>
@@ -2004,26 +2006,26 @@ export default function BOQManagement() {
                 setActiveBOQ(recalculateBOQ(updated));
               }
             }}
-            className="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"
           >
             Clear
           </button>
 
           <button
             onClick={handleSaveBOQ}
-            className="inline-flex items-center gap-1.5 px-6 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] rounded-xl shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
           >
             <Save size={13} />
             <span>Save</span>
           </button>
 
           {/* Auto Save Toggle */}
-          <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
-            <span className="text-[11px] font-semibold text-stone-500">Auto Save</span>
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+            <span className="text-[11px] font-semibold text-slate-500">Auto Save</span>
             <button
               type="button"
               onClick={() => setAutoSave(!autoSave)}
-              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${autoSave ? "bg-[#9E7B1D]" : "bg-stone-300"
+              className={`w-8 h-4 flex items-center rounded-full p-0.5 transition cursor-pointer ${autoSave ? "bg-blue-600" : "bg-slate-300"
                 }`}
             >
               <div
@@ -2036,7 +2038,7 @@ export default function BOQManagement() {
       </div>
 
       {/* Spaces Horizontal Tabs Bar */}
-      <div className="bg-white border border-[#EAE3D2] rounded-xl p-2 shadow-xs overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-xs overflow-x-auto">
         <div className="flex items-center gap-1.5 min-w-max">
           {activeBOQ?.spaces?.map((space, sIdx) => {
             const isActive = sIdx === activeSpaceIdx;
@@ -2045,14 +2047,14 @@ export default function BOQManagement() {
                 key={sIdx}
                 onClick={() => setActiveSpaceIdx(sIdx)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${isActive
-                  ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                  : "bg-[#FAF9F5] text-stone-600 hover:bg-amber-50/60 hover:text-stone-900 border border-[#EAE3D2]"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-slate-900 border border-slate-200"
                   }`}
               >
                 <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
                 <span>{space.name}</span>
                 {space.roomTotal > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-stone-950/15 text-stone-950" : "bg-amber-50 text-[#9E7B1D]"}`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-white/20 text-white" : "bg-blue-50 text-blue-700"}`}>
                     ₹{Math.round(space.roomTotal).toLocaleString("en-IN")}
                   </span>
                 )}
@@ -2063,12 +2065,12 @@ export default function BOQManagement() {
       </div>
 
       {/* Main Full-Width Work Area (Horizontal Search + Extended Details Table) */}
-      <div className="w-full bg-white border border-[#EAE3D2] rounded-2xl p-4 shadow-xs space-y-4">
+      <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-4">
         {/* Room Title & Total Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EAE3D2]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-black text-stone-900">{currentSpace?.name || "Space"}</h3>
-            <span className="text-sm font-black text-[#9E7B1D] bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+            <h3 className="text-lg font-black text-slate-900">{currentSpace?.name || "Space"}</h3>
+            <span className="text-sm font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
               Room Total: ₹{(currentSpace?.roomTotal || 0).toLocaleString("en-IN")}
             </span>
           </div>
@@ -2078,7 +2080,7 @@ export default function BOQManagement() {
             <button
               onClick={handleDuplicateSpace}
               title="Duplicate Space"
-              className="px-3 py-1.5 bg-stone-50 hover:bg-amber-50 text-stone-700 hover:text-[#9E7B1D] border border-stone-200 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              className="px-3 py-1.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
             >
               <Copy size={14} />
               <span>Duplicate Room</span>
@@ -2095,10 +2097,10 @@ export default function BOQManagement() {
         </div>
 
         {/* Integrated Horizontal Search & Component Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE3D2]">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
           {/* Search & Add Component Input with Live Suggestions Dropdown */}
           <div className="relative flex-1 min-w-[320px]">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder={`Search & Add Component to ${currentSpace?.name || "this room"} (e.g. shoe, tv, bed, wardrobe, door)...`}
@@ -2108,13 +2110,13 @@ export default function BOQManagement() {
                 setIsComponentSearchFocused(true);
               }}
               onFocus={() => setIsComponentSearchFocused(true)}
-              className="w-full pl-9 pr-9 py-2 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] font-semibold shadow-2xs"
+              className="w-full pl-9 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-semibold shadow-2xs"
             />
             {componentSearch && (
               <button
                 type="button"
                 onClick={() => setComponentSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X size={14} />
               </button>
@@ -2123,32 +2125,32 @@ export default function BOQManagement() {
             {/* Live Search Suggestions Dropdown */}
             {isComponentSearchFocused && (
               <div
-                className="absolute left-0 right-0 top-11 z-50 bg-white rounded-2xl shadow-2xl border border-amber-300 p-2 space-y-1.5 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95"
+                className="absolute left-0 right-0 top-11 z-50 bg-white rounded-2xl shadow-2xl border border-blue-300 p-2 space-y-1.5 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95"
                 onMouseLeave={() => setIsComponentSearchFocused(false)}
               >
-                <div className="px-2.5 py-1 flex items-center justify-between text-[10px] font-black text-amber-800 bg-amber-50 rounded-lg">
+                <div className="px-2.5 py-1 flex items-center justify-between text-[10px] font-black text-blue-800 bg-blue-50 rounded-lg">
                   <span>SELECT COMPONENT TO ADD ({filteredSearchResults.length} FOUND)</span>
                   <button
                     onClick={() => setIsComponentSearchFocused(false)}
-                    className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                    className="text-slate-400 hover:text-slate-700 cursor-pointer"
                   >
                     <X size={12} />
                   </button>
                 </div>
 
                 {filteredSearchResults.length === 0 ? (
-                  <div className="p-3 text-center text-stone-400 text-xs font-medium">
+                  <div className="p-3 text-center text-slate-400 text-xs font-medium">
                     No matching components found for "{componentSearch}".
                   </div>
                 ) : (
                   filteredSearchResults.map((comp, idx) => (
                     <div
                       key={idx}
-                      className="p-2 px-3 rounded-xl border border-stone-100 hover:border-amber-300 hover:bg-amber-50/50 transition flex items-center justify-between gap-3 bg-white"
+                      className="p-2 px-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 transition flex items-center justify-between gap-3 bg-white"
                     >
                       <div className="space-y-0.5">
-                        <span className="font-bold text-stone-900 text-xs block">{comp.name}</span>
-                        <span className="text-[10px] text-stone-400 font-medium">
+                        <span className="font-bold text-slate-900 text-xs block">{comp.name}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">
                           {comp.relevantSpace || "General"} • ₹{(comp.standard?.rate || comp.rate || 1500).toLocaleString("en-IN")}/sq.ft
                         </span>
                       </div>
@@ -2161,7 +2163,7 @@ export default function BOQManagement() {
                             setIsComponentSearchFocused(false);
                             setComponentSearch("");
                           }}
-                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-amber-100 text-amber-900 hover:bg-[#D4AF37] hover:text-stone-950 border border-amber-300 transition cursor-pointer shadow-2xs"
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-blue-100 text-blue-900 hover:bg-blue-600 hover:text-white border border-blue-300 transition cursor-pointer shadow-2xs"
                           title={`Add Elite variant (₹${comp.elite?.rate || Math.round((comp.standard?.rate || 1500) * 1.65)}/sq.ft)`}
                         >
                           + Elite
@@ -2173,7 +2175,7 @@ export default function BOQManagement() {
                             setIsComponentSearchFocused(false);
                             setComponentSearch("");
                           }}
-                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-sky-100 text-sky-900 hover:bg-sky-500 hover:text-white border border-sky-300 transition cursor-pointer shadow-2xs"
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-sky-100 text-sky-900 hover:bg-sky-600 hover:text-white border border-sky-300 transition cursor-pointer shadow-2xs"
                           title={`Add Premium variant (₹${comp.premium?.rate || Math.round((comp.standard?.rate || 1500) * 1.30)}/sq.ft)`}
                         >
                           + Premium
@@ -2185,7 +2187,7 @@ export default function BOQManagement() {
                             setIsComponentSearchFocused(false);
                             setComponentSearch("");
                           }}
-                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-800 hover:text-white border border-stone-300 transition cursor-pointer shadow-2xs"
+                          className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-800 hover:text-white border border-slate-300 transition cursor-pointer shadow-2xs"
                           title={`Add Standard variant (₹${comp.standard?.rate || 1500}/sq.ft)`}
                         >
                           + Standard
@@ -2196,7 +2198,7 @@ export default function BOQManagement() {
                             handleOpenCustomMix(comp);
                             setIsComponentSearchFocused(false);
                           }}
-                          className="p-1.5 bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-[#9E7B1D] font-bold rounded-lg transition"
+                          className="p-1.5 bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600 font-bold rounded-lg transition"
                           title="Custom Mix Specs"
                         >
                           <SlidersHorizontal size={12} />
@@ -2213,18 +2215,18 @@ export default function BOQManagement() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => handleOpenCustomMix(null)}
-              className="px-3 py-1.5 bg-white border border-[#EAE3D2] hover:bg-amber-50 text-stone-800 font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
+              className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-blue-50 text-slate-800 font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
             >
-              <Plus size={13} className="text-[#9E7B1D]" />
+              <Plus size={13} className="text-blue-600" />
               <span>Custom Item</span>
             </button>
 
-            <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
-              <span className="text-[11px] text-stone-500 font-bold">Default Package:</span>
+            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+              <span className="text-[11px] text-slate-500 font-bold">Default Package:</span>
               <select
                 value={selectedPackage}
                 onChange={(e) => handleApplyPackageToSpace(e.target.value, false)}
-                className="h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-xl text-xs font-bold text-stone-800 focus:outline-none focus:border-[#D4AF37] cursor-pointer shadow-2xs"
+                className="h-8 px-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
               >
                 <option value="Standard">Standard Package</option>
                 <option value="Premium">Premium Package</option>
@@ -2235,20 +2237,20 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={() => handleApplyPackageToSpace(selectedPackage, true)}
-              className="h-8 px-3 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 font-black text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
+              className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1"
             >
-              <Zap size={12} className="fill-stone-950" />
+              <Zap size={12} className="fill-white" />
               <span>Apply to All Rooms</span>
             </button>
           </div>
         </div>
 
         {/* 100% Extended Component Calculation Table with Enhanced Spacious CRM Typography */}
-        <div className="overflow-x-auto border border-[#EAE3D2] rounded-xl bg-white shadow-2xs">
+        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-2xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-xs font-extrabold text-stone-700">
+            <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-extrabold text-slate-700">
               <tr>
-                <th className="py-3 px-2 w-8 text-center text-stone-400"></th>
+                <th className="py-3 px-2 w-8 text-center text-slate-400"></th>
                 <th className="py-3 px-3 min-w-[170px]">Component Name</th>
                 <th className="py-3 px-2 w-32">Package / Variant</th>
                 <th className="py-3 px-2 w-32">Type</th>
@@ -2264,10 +2266,10 @@ export default function BOQManagement() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#F0EBE0] text-xs sm:text-sm text-stone-800">
+            <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-800">
               {!currentSpace?.items || currentSpace.items.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="py-12 text-center text-stone-400 text-sm">
+                  <td colSpan={13} className="py-12 text-center text-slate-400 text-sm">
                     No components added in {currentSpace?.name || "this space"}. Pick any component from the search bar above to add.
                   </td>
                 </tr>
@@ -2281,20 +2283,20 @@ export default function BOQManagement() {
                     : ["Elite", "Premium", "Standard"];
 
                   return (
-                    <tr key={idx} className="hover:bg-amber-50/25 transition">
+                    <tr key={idx} className="hover:bg-blue-50/25 transition">
                       {/* Drag Handle */}
-                      <td className="py-2.5 px-1 text-center text-stone-300">
+                      <td className="py-2.5 px-1 text-center text-slate-300">
                         <GripVertical size={15} className="mx-auto cursor-grab" />
                       </td>
 
                       {/* Name with Image Thumbnail Preview & Direct Upload Option */}
-                      <td className="py-2.5 px-2 font-bold text-stone-900">
+                      <td className="py-2.5 px-2 font-bold text-slate-900">
                         <div className="flex items-center gap-2 min-w-0">
                           {item.photos && item.photos.length > 0 ? (
                             <div className="relative group/photo shrink-0">
                               <div
                                 onClick={() => handleOpenImagePicker(idx)}
-                                className="relative w-9 h-9 rounded-lg overflow-hidden border border-amber-300 bg-stone-100 cursor-pointer hover:opacity-85 shadow-2xs"
+                                className="relative w-9 h-9 rounded-lg overflow-hidden border border-blue-300 bg-slate-100 cursor-pointer hover:opacity-85 shadow-2xs"
                                 title={`${item.photos.length} image(s) attached. Click to select/change.`}
                               >
                                 <img
@@ -2303,7 +2305,7 @@ export default function BOQManagement() {
                                   className="w-full h-full object-cover"
                                 />
                                 {item.photos.length > 1 && (
-                                  <span className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
+                                  <span className="absolute bottom-0 right-0 bg-slate-900/80 text-white text-[8px] px-1 font-bold rounded-tl">
                                     {item.photos.length}
                                   </span>
                                 )}
@@ -2311,7 +2313,7 @@ export default function BOQManagement() {
 
                               {/* Hover Quick Add Extra Photo */}
                               <label
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] hover:bg-[#b8952b] text-stone-950 rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center cursor-pointer shadow-xs opacity-0 group-hover/photo:opacity-100 transition"
                                 title="Upload additional photo for this item"
                               >
                                 {uploadingRowIdx === idx ? (
@@ -2335,11 +2337,11 @@ export default function BOQManagement() {
                             <div className="flex items-center gap-1 shrink-0">
                               {/* Direct Instant Upload Button when no image is added */}
                               <label
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50/90 hover:bg-amber-100 text-[#9E7B1D] border border-dashed border-amber-300 rounded-lg text-xs font-bold cursor-pointer transition shadow-2xs select-none"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50/90 hover:bg-blue-100 text-blue-700 border border-dashed border-blue-300 rounded-lg text-xs font-bold cursor-pointer transition shadow-2xs select-none"
                                 title="Product image not added. Click to directly upload an image from your device."
                               >
                                 {uploadingRowIdx === idx ? (
-                                  <Loader2 size={12} className="animate-spin text-[#9E7B1D]" />
+                                  <Loader2 size={12} className="animate-spin text-blue-600" />
                                 ) : (
                                   <Upload size={12} />
                                 )}
@@ -2367,12 +2369,12 @@ export default function BOQManagement() {
                           value={item.packageVariant || "Standard"}
                           onChange={(e) => handleChangeItemPackageVariant(idx, e.target.value)}
                           className={`w-full h-8 px-2 border rounded-lg text-xs font-extrabold transition cursor-pointer ${item.packageVariant === "Elite"
-                            ? "bg-amber-50 text-[#9E7B1D] border-amber-300"
+                            ? "bg-blue-50 text-blue-800 border-blue-300"
                             : item.packageVariant === "Premium"
                               ? "bg-sky-50 text-sky-800 border-sky-300"
                               : item.packageVariant === "Custom"
                                 ? "bg-purple-50 text-purple-800 border-purple-300"
-                                : "bg-stone-50 text-stone-800 border-stone-300"
+                                : "bg-slate-50 text-slate-800 border-slate-300"
                             }`}
                         >
                           {itemVariants.map((v) => (
@@ -2390,7 +2392,7 @@ export default function BOQManagement() {
                           type="text"
                           value={item.typeVariant || "Box Standard"}
                           onChange={(e) => handleUpdateItemField(idx, "typeVariant", e.target.value)}
-                          className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm text-stone-700 font-medium"
+                          className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm text-slate-700 font-medium focus:border-blue-500 focus:outline-none"
                         />
                       </td>
 
@@ -2401,7 +2403,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.lengthFt}
                             onChange={(e) => handleUpdateItemField(idx, "lengthFt", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Length Feet"
                             placeholder="ft"
                           />
@@ -2409,7 +2411,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.lengthIn}
                             onChange={(e) => handleUpdateItemField(idx, "lengthIn", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Length Inches"
                             placeholder="in"
                           />
@@ -2423,7 +2425,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.heightFt}
                             onChange={(e) => handleUpdateItemField(idx, "heightFt", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Height Feet"
                             placeholder="ft"
                           />
@@ -2431,7 +2433,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.heightIn}
                             onChange={(e) => handleUpdateItemField(idx, "heightIn", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Height Inches"
                             placeholder="in"
                           />
@@ -2445,7 +2447,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.depthFt}
                             onChange={(e) => handleUpdateItemField(idx, "depthFt", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Depth Feet"
                             placeholder="ft"
                           />
@@ -2453,7 +2455,7 @@ export default function BOQManagement() {
                             type="number"
                             value={item.depthIn}
                             onChange={(e) => handleUpdateItemField(idx, "depthIn", Number(e.target.value))}
-                            className="w-10 h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold p-0 focus:border-[#D4AF37]"
+                            className="w-10 h-8 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold p-0 focus:border-blue-500 focus:outline-none"
                             title="Depth Inches"
                             placeholder="in"
                           />
@@ -2467,7 +2469,7 @@ export default function BOQManagement() {
                           min={1}
                           value={item.qty || 1}
                           onChange={(e) => handleUpdateItemField(idx, "qty", Number(e.target.value))}
-                          className="w-14 h-8 mx-auto text-center bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm font-bold p-0"
+                          className="w-14 h-8 mx-auto text-center bg-white border border-slate-200 rounded-lg text-xs sm:text-sm font-bold p-0 focus:border-blue-500 focus:outline-none"
                         />
                       </td>
 
@@ -2475,15 +2477,15 @@ export default function BOQManagement() {
                       <td className="py-2.5 px-2">
                         <div
                           onClick={() => handleOpenDescriptionModal(idx, item)}
-                          className="group/desc relative flex items-center justify-between gap-1.5 p-1.5 px-2.5 bg-stone-50 hover:bg-amber-50/60 border border-stone-200 hover:border-amber-400 rounded-lg cursor-pointer transition min-h-[36px]"
+                          className="group/desc relative flex items-center justify-between gap-1.5 p-1.5 px-2.5 bg-slate-50 hover:bg-blue-50/60 border border-slate-200 hover:border-blue-400 rounded-lg cursor-pointer transition min-h-[36px]"
                           title="Click to edit full specification & description"
                         >
-                          <p className="text-xs text-stone-700 line-clamp-2 leading-tight flex-1">
+                          <p className="text-xs text-slate-700 line-clamp-2 leading-tight flex-1">
                             {item.description || "Click to add detailed specs (Plywood, Hardware, Laminate, etc.)"}
                           </p>
                           <button
                             type="button"
-                            className="p-1 bg-white group-hover/desc:bg-[#D4AF37] group-hover/desc:text-stone-950 text-stone-400 rounded-md shadow-2xs transition shrink-0"
+                            className="p-1 bg-white group-hover/desc:bg-blue-600 group-hover/desc:text-white text-slate-400 rounded-md shadow-2xs transition shrink-0"
                           >
                             <Edit2 size={13} />
                           </button>
@@ -2491,7 +2493,7 @@ export default function BOQManagement() {
                       </td>
 
                       {/* Sq.ft (calculated) */}
-                      <td className="py-2.5 px-2 text-right font-mono font-bold text-stone-800 text-xs sm:text-sm">
+                      <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-800 text-xs sm:text-sm">
                         {item.sqft || 1}
                       </td>
 
@@ -2501,12 +2503,12 @@ export default function BOQManagement() {
                           type="number"
                           value={item.rate || 0}
                           onChange={(e) => handleUpdateItemField(idx, "rate", Number(e.target.value))}
-                          className="w-24 h-8 text-right px-2 bg-white border border-[#EAE3D2] rounded-lg text-xs sm:text-sm font-bold text-stone-900"
+                          className="w-24 h-8 text-right px-2 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm font-bold text-slate-900 focus:border-blue-500 focus:outline-none"
                         />
                       </td>
 
                       {/* Amount */}
-                      <td className="py-2.5 px-2.5 text-right font-black text-[#9E7B1D] text-xs sm:text-sm font-mono whitespace-nowrap">
+                      <td className="py-2.5 px-2.5 text-right font-bold text-blue-600 text-xs sm:text-sm font-mono whitespace-nowrap">
                         ₹{(item.amount || 0).toLocaleString("en-IN")}
                       </td>
 
@@ -2521,13 +2523,13 @@ export default function BOQManagement() {
                                 : "Select/Upload Component Images"
                             }
                             className={`p-1.5 rounded-lg transition cursor-pointer relative ${item.photos?.length
-                              ? "text-[#9E7B1D] bg-amber-50 hover:bg-amber-100"
-                              : "text-stone-400 hover:text-[#9E7B1D] hover:bg-stone-100"
+                              ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
+                              : "text-slate-400 hover:text-blue-600 hover:bg-slate-100"
                               }`}
                           >
                             <ImageIcon size={15} />
                             {item.photos?.length > 0 && (
-                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] text-stone-950 font-extrabold text-[8.5px] rounded-full flex items-center justify-center">
+                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white font-extrabold text-[8.5px] rounded-full flex items-center justify-center">
                                 {item.photos.length}
                               </span>
                             )}
@@ -2550,11 +2552,11 @@ export default function BOQManagement() {
         </div>
 
         {/* Clean Quotation Summary & Save Action Bar */}
-        <div className="bg-[#FAF9F5] border border-[#EAE3D2] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-0.5">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Quotation Value:</span>
-              <span className="text-xl font-black text-[#9E7B1D] font-mono">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Quotation Value:</span>
+              <span className="text-xl font-black text-blue-600 font-mono">
                 ₹{(activeBOQ?.subtotal || activeBOQ?.grandTotal || 0).toLocaleString("en-IN")}
               </span>
             </div>
@@ -2567,7 +2569,7 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={() => handleOpenQuotationModal(activeBOQ)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-white hover:bg-amber-50 border border-amber-300 rounded-xl transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 rounded-xl transition cursor-pointer"
             >
               <Eye size={14} />
               <span>Preview Quotation</span>
@@ -2583,7 +2585,7 @@ export default function BOQManagement() {
             <button
               type="button"
               onClick={handleSaveBOQ}
-              className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-black text-white bg-gradient-to-r from-[#9E7B1D] to-[#B8860B] hover:from-[#8C6B17] hover:to-[#9E7B1D] rounded-xl shadow-md transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
             >
               <Save size={14} />
               <span>Save BOQ</span>
@@ -2595,7 +2597,7 @@ export default function BOQManagement() {
       {/* Add New Space Modal with Autocomplete Suggestions */}
       {isAddSpaceOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl border border-[#EAE3D2] w-full max-w-sm overflow-hidden p-5 space-y-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-5 space-y-4">
             <h3 className="text-sm font-bold text-stone-900">Add New Space / Room</h3>
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-stone-700">Space Name</label>
@@ -2605,7 +2607,7 @@ export default function BOQManagement() {
                 value={newSpaceName}
                 onChange={(e) => setNewSpaceName(e.target.value)}
                 autoFocus
-                className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37]"
+                className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
 
               {/* Popular Space Suggestions Pill List */}
@@ -2625,8 +2627,8 @@ export default function BOQManagement() {
                       }}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer border ${
                         newSpaceName === spaceName
-                          ? "bg-[#D4AF37] text-stone-950 border-amber-400 font-bold shadow-2xs"
-                          : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-amber-50 hover:border-amber-300"
+                          ? "bg-blue-600 text-white border-blue-600 font-bold shadow-2xs"
+                          : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-blue-50 hover:border-blue-300"
                       }`}
                     >
                       + {spaceName}
@@ -2640,14 +2642,14 @@ export default function BOQManagement() {
               <button
                 type="button"
                 onClick={() => setIsAddSpaceOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-slate-200 hover:bg-stone-50 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddNewSpace}
-                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs cursor-pointer"
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs cursor-pointer"
               >
                 Add Space
               </button>
@@ -2661,18 +2663,18 @@ export default function BOQManagement() {
       {/* ========================================================================= */}
       {isCustomMixModalOpen && customMixComponent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <h3 className="text-sm font-bold text-stone-900">Custom Mix: {customMixComponent.name}</h3>
-                <p className="text-[11px] text-[#9E7B1D] font-medium">
+                <p className="text-[11px] text-blue-600 font-medium">
                   Combine parts from Elite, Premium, Standard or enter custom specifications
                 </p>
               </div>
               <button
                 onClick={() => setIsCustomMixModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition"
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-blue-50 rounded-xl transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -2710,7 +2712,7 @@ export default function BOQManagement() {
                             description: vCfg.description || customMixComponent.description || ""
                           }));
                         }}
-                        className="flex-1 py-1.5 px-3 rounded-xl border border-[#EAE3D2] bg-[#FAF9F5] hover:bg-amber-50 text-stone-800 font-bold text-xs transition cursor-pointer text-center"
+                        className="flex-1 py-1.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 text-stone-800 font-bold text-xs transition cursor-pointer text-center"
                       >
                         Load {preset}
                       </button>
@@ -2720,7 +2722,7 @@ export default function BOQManagement() {
               </div>
 
               {/* 2. Dimensions Selection */}
-              <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-3">
+              <div className="p-3.5 border border-slate-200 rounded-2xl bg-white space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-stone-900 text-xs">1. Dimensions (In Unit)</span>
                   <div className="flex items-center gap-1.5 text-[11px]">
@@ -2741,8 +2743,8 @@ export default function BOQManagement() {
                             depthIn: unit.depthIn || 0
                           }));
                         }}
-                        className={`px-2 py-0.5 rounded-md font-semibold ${customMixState.dimSource === v
-                          ? "bg-[#D4AF37] text-stone-950"
+                        className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer ${customMixState.dimSource === v
+                          ? "bg-blue-600 text-white"
                           : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                           }`}
                       >
@@ -2770,7 +2772,7 @@ export default function BOQManagement() {
                             lengthFt: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                       <input
                         type="number"
@@ -2783,7 +2785,7 @@ export default function BOQManagement() {
                             lengthIn: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -2804,7 +2806,7 @@ export default function BOQManagement() {
                             heightFt: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                       <input
                         type="number"
@@ -2817,7 +2819,7 @@ export default function BOQManagement() {
                             heightIn: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -2838,7 +2840,7 @@ export default function BOQManagement() {
                             depthFt: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                       <input
                         type="number"
@@ -2851,7 +2853,7 @@ export default function BOQManagement() {
                             depthIn: Number(e.target.value)
                           })
                         }
-                        className="w-full h-8 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                        className="w-full h-8 text-center bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -2861,10 +2863,10 @@ export default function BOQManagement() {
               {/* 3. Type & Rate Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Type Selection */}
-                <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-2">
+                <div className="p-3.5 border border-slate-200 rounded-2xl bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-stone-900 text-xs">2. Type / Finish</span>
-                    <span className="text-[10px] text-[#9E7B1D] font-semibold">
+                    <span className="text-[10px] text-blue-600 font-semibold">
                       {customMixState.typeSource}
                     </span>
                   </div>
@@ -2874,15 +2876,15 @@ export default function BOQManagement() {
                     onChange={(e) =>
                       setCustomMixState({ ...customMixState, type: e.target.value, typeSource: "Custom" })
                     }
-                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                    className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
                 {/* Rate Selection */}
-                <div className="p-3.5 border border-[#EAE3D2] rounded-2xl bg-white space-y-2">
+                <div className="p-3.5 border border-slate-200 rounded-2xl bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-stone-900 text-xs">3. Rate (₹ per sq.ft)</span>
-                    <span className="text-[10px] text-[#9E7B1D] font-semibold">
+                    <span className="text-[10px] text-blue-600 font-semibold">
                       {customMixState.rateSource}
                     </span>
                   </div>
@@ -2896,7 +2898,7 @@ export default function BOQManagement() {
                         rateSource: "Custom"
                       })
                     }
-                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold text-stone-900"
+                    className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-stone-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -2912,7 +2914,7 @@ export default function BOQManagement() {
                       setCustomMixState({ ...customMixState, description: e.target.value })
                     }
                     placeholder="Custom mix notes"
-                    className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs"
+                    className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -2925,19 +2927,19 @@ export default function BOQManagement() {
                     onChange={(e) =>
                       setCustomMixState({ ...customMixState, qty: Number(e.target.value) })
                     }
-                    className="w-full h-8 px-2.5 text-center bg-white border border-[#EAE3D2] rounded-lg text-xs font-bold"
+                    className="w-full h-8 px-2.5 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {/* 5. Select Images for this Mixed Component */}
-              <div className="space-y-2 pt-1 border-t border-[#F0EBE0]">
+              <div className="space-y-2 pt-1 border-t border-slate-200">
                 <div className="flex items-center justify-between">
                   <span className="block font-bold text-stone-900 text-xs">
                     4. Select Images to Attach ({customMixState.selectedPhotos.length} selected)
                   </span>
 
-                  <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-dashed border-amber-300 rounded-lg cursor-pointer transition">
+                  <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-dashed border-blue-300 rounded-lg cursor-pointer transition">
                     {isUploadingPhoto ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
                     <span>{isUploadingPhoto ? "Uploading..." : "+ Upload Custom Photo"}</span>
                     <input
@@ -2984,7 +2986,7 @@ export default function BOQManagement() {
                             };
                           });
                         }}
-                        className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${isSelected ? "border-[#D4AF37] ring-2 ring-amber-200" : "border-stone-200 hover:border-amber-300"
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${isSelected ? "border-blue-600 ring-2 ring-blue-200" : "border-stone-200 hover:border-blue-300"
                           }`}
                       >
                         <img src={img.url} alt="Variant" className="w-full h-full object-cover" />
@@ -2992,7 +2994,7 @@ export default function BOQManagement() {
                           {img.variant}
                         </span>
                         {isSelected && (
-                          <div className="absolute top-1 right-1 w-4 h-4 bg-[#D4AF37] text-stone-950 rounded-full flex items-center justify-center text-[10px] font-black">
+                          <div className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">
                             ✓
                           </div>
                         )}
@@ -3004,18 +3006,18 @@ export default function BOQManagement() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-3">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setIsCustomMixModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl transition"
+                className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-slate-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApplyCustomMix}
-                className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition"
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
               >
                 Add Mixed Item to Space
               </button>
@@ -3029,9 +3031,9 @@ export default function BOQManagement() {
       {/* ========================================================================= */}
       {isImagePickerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <h3 className="text-sm font-bold text-stone-900">
                   Select Photos for Item:{" "}
@@ -3043,7 +3045,7 @@ export default function BOQManagement() {
               </div>
               <button
                 onClick={() => setIsImagePickerModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition"
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-blue-50 rounded-xl transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -3057,7 +3059,7 @@ export default function BOQManagement() {
                   Available Component Images ({availableLibraryImages.length})
                 </span>
 
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-[#D4AF37] bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] font-bold text-xs rounded-xl cursor-pointer transition">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs rounded-xl cursor-pointer transition">
                   {isUploadingPhoto ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                   <span>{isUploadingPhoto ? "Uploading..." : "+ Upload New Photo"}</span>
                   <input
@@ -3086,15 +3088,15 @@ export default function BOQManagement() {
                         key={idx}
                         onClick={() => handleToggleSelectPhoto(img)}
                         className={`group relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition shadow-2xs ${isSelected
-                          ? "border-[#D4AF37] ring-3 ring-amber-200"
-                          : "border-stone-200 hover:border-amber-300"
+                          ? "border-blue-600 ring-3 ring-blue-200"
+                          : "border-stone-200 hover:border-blue-300"
                           }`}
                       >
                         <img src={img.url} alt={img.name || "Preview"} className="w-full h-full object-cover" />
 
                         {/* Top Right Checkbox Badge */}
                         <div
-                          className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition ${isSelected ? "bg-[#D4AF37] text-stone-950" : "bg-stone-900/40 text-white"
+                          className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black transition ${isSelected ? "bg-blue-600 text-white" : "bg-stone-900/40 text-white"
                             }`}
                         >
                           {isSelected ? "✓" : "+"}
@@ -3109,7 +3111,7 @@ export default function BOQManagement() {
                               e.stopPropagation();
                               setPreviewImageModal(img.url);
                             }}
-                            className="p-1 hover:text-[#D4AF37]"
+                            className="p-1 hover:text-blue-600"
                           >
                             <Eye size={12} />
                           </button>
@@ -3122,7 +3124,7 @@ export default function BOQManagement() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold text-stone-700">
                   {selectedItemPhotos.length} photo(s) selected
@@ -3134,7 +3136,7 @@ export default function BOQManagement() {
                     type="checkbox"
                     checked={syncToLibrary}
                     onChange={(e) => setSyncToLibrary(e.target.checked)}
-                    className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+                    className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                   />
                   <span>Save to Component Library</span>
                 </label>
@@ -3144,14 +3146,14 @@ export default function BOQManagement() {
                 <button
                   type="button"
                   onClick={() => setIsImagePickerModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-stone-50 rounded-xl transition"
+                  className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-slate-200 hover:bg-stone-50 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveSelectedPhotos}
-                  className="px-5 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition"
+                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                 >
                   Attach to Item
                 </button>
@@ -3168,7 +3170,7 @@ export default function BOQManagement() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-xl overflow-hidden animate-in zoom-in-95">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                   {descriptionModal.spaceName} • Item Specification
@@ -3211,7 +3213,7 @@ export default function BOQManagement() {
                           description: prev.description ? `${prev.description}\n${chip}` : chip
                         }));
                       }}
-                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#9E7B1D] hover:text-stone-950 border border-amber-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-900 border border-blue-200 rounded-lg text-xs font-semibold transition cursor-pointer"
                     >
                       + {chip.length > 35 ? chip.substring(0, 35) + "..." : chip}
                     </button>
@@ -3232,14 +3234,14 @@ export default function BOQManagement() {
                   value={descriptionModal.description}
                   onChange={(e) => setDescriptionModal((prev) => ({ ...prev, description: e.target.value }))}
                   placeholder="Enter complete material specifications, dimensions, hardware, warranty, and craftsmanship notes..."
-                  className="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-2xl text-sm text-stone-800 focus:bg-white focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-200 font-medium transition leading-relaxed shadow-inner"
+                  className="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-2xl text-sm text-stone-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-medium transition leading-relaxed shadow-inner"
                   autoFocus
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex items-center justify-end gap-2.5">
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setDescriptionModal({ isOpen: false, itemIdx: null, itemName: "", description: "", spaceName: "" })}
@@ -3250,7 +3252,7 @@ export default function BOQManagement() {
               <button
                 type="button"
                 onClick={handleSaveDescriptionModal}
-                className="px-6 py-2 text-xs font-black text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+                className="px-6 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
               >
                 Save Specification
               </button>
@@ -3264,11 +3266,11 @@ export default function BOQManagement() {
       {/* ========================================================================= */}
       {isQuotationModalOpen && quotationBOQ && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/75 backdrop-blur-xs p-3 sm:p-6 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#EAE3D2] w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95">
             {/* Modal Header Toolbar */}
-            <div className="px-6 py-3.5 border-b border-[#EAE3D2] flex flex-wrap items-center justify-between gap-3 bg-[#FAF9F5]">
+            <div className="px-6 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50">
               <div className="flex items-center gap-2">
-                <FileText size={18} className="text-[#9E7B1D]" />
+                <FileText size={18} className="text-blue-600" />
                 <h3 className="font-extrabold text-sm text-stone-900">
                   Official Estimate & BOQ Quotation • {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
                 </h3>
@@ -3280,12 +3282,12 @@ export default function BOQManagement() {
                     type="checkbox"
                     checked={includeTermsInPrint}
                     onChange={(e) => setIncludeTermsInPrint(e.target.checked)}
-                    className="w-4 h-4 accent-[#9E7B1D] cursor-pointer rounded"
+                    className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
                   />
                   <span className="text-xs font-bold text-stone-800">
                     Include T&C Pages
                   </span>
-                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${includeTermsInPrint ? "bg-amber-100 text-[#9E7B1D]" : "bg-stone-100 text-stone-500"}`}>
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${includeTermsInPrint ? "bg-blue-100 text-blue-800" : "bg-stone-100 text-stone-500"}`}>
                     {includeTermsInPrint ? "Full Multi-Page BOQ" : "Quotation Only"}
                   </span>
                 </label>
@@ -3293,7 +3295,7 @@ export default function BOQManagement() {
                 <button
                   type="button"
                   onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FAF6ED] border border-amber-300 text-xs font-bold text-[#9E7B1D] hover:bg-[#D4AF37] hover:text-stone-950 rounded-xl transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl transition cursor-pointer"
                   title="Download Official PDF Quotation"
                 >
                   <Download size={14} />
@@ -3318,7 +3320,7 @@ export default function BOQManagement() {
             </div>
 
             {/* Modal Tabs: Preview Quotation vs Terms & Conditions Template */}
-            <div className="px-6 py-2 bg-stone-100/70 border-b border-[#EAE3D2] flex items-center justify-between gap-3">
+            <div className="px-6 py-2 bg-stone-100/70 border-b border-slate-200 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -3336,7 +3338,7 @@ export default function BOQManagement() {
                 </button>
               </div>
               <div className="text-[11px] font-bold text-stone-500">
-                Mode: <span className="text-[#9E7B1D]">{includeTermsInPrint ? "Quotation + T&C Attachment" : "Compact Quotation Only"}</span>
+                Mode: <span className="text-blue-600">{includeTermsInPrint ? "Quotation + T&C Attachment" : "Compact Quotation Only"}</span>
               </div>
             </div>
 
@@ -3360,7 +3362,7 @@ export default function BOQManagement() {
 
                   {/* Right: Velora Antaraal Branding from Image 2 */}
                   <div className="text-right space-y-1">
-                    <h1 className="text-2xl font-black text-[#9E7B1D] tracking-wide">VELORA ANTARAAL</h1>
+                    <h1 className="text-2xl font-black text-blue-600 tracking-wide">VELORA ANTARAAL</h1>
                     <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
                       INTERIOR DESIGN | DÉCOR | RETAIL
                     </p>
@@ -3370,7 +3372,7 @@ export default function BOQManagement() {
                     <p className="text-[11px] text-stone-600 font-semibold">
                       +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
                     </p>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-[#9E7B1D] border border-amber-200">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
                       Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
                     </span>
                   </div>
@@ -3404,7 +3406,7 @@ export default function BOQManagement() {
 
                         {/* Items Table matching Image 1 Columns */}
                         <table className="w-full text-left border-collapse text-sm">
-                          <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
+                          <thead className="bg-slate-50 border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
                             <tr>
                               <th className="py-3 px-3 w-12 text-center">SN</th>
                               <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>
@@ -3427,7 +3429,7 @@ export default function BOQManagement() {
                                 : "";
 
                               return (
-                                <tr key={itIdx} className="hover:bg-amber-50/30 transition">
+                                <tr key={itIdx} className="hover:bg-slate-50 transition">
                                   <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
                                     {itIdx + 1}
                                   </td>
@@ -3488,7 +3490,7 @@ export default function BOQManagement() {
                   <h4 className="text-xl font-black text-[#A83232] tracking-wider">Summary</h4>
                   <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
                     <table className="w-full text-left border-collapse text-sm">
-                      <thead className="bg-[#FAF9F5] border-b border-stone-300 text-xs font-extrabold text-stone-900">
+                      <thead className="bg-slate-50 border-b border-stone-300 text-xs font-extrabold text-stone-900">
                         <tr>
                           <th className="py-3 px-4 w-16 text-center">SN</th>
                           <th className="py-3 px-4">Area</th>
@@ -3506,7 +3508,7 @@ export default function BOQManagement() {
                           const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
 
                           return (
-                            <tr key={idx} className="hover:bg-amber-50/20">
+                            <tr key={idx} className="hover:bg-slate-50">
                               <td className="py-3 px-4 text-center font-bold text-stone-600">{idx + 1}</td>
                               <td className="py-3 px-4 font-bold text-stone-950 uppercase">{sp.name}</td>
                               <td className="py-3 px-4 text-center font-bold text-stone-800">{count}</td>
@@ -3539,7 +3541,7 @@ export default function BOQManagement() {
 
                   return (
                     <div className="flex justify-end pt-2">
-                      <div className="w-full max-w-md border-2 border-[#D4AF37] rounded-2xl overflow-hidden shadow-sm bg-white">
+                      <div className="w-full max-w-md border-2 border-blue-600 rounded-2xl overflow-hidden shadow-sm bg-white">
                         <div className="divide-y divide-stone-100 text-sm">
                           <div className="flex justify-between items-center px-5 py-3 text-stone-800 font-bold">
                             <span className="text-base">Total</span>
@@ -3563,7 +3565,7 @@ export default function BOQManagement() {
                               </span>
                             </div>
                           )}
-                          <div className="flex justify-between items-center px-5 py-4 bg-[#FAF6ED] text-[#9E7B1D] border-t-2 border-[#D4AF37]">
+                          <div className="flex justify-between items-center px-5 py-4 bg-blue-50 text-blue-700 border-t-2 border-blue-600">
                             <span className="text-lg font-black tracking-wide">Grand Total</span>
                             <span className="font-mono font-black text-2xl tracking-tight">
                               ₹{grandTotal.toLocaleString("en-IN")}
@@ -3581,7 +3583,7 @@ export default function BOQManagement() {
                     {/* Visual Page Break Indicator */}
                     <div className="flex items-center gap-3 text-stone-400 py-1">
                       <div className="h-px bg-stone-300 flex-1"></div>
-                      <span className="text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 bg-amber-50 text-[#9E7B1D] border border-amber-200 rounded-full">
+                      <span className="text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
                         Page 2+ • Attached Terms & Conditions Document
                       </span>
                       <div className="h-px bg-stone-300 flex-1"></div>
@@ -3596,7 +3598,7 @@ export default function BOQManagement() {
                         return (
                           <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
                             <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                              <thead className="bg-[#FAF9F5] border-b border-stone-300 font-extrabold text-stone-900">
+                              <thead className="bg-slate-50 border-b border-stone-300 font-extrabold text-stone-900">
                                 <tr>
                                   <th className="py-2.5 px-4">Milestone</th>
                                   <th className="py-2.5 px-4 w-28 text-center">Percent</th>
@@ -3624,7 +3626,7 @@ export default function BOQManagement() {
                     {(() => {
                       const tcTemplate = getActiveTermsTemplate();
                       return (
-                        <div className="border-l-4 border-[#A83232] bg-[#FAF9F5] p-4 rounded-xl border border-stone-200 space-y-2">
+                        <div className="border-l-4 border-[#A83232] bg-slate-50 p-4 rounded-xl border border-stone-200 space-y-2">
                           <h5 className="font-extrabold text-sm text-[#A83232]">Bank Account Details</h5>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-stone-800">
                             <div>Account Holder: <strong>{tcTemplate.bankDetails.accountHolder}</strong></div>
@@ -3688,26 +3690,26 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-blue-600 text-xs">For VELORA ANTARAAL</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
-                      <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                    <div className="pt-4 border-t border-slate-200 text-center space-y-1 text-stone-500 text-[10px]">
+                      <p className="font-bold text-blue-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
                       <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
                     </div>
                   </div>
                 ) : (
                   /* Standalone Signatures Row when T&C is Excluded */
                   <div className="pt-6 border-t border-stone-200">
-                    <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl mb-6 text-xs text-stone-600 flex items-center justify-between">
+                    <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl mb-6 text-xs text-stone-600 flex items-center justify-between">
                       <span>Terms & Conditions pages are currently <strong>Excluded</strong> from export.</span>
                       <button
                         type="button"
                         onClick={() => setIncludeTermsInPrint(true)}
-                        className="font-bold text-[#9E7B1D] underline cursor-pointer hover:text-amber-800"
+                        className="font-bold text-blue-600 underline cursor-pointer hover:text-blue-800"
                       >
                         Enable T&C Pages
                       </button>
@@ -3717,12 +3719,12 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-[#9E7B1D] text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-blue-600 text-xs">For VELORA ANTARAAL</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>
-                    <div className="pt-4 border-t border-[#D4AF37] text-center space-y-1 text-stone-500 text-[10px]">
-                      <p className="font-bold text-[#9E7B1D] uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                    <div className="pt-4 border-t border-slate-200 text-center space-y-1 text-stone-500 text-[10px]">
+                      <p className="font-bold text-blue-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
                       <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
                     </div>
                   </div>
@@ -3730,7 +3732,7 @@ export default function BOQManagement() {
               </div>
             ) : (
               /* TAB 2: TERMS & CONDITIONS TEMPLATE INSPECTOR & CONFIGURATOR */
-              <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-[#FAF9F5]">
+              <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-slate-50">
                 <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -3771,7 +3773,7 @@ export default function BOQManagement() {
                           {t.paymentPlan.map((p, idx) => (
                             <div key={idx} className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-center">
                               <span className="text-[10px] font-bold text-stone-500 block uppercase">{p.milestone}</span>
-                              <span className="text-lg font-black text-[#9E7B1D] block">{p.percent}%</span>
+                              <span className="text-lg font-black text-blue-600 block">{p.percent}%</span>
                               <span className="text-[10px] text-stone-600 block truncate" title={p.description}>{p.description}</span>
                             </div>
                           ))}
@@ -3828,11 +3830,11 @@ export default function BOQManagement() {
             )}
 
             {/* Modal Footer Controls */}
-            <div className="p-4 border-t border-[#EAE3D2] bg-[#FAF9F5] flex flex-wrap items-center justify-between gap-2">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
                 >
                   <Download size={14} />
                   <span>Download Quotation PDF {includeTermsInPrint ? "(with T&C)" : ""}</span>
@@ -3937,7 +3939,7 @@ export default function BOQManagement() {
       {savedSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/65 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
-            <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 p-6 text-white text-center relative">
+            <div className="bg-blue-600 p-6 text-white text-center relative">
               <button
                 onClick={() => setSavedSuccessModal(null)}
                 className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/20 p-1.5 rounded-full transition cursor-pointer"
@@ -3947,8 +3949,8 @@ export default function BOQManagement() {
               <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
                 <CheckCircle2 size={32} className="text-white" />
               </div>
-              <h3 className="text-xl font-black">BOQ Saved Successfully!</h3>
-              <p className="text-amber-100 text-xs mt-1">
+              <h3 className="text-xl font-bold">BOQ Saved Successfully!</h3>
+              <p className="text-blue-100 text-xs mt-1">
                 Quotation & Tax Invoice generated. View, print, or download PDF below.
               </p>
             </div>
@@ -3979,17 +3981,17 @@ export default function BOQManagement() {
               </div>
 
               {/* Commercial & Invoice details card */}
-              <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-2">
+              <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Estimate & Quotation</span>
-                  <span className="px-2 py-0.5 bg-amber-200/80 text-amber-900 text-[10px] font-bold rounded-md">
+                  <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Estimate & Quotation</span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-md">
                     {savedSuccessModal.boq?.boqNumber || savedSuccessModal.invoice?.invoiceNumber || "Ready"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <div>
                     <p className="font-extrabold text-stone-900 text-sm">Grand Total (Incl. GST)</p>
-                    <p className="text-sm text-[#9E7B1D] font-black font-mono">
+                    <p className="text-sm text-blue-600 font-bold font-mono">
                       ₹{(savedSuccessModal.boq?.grandTotal || savedSuccessModal.invoice?.grandTotal || 0).toLocaleString("en-IN")}
                     </p>
                   </div>
@@ -4014,7 +4016,7 @@ export default function BOQManagement() {
                     setSavedSuccessModal(null);
                     handleOpenQuotationModal(targetBOQ);
                   }}
-                  className="px-3 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] hover:opacity-95 text-stone-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Eye size={14} />
                   <span>View Quotation</span>
@@ -4023,7 +4025,7 @@ export default function BOQManagement() {
                 <button
                   type="button"
                   onClick={() => downloadBOQPdf(savedSuccessModal.boq, null, { includeTerms: includeTermsInPrint })}
-                  className="px-3 py-2 bg-stone-100 hover:bg-amber-50 text-[#9E7B1D] border border-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 bg-stone-100 hover:bg-blue-50 text-blue-700 border border-blue-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Download size={14} />
                   <span>Download PDF</span>

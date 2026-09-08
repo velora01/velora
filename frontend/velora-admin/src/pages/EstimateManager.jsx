@@ -45,7 +45,7 @@ export default function EstimateManager() {
       render: (row) => (
         <button
           onClick={() => downloadBOQPdf(row)}
-          className="flex items-center gap-1 px-2.5 py-1 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-[#9E7B1D] hover:border-[#C5A059] transition cursor-pointer"
+          className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition cursor-pointer"
         >
           <Download size={12} />
           <span>Download PDF</span>
@@ -65,14 +65,14 @@ export default function EstimateManager() {
         <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
           <button
             onClick={() => setActiveTab("builder")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "builder" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "builder" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:text-slate-800"
               }`}
           >
             Create New Estimate
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "history" ? "bg-[#D4AF37] text-slate-950" : "text-slate-500 hover:text-slate-800"
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "history" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:text-slate-800"
               }`}
           >
             View Saved Estimates

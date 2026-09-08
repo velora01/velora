@@ -31,7 +31,7 @@ export default function NotificationsCenter() {
       <div className="space-y-3">
         {notifications.map((n) => (
           <div key={n.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-start gap-3">
-            <div className="p-2 bg-[#FFFBF0] text-[#9E7B1D] rounded-xl border border-[#E8D49E]">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-200">
               <Bell size={16} />
             </div>
             <div className="flex-1 space-y-1">

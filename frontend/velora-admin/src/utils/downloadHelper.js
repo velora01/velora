@@ -126,7 +126,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   // Header Right: Velora Antaraal Branding matching Image 2
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.setTextColor(158, 123, 29); // Dark gold
+  doc.setTextColor(37, 99, 235); // Royal Blue #2563EB
   doc.text("VELORA ANTARAAL", 555, 42, { align: "right" });
 
   doc.setFont("helvetica", "bold");
@@ -796,7 +796,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       margin: 0;
       font-size: 24px;
       font-weight: 900;
-      color: #9e7b1d;
+      color: #2563eb;
       letter-spacing: 0.5px;
     }
     .brand-box .tagline {
@@ -951,7 +951,7 @@ export const printBOQQuotation = (boq, options = {}) => {
     }
     .commercial-totals-box {
       width: 420px;
-      border: 2px solid #d4af37;
+      border: 2px solid #2563eb;
       background: #fff;
       border-radius: 8px;
       overflow: hidden;
@@ -974,12 +974,12 @@ export const printBOQQuotation = (boq, options = {}) => {
       font-size: 15.5px;
     }
     .tot-row.grand {
-      background: #faf6ed;
-      border-top: 2px solid #d4af37;
+      background: #eff6ff;
+      border-top: 2px solid #2563eb;
       border-bottom: none;
       font-weight: 900;
       font-size: 21px;
-      color: #9e7b1d;
+      color: #2563eb;
       padding: 14px 18px;
     }
     .tot-row.grand .tot-val {
@@ -987,13 +987,13 @@ export const printBOQQuotation = (boq, options = {}) => {
       font-weight: 900;
     }
     .tot-words-bar {
-      background: #faf6ed;
+      background: #eff6ff;
       padding: 6px 18px 12px 18px;
       text-align: right;
       font-size: 12px;
       font-weight: 600;
-      color: #78716c;
-      border-top: 1px dashed #e7e5e4;
+      color: #64748b;
+      border-top: 1px dashed #bfdbfe;
     }
 
     /* TERMS & CONDITIONS ON NEW PAGES MATCHING IMAGE 5 & 6 */
@@ -1096,16 +1096,16 @@ export const printBOQQuotation = (boq, options = {}) => {
       break-inside: avoid;
     }
     .footer-bar {
-      margin-top: 28px;
+      margin-top: 30px;
       padding-top: 12px;
-      border-top: 1.5px solid #d4af37;
+      border-top: 1.5px solid #2563eb;
       text-align: center;
       font-size: 11px;
       color: #78716c;
       break-inside: avoid;
     }
     .footer-bar strong {
-      color: #9e7b1d;
+      color: #2563eb;
     }
 
     @media print {
@@ -1131,20 +1131,20 @@ export const printBOQQuotation = (boq, options = {}) => {
   </style>
 </head>
 <body>
-  <div class="no-print" style="background: #1c1917; color: #fff; padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <div class="no-print" style="background: #0f172a; color: #fff; padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <div style="display: flex; align-items: center; gap: 14px;">
-      <span style="font-weight: 900; font-size: 14px; color: #d4af37; letter-spacing: 0.5px;">VELORA INTERIOR ESTIMATE & BOQ</span>
-      <span style="color: #a8a29e; font-size: 12px;">| Print or Select "Save as PDF"</span>
+      <span style="font-weight: 900; font-size: 14px; color: #60a5fa; letter-spacing: 0.5px;">VELORA INTERIOR ESTIMATE & BOQ</span>
+      <span style="color: #94a3b8; font-size: 12px;">| Print or Select "Save as PDF"</span>
     </div>
 
     <!-- Live In-Preview T&C Toggle Switch -->
     <div style="display: flex; align-items: center; gap: 16px;">
-      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f5f5f4; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #292524; padding: 6px 12px; border-radius: 8px; border: 1px solid #44403c; user-select: none;">
-        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #d4af37; cursor: pointer;" />
+      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
+        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer;" />
         <span>Include Terms & Conditions (T&C) Pages</span>
       </label>
 
-      <button onclick="window.print()" style="background: #9e7b1d; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
+      <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
         Print / Save PDF
       </button>
       <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;">
@@ -1381,7 +1381,7 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #2563eb; margin: 0;">For VELORA ANTARAAL</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>
@@ -1400,7 +1400,7 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #9e7b1d; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #2563eb; margin: 0;">For VELORA ANTARAAL</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>
@@ -1473,19 +1473,19 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const subtotal = Number(invoice?.subTotal || invoice?.subtotal || grandTotal);
   const gstTotal = Number(invoice?.taxAmount || invoice?.gstTotal || 0);
 
-  const primaryBlue = [29, 78, 216]; // Royal Blue #1D4ED8
-  const gold = [158, 123, 29]; // #9E7B1D
+  const primaryBlue = [37, 99, 235]; // Royal Blue #2563EB
+  const gold = [37, 99, 235]; // Unified with Blue
 
   // --- PAGE 1: TAX INVOICE ---
 
   // Brand Header Logo Badge (Top Left)
-  doc.setFillColor(254, 243, 199);
+  doc.setFillColor(239, 246, 255);
   doc.roundedRect(40, 35, 120, 48, 4, 4, "F");
-  doc.setDrawColor(217, 119, 6);
+  doc.setDrawColor(37, 99, 235);
   doc.roundedRect(40, 35, 120, 48, 4, 4, "S");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10.5);
-  doc.setTextColor(180, 83, 9);
+  doc.setTextColor(37, 99, 235);
   doc.text("VELORA", 100, 56, { align: "center" });
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");

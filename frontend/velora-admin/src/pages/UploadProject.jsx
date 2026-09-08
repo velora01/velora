@@ -181,7 +181,7 @@ export default function UploadProject() {
         {/* Back Button */}
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C9A227] transition mb-8 cursor-pointer font-medium"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition mb-8 cursor-pointer font-semibold"
         >
           <ArrowLeft size={16} />
           <span>Back to Dashboard</span>
@@ -189,37 +189,37 @@ export default function UploadProject() {
 
         {/* Title */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900">Upload New Project</h1>
-          <p className="text-gray-500 mt-2 text-sm">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Upload New Project</h1>
+          <p className="text-slate-500 mt-2 text-sm">
             Create and publish a new design project showcase to the live website.
           </p>
         </div>
 
         {/* Success Alert */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-3">
-            <CheckCircle size={20} className="flex-shrink-0" />
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl flex items-center gap-3 shadow-xs">
+            <CheckCircle size={20} className="shrink-0 text-emerald-600" />
             <div>
-              <p className="font-semibold text-sm">Project Published Successfully!</p>
-              <p className="text-xs text-green-600 mt-0.5">Redirecting you to the dashboard...</p>
+              <p className="font-bold text-sm">Project Published Successfully!</p>
+              <p className="text-xs text-emerald-600 mt-0.5">Redirecting you to the dashboard...</p>
             </div>
           </div>
         )}
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
-            <AlertCircle size={20} className="flex-shrink-0" />
-            <p className="font-medium text-sm">{error}</p>
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-3 shadow-xs">
+            <AlertCircle size={20} className="shrink-0 text-rose-600" />
+            <p className="font-bold text-sm">{error}</p>
           </div>
         )}
 
         {/* Form Container */}
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
           
           {/* Project Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Project Title
             </label>
             <input
@@ -228,13 +228,13 @@ export default function UploadProject() {
               placeholder="e.g. Modern Penthouse Lounge"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm text-gray-905 bg-white text-gray-950"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-xs"
             />
           </div>
 
           {/* Project Category Tag */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Category / Tag
             </label>
             <select
@@ -244,7 +244,7 @@ export default function UploadProject() {
                 setCustomTag("");
               }}
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white text-gray-950 cursor-pointer"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-xs cursor-pointer"
             >
               <option value="">-- Select a Category --</option>
               {PRESET_TAGS.map((t) => (
@@ -262,14 +262,14 @@ export default function UploadProject() {
                 placeholder="Enter custom category name..."
                 value={customTag}
                 onChange={(e) => setCustomTag(e.target.value)}
-                className="w-full mt-3 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white text-gray-950"
+                className="w-full mt-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-xs"
               />
             )}
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Description
             </label>
             <textarea
@@ -278,18 +278,18 @@ export default function UploadProject() {
               placeholder="Provide a detailed description of the project, including design concepts, color palettes, and material choices."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition text-sm bg-white leading-relaxed resize-y text-gray-950"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-xs leading-relaxed resize-y"
             />
           </div>
 
           {/* Cover Image Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Main Cover Image
             </label>
             
             {coverImage ? (
-              <div className="relative rounded-lg overflow-hidden border border-gray-300 bg-gray-50 h-48 group">
+              <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 h-48 group shadow-xs">
                 <img
                   src={coverImage}
                   alt="Cover Preview"
@@ -298,24 +298,24 @@ export default function UploadProject() {
                 <button
                   type="button"
                   onClick={() => setCoverImage("")}
-                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm cursor-pointer"
+                  className="absolute top-3 right-3 bg-rose-600 hover:bg-rose-700 text-white p-2 rounded-xl transition shadow-sm cursor-pointer"
                   title="Remove Image"
                 >
                   <Trash2 size={16} />
                 </button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-[#C9A227] transition bg-white text-center px-4">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-blue-50/40 hover:border-blue-500 transition bg-slate-50/50 text-center px-4">
                 {isUploadingCover ? (
                   <div className="flex flex-col items-center gap-2">
-                    <Loader2 size={24} className="animate-spin text-[#C9A227]" />
-                    <span className="text-xs text-gray-500 font-medium">Uploading image...</span>
+                    <Loader2 size={24} className="animate-spin text-blue-600" />
+                    <span className="text-xs text-slate-500 font-bold">Uploading image...</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-1.5 text-gray-500">
-                    <Upload size={24} />
-                    <span className="text-xs font-semibold">Click to upload Cover Image</span>
-                    <span className="text-[10px] text-gray-400">PNG, JPG, JPEG, or WEBP</span>
+                  <div className="flex flex-col items-center gap-1.5 text-slate-500">
+                    <Upload size={24} className="text-blue-600" />
+                    <span className="text-xs font-bold text-slate-700">Click to upload Cover Image</span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG, JPEG, or WEBP</span>
                   </div>
                 )}
                 <input
@@ -331,12 +331,12 @@ export default function UploadProject() {
 
           {/* Video Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Project Video (Optional)
             </label>
             
             {video ? (
-              <div className="relative rounded-lg overflow-hidden border border-gray-300 bg-gray-50 h-48 group">
+              <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 h-48 group shadow-xs">
                 <video
                   src={video}
                   controls
@@ -345,24 +345,24 @@ export default function UploadProject() {
                 <button
                   type="button"
                   onClick={() => setVideo("")}
-                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition shadow-sm cursor-pointer"
+                  className="absolute top-3 right-3 bg-rose-600 hover:bg-rose-700 text-white p-2 rounded-xl transition shadow-sm cursor-pointer"
                   title="Remove Video"
                 >
                   <Trash2 size={16} />
                 </button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-[#C9A227] transition bg-white text-center px-4">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-blue-50/40 hover:border-blue-500 transition bg-slate-50/50 text-center px-4">
                 {isUploadingVideo ? (
                   <div className="flex flex-col items-center gap-2">
-                    <Loader2 size={24} className="animate-spin text-[#C9A227]" />
-                    <span className="text-xs text-gray-500 font-medium">Uploading video...</span>
+                    <Loader2 size={24} className="animate-spin text-blue-600" />
+                    <span className="text-xs text-slate-500 font-bold">Uploading video...</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-1.5 text-gray-500">
-                    <Upload size={24} />
-                    <span className="text-xs font-semibold">Click to upload Video</span>
-                    <span className="text-[10px] text-gray-400">MP4, WEBM, OGG, or MOV</span>
+                  <div className="flex flex-col items-center gap-1.5 text-slate-500">
+                    <Upload size={24} className="text-blue-600" />
+                    <span className="text-xs font-bold text-slate-700">Click to upload Video</span>
+                    <span className="text-[10px] text-slate-400">MP4, WEBM, OGG, or MOV</span>
                   </div>
                 )}
                 <input
@@ -378,7 +378,7 @@ export default function UploadProject() {
 
           {/* Gallery Images Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Additional Gallery Images (Optional)
             </label>
 
@@ -386,7 +386,7 @@ export default function UploadProject() {
             {galleryImages.length > 0 && (
               <div className="grid grid-cols-4 gap-3 mb-4">
                 {galleryImages.map((url, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-300 bg-gray-50 group">
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50 group shadow-xs">
                     <img
                       src={url}
                       alt={`Gallery ${idx}`}
@@ -395,7 +395,7 @@ export default function UploadProject() {
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
-                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition shadow-sm cursor-pointer"
+                      className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-lg transition shadow-sm cursor-pointer"
                       title="Remove"
                     >
                       <Trash2 size={12} />
@@ -405,16 +405,16 @@ export default function UploadProject() {
               </div>
             )}
 
-            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-[#C9A227] transition bg-white text-center px-4">
+            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-blue-50/40 hover:border-blue-500 transition bg-slate-50/50 text-center px-4">
               {isUploadingGallery ? (
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2 size={20} className="animate-spin text-[#C9A227]" />
-                  <span className="text-xs text-gray-500 font-medium">Uploading images...</span>
+                  <Loader2 size={20} className="animate-spin text-blue-600" />
+                  <span className="text-xs text-slate-500 font-bold">Uploading images...</span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-1 text-gray-500">
-                  <Upload size={20} />
-                  <span className="text-xs font-semibold">Click to add Gallery Images</span>
+                <div className="flex flex-col items-center gap-1 text-slate-500">
+                  <Upload size={20} className="text-blue-600" />
+                  <span className="text-xs font-bold text-slate-700">Click to add Gallery Images</span>
                 </div>
               )}
               <input
@@ -429,11 +429,11 @@ export default function UploadProject() {
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4 border-t border-gray-100">
+          <div className="pt-4 border-t border-slate-100">
             <button
               type="submit"
               disabled={isSubmitting || isUploadingCover || isUploadingGallery || isUploadingVideo}
-              className="w-full bg-[#C9A227] hover:bg-[#B8931F] text-white font-semibold py-3 px-6 rounded-lg shadow-sm hover:shadow transition duration-200 text-sm uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-xs hover:shadow-md transition duration-200 text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

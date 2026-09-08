@@ -125,27 +125,27 @@ export default function ReportsAnalytics() {
         {reportsList.map((rep) => (
           <div
             key={rep.type}
-            className="bg-white border border-[#EAE3D2] rounded-2xl p-6 shadow-2xs space-y-4 flex flex-col justify-between"
+            className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4 flex flex-col justify-between"
           >
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-[#FFFBF0] text-[#9E7B1D] rounded-xl border border-[#E8D49E]">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-200">
                   <FileSpreadsheet size={18} />
                 </div>
-                <h3 className="font-extrabold text-base text-stone-900">{rep.title}</h3>
+                <h3 className="font-extrabold text-base text-slate-900">{rep.title}</h3>
               </div>
-              <p className="text-xs text-stone-500 font-medium">{rep.desc}</p>
+              <p className="text-xs text-slate-500 font-medium">{rep.desc}</p>
             </div>
 
-            <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
-              <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                 Format: Excel / CSV
               </span>
               <button
                 type="button"
                 onClick={() => handleExportReport(rep)}
                 disabled={downloadingType === rep.type}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 rounded-xl text-xs font-bold shadow-xs hover:opacity-95 transition cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer disabled:opacity-50"
               >
                 <Download size={14} />
                 <span>{downloadingType === rep.type ? "Exporting..." : "Export Report"}</span>

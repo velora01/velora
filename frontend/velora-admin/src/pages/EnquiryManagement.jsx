@@ -75,7 +75,7 @@ export default function EnquiryManagement() {
   const [successToast, setSuccessToast] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Form State matching Reference Screenshots
+  // Form State
   const initialFormData = {
     // Step 1: Contact Information
     salutation: "Mr",
@@ -145,12 +145,12 @@ export default function EnquiryManagement() {
     "Full Home Interior"
   ];
 
-  // Pipeline Stages
+  // Pipeline Stages with Royal Blue Theme
   const pipelineStages = [
-    { key: "Inquiry", label: "New Inquiry", color: "bg-[#D4AF37]" },
-    { key: "Booking", label: "Site Visit / Booking", color: "bg-amber-500" },
-    { key: "Proposal", label: "Design & Proposal", color: "bg-[#9E7B1D]" },
-    { key: "Design Phase", label: "3D Design Signoff", color: "bg-[#B8860B]" },
+    { key: "Inquiry", label: "New Inquiry", color: "bg-blue-600" },
+    { key: "Booking", label: "Site Visit / Booking", color: "bg-indigo-600" },
+    { key: "Proposal", label: "Design & Proposal", color: "bg-blue-700" },
+    { key: "Design Phase", label: "3D Design Signoff", color: "bg-indigo-700" },
     { key: "Under Installation", label: "Factory & Site Execution", color: "bg-emerald-600" },
     { key: "Completed", label: "Handover Completed", color: "bg-emerald-700" }
   ];
@@ -525,30 +525,30 @@ export default function EnquiryManagement() {
   };
 
   // =========================================================================
-  // VIEW: 3-STEP ADD / EDIT ENQUIRY WIZARD (Screenshots 1 & 2 - Golden Theme)
+  // VIEW: 3-STEP ADD / EDIT ENQUIRY WIZARD
   // =========================================================================
   if (viewMode === "add" || viewMode === "edit") {
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
         {/* Wizard Header Bar */}
-        <div className="bg-white border border-[#EAE3D2] rounded-2xl p-6 shadow-xs">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
           {/* Top Title & Close */}
-          <div className="flex items-center justify-between pb-6 border-b border-[#EAE3D2] mb-8">
+          <div className="flex items-center justify-between pb-6 border-b border-slate-200 mb-8">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   setViewMode("list");
                   setEditingId(null);
                 }}
-                className="p-2 text-stone-400 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-xl transition cursor-pointer"
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer"
               >
                 <ArrowLeft size={18} />
               </button>
               <div>
-                <h1 className="text-xl font-bold text-stone-900">
+                <h1 className="text-xl font-bold text-slate-900">
                   {editingId ? "Edit Enquiry" : "Add Enquiry"}
                 </h1>
-                <p className="text-xs text-[#9E7B1D] font-medium">
+                <p className="text-xs text-blue-600 font-medium">
                   {editingId ? "Modify enquiry specifications" : "Register a new client enquiry"}
                 </p>
               </div>
@@ -559,39 +559,39 @@ export default function EnquiryManagement() {
                 setViewMode("list");
                 setEditingId(null);
               }}
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-4 py-2 rounded-xl transition cursor-pointer"
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition cursor-pointer"
             >
               Back to List
             </button>
           </div>
 
-          {/* Stepper Progress Bar (Reference UI with Luxury Golden Accent) */}
+          {/* Stepper Progress Bar */}
           <div className="max-w-3xl mx-auto mb-10">
             <div className="flex items-center justify-between relative">
               {/* Connecting Line */}
-              <div className="absolute top-1/2 left-16 right-16 -translate-y-1/2 h-[2px] bg-[#EAE3D2] -z-0" />
+              <div className="absolute top-1/2 left-16 right-16 -translate-y-1/2 h-[2px] bg-slate-200 -z-0" />
 
               {/* Step 1: Contact Detail */}
               <div
                 onClick={() => setWizardStep(1)}
                 className={`flex flex-col items-center cursor-pointer group z-10 px-4 py-2 rounded-xl transition ${
-                  wizardStep === 1 ? "bg-amber-50/80" : ""
+                  wizardStep === 1 ? "bg-blue-50/80" : ""
                 }`}
               >
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-sm mb-2 shadow-xs transition ${
                     wizardStep === 1
-                      ? "bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 ring-4 ring-amber-100"
+                      ? "bg-blue-600 text-white ring-4 ring-blue-100"
                       : wizardStep > 1
-                      ? "bg-[#9E7B1D] text-white"
-                      : "bg-stone-200 text-stone-600"
+                      ? "bg-blue-700 text-white"
+                      : "bg-slate-200 text-slate-600"
                   }`}
                 >
                   {wizardStep > 1 ? <Check size={16} /> : "1"}
                 </div>
                 <span
                   className={`text-xs font-bold transition ${
-                    wizardStep === 1 ? "text-[#9E7B1D]" : "text-stone-600"
+                    wizardStep === 1 ? "text-blue-600" : "text-slate-600"
                   }`}
                 >
                   Contact Detail
@@ -602,23 +602,23 @@ export default function EnquiryManagement() {
               <div
                 onClick={() => setWizardStep(2)}
                 className={`flex flex-col items-center cursor-pointer group z-10 px-4 py-2 rounded-xl transition ${
-                  wizardStep === 2 ? "bg-amber-50/80" : ""
+                  wizardStep === 2 ? "bg-blue-50/80" : ""
                 }`}
               >
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-sm mb-2 shadow-xs transition ${
                     wizardStep === 2
-                      ? "bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 ring-4 ring-amber-100"
+                      ? "bg-blue-600 text-white ring-4 ring-blue-100"
                       : wizardStep > 2
-                      ? "bg-[#9E7B1D] text-white"
-                      : "bg-stone-200 text-stone-600"
+                      ? "bg-blue-700 text-white"
+                      : "bg-slate-200 text-slate-600"
                   }`}
                 >
                   {wizardStep > 2 ? <Check size={16} /> : wizardStep === 2 ? "2" : <Edit2 size={14} />}
                 </div>
                 <span
                   className={`text-xs font-bold transition ${
-                    wizardStep === 2 ? "text-[#9E7B1D]" : "text-stone-600"
+                    wizardStep === 2 ? "text-blue-600" : "text-slate-600"
                   }`}
                 >
                   Project Detail
@@ -629,21 +629,21 @@ export default function EnquiryManagement() {
               <div
                 onClick={() => setWizardStep(3)}
                 className={`flex flex-col items-center cursor-pointer group z-10 px-4 py-2 rounded-xl transition ${
-                  wizardStep === 3 ? "bg-amber-50/80" : ""
+                  wizardStep === 3 ? "bg-blue-50/80" : ""
                 }`}
               >
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-sm mb-2 shadow-xs transition ${
                     wizardStep === 3
-                      ? "bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] text-stone-950 ring-4 ring-amber-100"
-                      : "bg-stone-200 text-stone-600"
+                      ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                      : "bg-slate-200 text-slate-600"
                   }`}
                 >
                   3
                 </div>
                 <span
                   className={`text-xs font-bold transition ${
-                    wizardStep === 3 ? "text-[#9E7B1D]" : "text-stone-600"
+                    wizardStep === 3 ? "text-blue-600" : "text-slate-600"
                   }`}
                 >
                   Additional Detail
@@ -661,13 +661,13 @@ export default function EnquiryManagement() {
           )}
 
           {/* ============================================================= */}
-          {/* STEP 1: CONTACT DETAIL (Screenshot 1 - Golden Theme) */}
+          {/* STEP 1: CONTACT DETAIL */}
           {/* ============================================================= */}
           {wizardStep === 1 && (
             <div className="space-y-8 animate-in fade-in duration-150">
               {/* Section 1: Contact Information */}
               <div className="space-y-4">
-                <h2 className="text-sm font-extrabold text-[#9E7B1D] tracking-wide">
+                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
                   Contact Information
                 </h2>
 
@@ -675,13 +675,13 @@ export default function EnquiryManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                   {/* Salutation */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Salutation
                     </label>
                     <select
                       value={formData.salutation}
                       onChange={(e) => handleInputChange("salutation", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     >
                       <option value="Mr">Mr</option>
                       <option value="Mrs">Mrs</option>
@@ -693,7 +693,7 @@ export default function EnquiryManagement() {
 
                   {/* Name */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -702,17 +702,17 @@ export default function EnquiryManagement() {
                       value={formData.name}
                       onChange={(e) => handleInputChange("name", e.target.value)}
                       required
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     />
                   </div>
 
                   {/* Phone */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Phone <span className="text-rose-500">*</span>
                     </label>
-                    <div className="flex h-10 border border-[#EAE3D2] rounded-xl overflow-hidden focus-within:border-[#D4AF37] focus-within:ring-2 focus-within:ring-amber-100 transition bg-white">
-                      <div className="flex items-center gap-1 px-2.5 bg-[#FFFDF9] border-r border-[#EAE3D2] text-xs font-semibold text-stone-700 select-none">
+                    <div className="flex h-10 border border-slate-200 rounded-xl overflow-hidden focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition bg-white">
+                      <div className="flex items-center gap-1 px-2.5 bg-slate-50 border-r border-slate-200 text-xs font-semibold text-slate-700 select-none">
                         <span>🇮🇳</span>
                         <span>+91</span>
                       </div>
@@ -722,14 +722,14 @@ export default function EnquiryManagement() {
                         value={formData.phone}
                         onChange={(e) => handleInputChange("phone", e.target.value)}
                         required
-                        className="flex-1 px-3 text-xs text-stone-800 placeholder-stone-400 focus:outline-none"
+                        className="flex-1 px-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Email */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Email
                     </label>
                     <input
@@ -737,13 +737,13 @@ export default function EnquiryManagement() {
                       placeholder="Enter email"
                       value={formData.email}
                       onChange={(e) => handleInputChange("email", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     />
                   </div>
 
                   {/* Enquiry Date */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Enquiry Date
                     </label>
                     <div className="relative flex items-center">
@@ -751,11 +751,11 @@ export default function EnquiryManagement() {
                         type="date"
                         value={formData.enquiryDate}
                         onChange={(e) => handleInputChange("enquiryDate", e.target.value)}
-                        className="w-full h-10 pl-3 pr-9 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                        className="w-full h-10 pl-3 pr-9 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                       />
                       <CalendarIcon
                         size={14}
-                        className="absolute right-3 text-[#D4AF37] pointer-events-none"
+                        className="absolute right-3 text-blue-600 pointer-events-none"
                       />
                     </div>
                   </div>
@@ -765,7 +765,7 @@ export default function EnquiryManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-1">
                   {/* Address */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Address
                     </label>
                     <input
@@ -773,13 +773,13 @@ export default function EnquiryManagement() {
                       placeholder="Address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     />
                   </div>
 
                   {/* Occupation */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Occupation
                     </label>
                     <input
@@ -787,13 +787,13 @@ export default function EnquiryManagement() {
                       placeholder="Enter occupation"
                       value={formData.occupation}
                       onChange={(e) => handleInputChange("occupation", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     />
                   </div>
 
                   {/* Landline (STD + Number) */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Landline (STD + Number)
                     </label>
                     <div className="flex gap-2">
@@ -802,21 +802,21 @@ export default function EnquiryManagement() {
                         placeholder="e.g. 044"
                         value={formData.landlineSTD}
                         onChange={(e) => handleInputChange("landlineSTD", e.target.value)}
-                        className="w-24 h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                        className="w-24 h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                       />
                       <input
                         type="text"
                         placeholder="e.g. 2345678"
                         value={formData.landlineNumber}
                         onChange={(e) => handleInputChange("landlineNumber", e.target.value)}
-                        className="flex-1 h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                        className="flex-1 h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                       />
                     </div>
                   </div>
 
                   {/* Company Name */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Company Name
                     </label>
                     <input
@@ -824,28 +824,28 @@ export default function EnquiryManagement() {
                       placeholder="Enter company name"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange("companyName", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-amber-100 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Section 2: Alternate Contact Information */}
-              <div className="space-y-4 pt-4 border-t border-[#EAE3D2]">
-                <h2 className="text-sm font-extrabold text-[#9E7B1D] tracking-wide">
+              <div className="space-y-4 pt-4 border-t border-slate-200">
+                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
                   Alternate Contact Information
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                   {/* Salutation */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Salutation
                     </label>
                     <select
                       value={formData.altSalutation}
                       onChange={(e) => handleInputChange("altSalutation", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Mr">Mr</option>
                       <option value="Mrs">Mrs</option>
@@ -856,7 +856,7 @@ export default function EnquiryManagement() {
 
                   {/* Name */}
                   <div className="md:col-span-4">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Name
                     </label>
                     <input
@@ -864,17 +864,17 @@ export default function EnquiryManagement() {
                       placeholder="Enter name"
                       value={formData.altName}
                       onChange={(e) => handleInputChange("altName", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* Phone */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Phone
                     </label>
-                    <div className="flex h-10 border border-[#EAE3D2] rounded-xl overflow-hidden focus-within:border-[#D4AF37] transition bg-white">
-                      <div className="flex items-center gap-1 px-2.5 bg-[#FFFDF9] border-r border-[#EAE3D2] text-xs font-semibold text-stone-700 select-none">
+                    <div className="flex h-10 border border-slate-200 rounded-xl overflow-hidden focus-within:border-blue-500 transition bg-white">
+                      <div className="flex items-center gap-1 px-2.5 bg-slate-50 border-r border-slate-200 text-xs font-semibold text-slate-700 select-none">
                         <span>🇮🇳</span>
                         <span>+91</span>
                       </div>
@@ -883,14 +883,14 @@ export default function EnquiryManagement() {
                         placeholder="74104 10123"
                         value={formData.altPhone}
                         onChange={(e) => handleInputChange("altPhone", e.target.value)}
-                        className="flex-1 px-3 text-xs text-stone-800 placeholder-stone-400 focus:outline-none"
+                        className="flex-1 px-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Email */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Email
                     </label>
                     <input
@@ -898,21 +898,21 @@ export default function EnquiryManagement() {
                       placeholder="Enter email"
                       value={formData.altEmail}
                       onChange={(e) => handleInputChange("altEmail", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Bottom Actions for Step 1 */}
-              <div className="pt-6 border-t border-[#EAE3D2] flex items-center justify-end gap-3">
+              <div className="pt-6 border-t border-slate-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setViewMode("list");
                     setEditingId(null);
                   }}
-                  className="px-6 py-2.5 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-amber-50/50 rounded-xl transition cursor-pointer"
+                  className="px-6 py-2.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -926,7 +926,7 @@ export default function EnquiryManagement() {
                     setErrorMessage("");
                     setWizardStep(2);
                   }}
-                  className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-extrabold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+                  className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                 >
                   <span>Continue</span>
                   <ArrowRight size={14} />
@@ -936,13 +936,13 @@ export default function EnquiryManagement() {
           )}
 
           {/* ============================================================= */}
-          {/* STEP 2: PROJECT DETAIL (Screenshot 2 - Golden Theme) */}
+          {/* STEP 2: PROJECT DETAIL */}
           {/* ============================================================= */}
           {wizardStep === 2 && (
             <div className="space-y-8 animate-in fade-in duration-150">
               {/* Section 1: Project Details */}
               <div className="space-y-4">
-                <h2 className="text-sm font-extrabold text-[#9E7B1D] tracking-wide">
+                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
                   Project Details
                 </h2>
 
@@ -950,13 +950,13 @@ export default function EnquiryManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                   {/* Project Type */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Project Type
                     </label>
                     <select
                       value={formData.projectType}
                       onChange={(e) => handleInputChange("projectType", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Residential">Residential</option>
                       <option value="Commercial">Commercial</option>
@@ -967,7 +967,7 @@ export default function EnquiryManagement() {
 
                   {/* Project Subtype */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Project Subtype
                     </label>
                     <input
@@ -975,19 +975,19 @@ export default function EnquiryManagement() {
                       placeholder="Enter project subtype"
                       value={formData.projectSubtype}
                       onChange={(e) => handleInputChange("projectSubtype", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* Site Status */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Site Status
                     </label>
                     <select
                       value={formData.siteStatus}
                       onChange={(e) => handleInputChange("siteStatus", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Possession Handed Over">Possession Handed Over</option>
                       <option value="Under Construction">Under Construction</option>
@@ -999,7 +999,7 @@ export default function EnquiryManagement() {
 
                   {/* Site Size */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Site Size
                     </label>
                     <input
@@ -1007,16 +1007,16 @@ export default function EnquiryManagement() {
                       placeholder="Enter site size"
                       value={formData.siteSize}
                       onChange={(e) => handleInputChange("siteSize", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
                 </div>
 
-                {/* Row 2: Site Location, Site Address (with Same as Address checkbox), GST Number, Source */}
+                {/* Row 2: Site Location, Site Address, GST Number, Source */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-1">
                   {/* Site Location */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Site Location
                     </label>
                     <input
@@ -1024,22 +1024,22 @@ export default function EnquiryManagement() {
                       placeholder="Enter site location"
                       value={formData.siteLocation}
                       onChange={(e) => handleInputChange("siteLocation", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* Site Address */}
                   <div className="md:col-span-3">
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-semibold text-stone-700">
+                      <label className="text-xs font-semibold text-slate-700">
                         Site Address
                       </label>
-                      <label className="flex items-center gap-1.5 text-[11px] text-stone-500 cursor-pointer select-none">
+                      <label className="flex items-center gap-1.5 text-[11px] text-slate-500 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={formData.sameAsAddress}
                           onChange={(e) => handleSameAsAddressToggle(e.target.checked)}
-                          className="rounded border-stone-300 text-[#D4AF37] focus:ring-[#D4AF37]"
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                         />
                         <span>Same as Address</span>
                       </label>
@@ -1049,36 +1049,36 @@ export default function EnquiryManagement() {
                       placeholder="Site Address"
                       value={formData.siteAddress}
                       onChange={(e) => handleInputChange("siteAddress", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* GST Number */}
                   <div className="md:col-span-3">
                     <div className="flex items-center gap-1 mb-1.5">
-                      <label className="text-xs font-semibold text-stone-700">
+                      <label className="text-xs font-semibold text-slate-700">
                         GST Number
                       </label>
-                      <Info size={12} className="text-stone-400" title="Optional 15-digit GSTIN" />
+                      <Info size={12} className="text-slate-400" title="Optional 15-digit GSTIN" />
                     </div>
                     <input
                       type="text"
                       placeholder="Enter GST number"
                       value={formData.gstNumber}
                       onChange={(e) => handleInputChange("gstNumber", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* Source */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Source
                     </label>
                     <select
                       value={formData.source}
                       onChange={(e) => handleInputChange("source", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Website">Website</option>
                       <option value="Instagram">Instagram</option>
@@ -1094,8 +1094,8 @@ export default function EnquiryManagement() {
               </div>
 
               {/* Section 2: Enquiry Details */}
-              <div className="space-y-4 pt-4 border-t border-[#EAE3D2]">
-                <h2 className="text-sm font-extrabold text-[#9E7B1D] tracking-wide">
+              <div className="space-y-4 pt-4 border-t border-slate-200">
+                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
                   Enquiry Details
                 </h2>
 
@@ -1103,13 +1103,13 @@ export default function EnquiryManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                   {/* Handled By */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Handled By <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={formData.handledBy}
                       onChange={(e) => handleInputChange("handledBy", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Admin">Admin</option>
                       <option value="Sales Manager Rahul">Sales Manager Rahul</option>
@@ -1120,13 +1120,13 @@ export default function EnquiryManagement() {
 
                   {/* Designed By */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Designed By
                     </label>
                     <select
                       value={formData.designedBy}
                       onChange={(e) => handleInputChange("designedBy", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Lead Designer">Lead Designer</option>
                       <option value="Architect Rohit">Architect Rohit</option>
@@ -1137,13 +1137,13 @@ export default function EnquiryManagement() {
 
                   {/* Prospect Status */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Prospect Status
                     </label>
                     <select
                       value={formData.prospectStatus}
                       onChange={(e) => handleInputChange("prospectStatus", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Hot">Hot</option>
                       <option value="Warm">Warm</option>
@@ -1157,7 +1157,7 @@ export default function EnquiryManagement() {
 
                   {/* Budget */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Budget
                     </label>
                     <input
@@ -1165,7 +1165,7 @@ export default function EnquiryManagement() {
                       placeholder="Enter budget (e.g. ₹35L)"
                       value={formData.budget}
                       onChange={(e) => handleInputChange("budget", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
                 </div>
@@ -1174,7 +1174,7 @@ export default function EnquiryManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-1">
                   {/* Timeline */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Timeline
                     </label>
                     <input
@@ -1182,13 +1182,13 @@ export default function EnquiryManagement() {
                       placeholder="Enter timeline (e.g. 3 Months)"
                       value={formData.timeline}
                       onChange={(e) => handleInputChange("timeline", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
 
                   {/* Expected On */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Expected On
                     </label>
                     <div className="relative flex items-center">
@@ -1196,24 +1196,24 @@ export default function EnquiryManagement() {
                         type="date"
                         value={formData.expectedOn}
                         onChange={(e) => handleInputChange("expectedOn", e.target.value)}
-                        className="w-full h-10 pl-3 pr-9 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                        className="w-full h-10 pl-3 pr-9 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                       />
                       <CalendarIcon
                         size={14}
-                        className="absolute right-3 text-[#D4AF37] pointer-events-none"
+                        className="absolute right-3 text-blue-600 pointer-events-none"
                       />
                     </div>
                   </div>
 
                   {/* Financial Status */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Financial Status
                     </label>
                     <select
                       value={formData.financialStatus}
                       onChange={(e) => handleInputChange("financialStatus", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Self Funded">Self Funded</option>
                       <option value="Bank Loan Applied">Bank Loan Applied</option>
@@ -1224,13 +1224,13 @@ export default function EnquiryManagement() {
 
                   {/* Priority Status */}
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Priority Status
                     </label>
                     <select
                       value={formData.priorityStatus}
                       onChange={(e) => handleInputChange("priorityStatus", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="High">High</option>
                       <option value="Medium">Medium</option>
@@ -1242,7 +1242,7 @@ export default function EnquiryManagement() {
 
                 {/* Row 3: Remarks */}
                 <div className="pt-1">
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Remarks
                   </label>
                   <input
@@ -1250,14 +1250,14 @@ export default function EnquiryManagement() {
                     placeholder="Enter remarks"
                     value={formData.remarks}
                     onChange={(e) => handleInputChange("remarks", e.target.value)}
-                    className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                   />
                 </div>
 
-                {/* Row 4: Radio Buttons for Site Visits (Screenshot 2) */}
+                {/* Row 4: Radio Buttons for Site Visits */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-8 pt-4 pb-2">
                   {/* Office Visited */}
-                  <div className="flex items-center gap-3 text-xs font-semibold text-stone-700">
+                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
                     <span>Office Visited:</span>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -1265,7 +1265,7 @@ export default function EnquiryManagement() {
                         name="officeVisited"
                         checked={formData.officeVisited === true}
                         onChange={() => handleInputChange("officeVisited", true)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>Yes</span>
                     </label>
@@ -1275,14 +1275,14 @@ export default function EnquiryManagement() {
                         name="officeVisited"
                         checked={formData.officeVisited === false}
                         onChange={() => handleInputChange("officeVisited", false)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>No</span>
                     </label>
                   </div>
 
                   {/* Site Visited */}
-                  <div className="flex items-center gap-3 text-xs font-semibold text-stone-700">
+                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
                     <span>Site Visited:</span>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -1290,7 +1290,7 @@ export default function EnquiryManagement() {
                         name="siteVisited"
                         checked={formData.siteVisited === true}
                         onChange={() => handleInputChange("siteVisited", true)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>Yes</span>
                     </label>
@@ -1300,14 +1300,14 @@ export default function EnquiryManagement() {
                         name="siteVisited"
                         checked={formData.siteVisited === false}
                         onChange={() => handleInputChange("siteVisited", false)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>No</span>
                     </label>
                   </div>
 
                   {/* Reference Site Visited */}
-                  <div className="flex items-center gap-3 text-xs font-semibold text-stone-700">
+                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
                     <span>Reference Site Visited:</span>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -1315,7 +1315,7 @@ export default function EnquiryManagement() {
                         name="referenceSiteVisited"
                         checked={formData.referenceSiteVisited === true}
                         onChange={() => handleInputChange("referenceSiteVisited", true)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>Yes</span>
                     </label>
@@ -1325,7 +1325,7 @@ export default function EnquiryManagement() {
                         name="referenceSiteVisited"
                         checked={formData.referenceSiteVisited === false}
                         onChange={() => handleInputChange("referenceSiteVisited", false)}
-                        className="text-[#D4AF37] focus:ring-[#D4AF37]"
+                        className="text-blue-600 focus:ring-blue-500"
                       />
                       <span>No</span>
                     </label>
@@ -1334,11 +1334,11 @@ export default function EnquiryManagement() {
               </div>
 
               {/* Bottom Actions for Step 2 */}
-              <div className="pt-6 border-t border-[#EAE3D2] flex items-center justify-between">
+              <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setWizardStep(1)}
-                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-[#EAE3D2] hover:bg-amber-50/50 rounded-xl transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"
                 >
                   <ArrowLeft size={14} />
                   <span>Back to Step 1</span>
@@ -1351,14 +1351,14 @@ export default function EnquiryManagement() {
                       setViewMode("list");
                       setEditingId(null);
                     }}
-                    className="px-6 py-2.5 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-amber-50/50 rounded-xl transition cursor-pointer"
+                    className="px-6 py-2.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={() => setWizardStep(3)}
-                    className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-extrabold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+                    className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                   >
                     <span>Continue to Step 3</span>
                     <ArrowRight size={14} />
@@ -1369,18 +1369,18 @@ export default function EnquiryManagement() {
           )}
 
           {/* ============================================================= */}
-          {/* STEP 3: ADDITIONAL DETAIL (Golden Theme) */}
+          {/* STEP 3: ADDITIONAL DETAIL */}
           {/* ============================================================= */}
           {wizardStep === 3 && (
             <div className="space-y-8 animate-in fade-in duration-150">
               <div className="space-y-6">
-                <h2 className="text-sm font-extrabold text-[#9E7B1D] tracking-wide">
+                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
                   Additional Detail & Scope of Work
                 </h2>
 
                 {/* Scope of Work Multi-select Badges */}
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2">
                     Scope of Work
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
@@ -1393,12 +1393,12 @@ export default function EnquiryManagement() {
                           onClick={() => handleScopeToggle(item)}
                           className={`p-3 rounded-xl border text-left text-xs font-medium transition flex items-center justify-between cursor-pointer ${
                             isSelected
-                              ? "bg-amber-50 border-[#D4AF37] text-[#9E7B1D] font-bold shadow-xs"
-                              : "bg-white border-[#EAE3D2] text-stone-700 hover:bg-amber-50/30"
+                              ? "bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-xs"
+                              : "bg-white border-slate-200 text-slate-700 hover:bg-blue-50/30"
                           }`}
                         >
                           <span>{item}</span>
-                          {isSelected && <Check size={14} className="text-[#9E7B1D]" />}
+                          {isSelected && <Check size={14} className="text-blue-600" />}
                         </button>
                       );
                     })}
@@ -1408,13 +1408,13 @@ export default function EnquiryManagement() {
                 {/* Style Preference & Estimated Budget */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Design Style Preference
                     </label>
                     <select
                       value={formData.stylePreference}
                       onChange={(e) => handleInputChange("stylePreference", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
                     >
                       <option value="Modern">Modern Minimalist</option>
                       <option value="Luxury Contemporary">Luxury Contemporary</option>
@@ -1426,7 +1426,7 @@ export default function EnquiryManagement() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                       Initial Estimated Value (₹)
                     </label>
                     <input
@@ -1434,14 +1434,14 @@ export default function EnquiryManagement() {
                       placeholder="e.g. 2500000"
                       value={formData.estimatedValue}
                       onChange={(e) => handleInputChange("estimatedValue", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                     />
                   </div>
                 </div>
 
                 {/* Special Notes / Floor Plan Info */}
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Client Special Notes & Requirements
                   </label>
                   <textarea
@@ -1449,17 +1449,17 @@ export default function EnquiryManagement() {
                     placeholder="Enter special requirements, timeline urgency, or architectural notes..."
                     value={formData.notes}
                     onChange={(e) => handleInputChange("notes", e.target.value)}
-                    className="w-full p-3 bg-white border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] transition"
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
                   />
                 </div>
               </div>
 
               {/* Bottom Actions for Step 3 */}
-              <div className="pt-6 border-t border-[#EAE3D2] flex items-center justify-between">
+              <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setWizardStep(2)}
-                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-[#EAE3D2] hover:bg-amber-50/50 rounded-xl transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"
                 >
                   <ArrowLeft size={14} />
                   <span>Back to Step 2</span>
@@ -1472,14 +1472,14 @@ export default function EnquiryManagement() {
                       setViewMode("list");
                       setEditingId(null);
                     }}
-                    className="px-6 py-2.5 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] hover:bg-amber-50/50 rounded-xl transition cursor-pointer"
+                    className="px-6 py-2.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleFormSubmit}
-                    className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-extrabold text-stone-950 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] hover:opacity-95 rounded-xl shadow-xs transition cursor-pointer"
+                    className="inline-flex items-center gap-2 px-8 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
                   >
                     <Check size={16} />
                     <span>{editingId ? "Update Enquiry" : "Save Enquiry"}</span>
@@ -1494,56 +1494,56 @@ export default function EnquiryManagement() {
   }
 
   // =========================================================================
-  // VIEW: MAIN LIST & PIPELINE VIEW (Golden Theme)
+  // VIEW: MAIN LIST & PIPELINE VIEW
   // =========================================================================
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Toast Notification */}
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-[#9E7B1D] text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg animate-in slide-in-from-top-2">
           <CheckCircle2 size={16} />
           <span>{successToast}</span>
         </div>
       )}
 
       {/* Main Card Container */}
-      <div className="bg-white border border-[#EAE3D2] rounded-2xl shadow-xs overflow-hidden">
-        {/* Top Action & Filter Toolbar (Screenshot 3 - Golden Theme) */}
-        <div className="p-4 sm:p-5 border-b border-[#EAE3D2] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        {/* Top Action & Filter Toolbar */}
+        <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           {/* Left: Search Bar & Count */}
           <div className="flex flex-wrap items-center gap-4 flex-1">
             {/* Search Input */}
             <div className="relative w-full sm:w-80">
               <Search
                 size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
               <input
                 type="text"
                 placeholder="Search by Name, Phone, Email, Site Location..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#D4AF37] focus:bg-white transition"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
               />
             </div>
 
             {/* Total Enquiries Count Display */}
-            <div className="text-xs font-bold text-stone-800 select-none">
+            <div className="text-xs font-bold text-slate-800 select-none">
               <span>{pagination.total || enquiries.length}</span>{" "}
-              <span className="text-stone-500 font-normal">Enquiries</span>
+              <span className="text-slate-500 font-normal">Enquiries</span>
             </div>
           </div>
 
           {/* Right: View Switchers & Action Buttons */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             {/* View Switchers: List / Pipeline */}
-            <div className="flex items-center p-0.5 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2]">
+            <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200">
               <button
                 onClick={() => setViewMode("list")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   viewMode === "list"
-                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <ListIcon size={14} />
@@ -1553,8 +1553,8 @@ export default function EnquiryManagement() {
                 onClick={() => setViewMode("pipeline")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   viewMode === "pipeline"
-                    ? "bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B38E2D] text-stone-950 shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <Columns3 size={14} />
@@ -1570,7 +1570,7 @@ export default function EnquiryManagement() {
                 setWizardStep(1);
                 setViewMode("add");
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#9E7B1D] bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 rounded-xl transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition shadow-xs cursor-pointer"
             >
               <Plus size={15} />
               <span>New Enquiry</span>
@@ -1579,9 +1579,9 @@ export default function EnquiryManagement() {
             {/* Bulk Upload Button */}
             <button
               onClick={() => setIsBulkUploadOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white hover:bg-amber-50/50 border border-[#EAE3D2] rounded-xl transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl transition shadow-xs cursor-pointer"
             >
-              <UploadCloud size={15} className="text-[#9E7B1D]" />
+              <UploadCloud size={15} className="text-blue-600" />
               <span>Bulk Upload</span>
             </button>
 
@@ -1590,8 +1590,8 @@ export default function EnquiryManagement() {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs cursor-pointer ${
                 filterProjectType || filterStatus || filterSource
-                  ? "bg-amber-50 border-amber-200 text-[#9E7B1D] font-bold"
-                  : "bg-white border-[#EAE3D2] text-stone-700 hover:bg-amber-50/50"
+                  ? "bg-blue-50 border-blue-200 text-blue-700 font-bold"
+                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <Filter size={14} />
@@ -1601,7 +1601,7 @@ export default function EnquiryManagement() {
             {/* Customize Columns Button */}
             <button
               onClick={() => setIsCustomizeOpen(!isCustomizeOpen)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-stone-700 bg-white hover:bg-amber-50/50 border border-[#EAE3D2] rounded-xl transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition shadow-xs cursor-pointer"
             >
               <SlidersHorizontal size={14} />
               <span>Customize</span>
@@ -1611,15 +1611,15 @@ export default function EnquiryManagement() {
 
         {/* Filter Drawer / Dropdown */}
         {isFilterOpen && (
-          <div className="p-4 bg-[#FAF9F5] border-b border-[#EAE3D2] grid grid-cols-1 sm:grid-cols-4 gap-3 animate-in slide-in-from-top-1">
+          <div className="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-3 animate-in slide-in-from-top-1">
             <div>
-              <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                 Project Type
               </label>
               <select
                 value={filterProjectType}
                 onChange={(e) => setFilterProjectType(e.target.value)}
-                className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800"
+                className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-blue-500"
               >
                 <option value="">All Project Types</option>
                 <option value="Residential">Residential</option>
@@ -1630,13 +1630,13 @@ export default function EnquiryManagement() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                 Stage / Status
               </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800"
+                className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-blue-500"
               >
                 <option value="">All Stages</option>
                 <option value="Inquiry">Inquiry</option>
@@ -1650,13 +1650,13 @@ export default function EnquiryManagement() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
                 Lead Source
               </label>
               <select
                 value={filterSource}
                 onChange={(e) => setFilterSource(e.target.value)}
-                className="w-full h-8 px-2.5 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800"
+                className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-blue-500"
               >
                 <option value="">All Sources</option>
                 <option value="Website">Website</option>
@@ -1674,7 +1674,7 @@ export default function EnquiryManagement() {
                   setFilterStatus("");
                   setFilterSource("");
                 }}
-                className="h-8 px-3 text-xs font-semibold text-stone-600 bg-white border border-[#EAE3D2] rounded-lg hover:bg-stone-100 transition cursor-pointer"
+                className="h-8 px-3 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
                 Reset Filters
               </button>
@@ -1684,17 +1684,17 @@ export default function EnquiryManagement() {
 
         {/* Customize Columns Modal */}
         {isCustomizeOpen && (
-          <div className="p-4 bg-[#FAF9F5] border-b border-[#EAE3D2] flex flex-wrap items-center gap-4 text-xs">
-            <span className="font-bold text-stone-700">Display Columns:</span>
+          <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-4 text-xs">
+            <span className="font-bold text-slate-700">Display Columns:</span>
             {Object.keys(visibleColumns).map((col) => (
-              <label key={col} className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer">
+              <label key={col} className="flex items-center gap-1.5 font-medium text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={visibleColumns[col]}
                   onChange={(e) =>
                     setVisibleColumns((prev) => ({ ...prev, [col]: e.target.checked }))
                   }
-                  className="rounded border-stone-300 text-[#D4AF37] focus:ring-[#D4AF37]"
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="capitalize">{col.replace(/([A-Z])/g, " $1")}</span>
               </label>
@@ -1703,13 +1703,13 @@ export default function EnquiryManagement() {
         )}
 
         {/* ============================================================= */}
-        {/* TABLE VIEW (Golden Theme) */}
+        {/* TABLE VIEW */}
         {/* ============================================================= */}
         {viewMode === "list" && (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               {/* Table Header */}
-              <thead className="bg-[#FAF9F5] border-b border-[#EAE3D2] text-stone-700 text-xs font-semibold">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-4 w-10">
                     <input
@@ -1718,45 +1718,45 @@ export default function EnquiryManagement() {
                         enquiries.length > 0 && selectedIds.length === enquiries.length
                       }
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-stone-300 text-[#D4AF37] focus:ring-[#D4AF37] cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                   </th>
                   {visibleColumns.enquiryDate && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Enquiry Date</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Enquiry Date</th>
                   )}
                   {visibleColumns.name && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Name</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Name</th>
                   )}
                   {visibleColumns.phone && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Phone</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Phone</th>
                   )}
                   {visibleColumns.projectType && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Project Type</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Project Type</th>
                   )}
                   {visibleColumns.projectLocation && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Project Location</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Project Location</th>
                   )}
                   {visibleColumns.status && (
-                    <th className="py-3.5 px-4 font-bold text-stone-800">Status</th>
+                    <th className="py-3.5 px-4 font-bold text-slate-800">Status</th>
                   )}
-                  <th className="py-3.5 px-4 font-bold text-stone-800 text-right">Actions</th>
+                  <th className="py-3.5 px-4 font-bold text-slate-800 text-right">Actions</th>
                 </tr>
               </thead>
 
               {/* Table Body */}
-              <tbody className="divide-y divide-[#F0EBE0] text-xs text-stone-700">
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-stone-400">
+                    <td colSpan={8} className="py-12 text-center text-slate-400">
                       Loading enquiries...
                     </td>
                   </tr>
                 ) : enquiries.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-16 text-center text-stone-400">
+                    <td colSpan={8} className="py-16 text-center text-slate-400">
                       <div className="max-w-xs mx-auto space-y-2">
-                        <p className="font-bold text-stone-700">No enquiries found</p>
-                        <p className="text-xs text-stone-400">
+                        <p className="font-bold text-slate-700">No enquiries found</p>
+                        <p className="text-xs text-slate-400">
                           Try adjusting your search criteria or add a new enquiry.
                         </p>
                       </div>
@@ -1768,8 +1768,8 @@ export default function EnquiryManagement() {
                     return (
                       <tr
                         key={row._id}
-                        className={`hover:bg-amber-50/30 transition ${
-                          isSelected ? "bg-amber-50/50" : ""
+                        className={`hover:bg-blue-50/30 transition ${
+                          isSelected ? "bg-blue-50/50" : ""
                         }`}
                       >
                         {/* Checkbox */}
@@ -1778,28 +1778,28 @@ export default function EnquiryManagement() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={(e) => handleSelectOne(row._id, e.target.checked)}
-                            className="rounded border-stone-300 text-[#D4AF37] focus:ring-[#D4AF37] cursor-pointer"
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                         </td>
 
                         {/* Enquiry Date */}
                         {visibleColumns.enquiryDate && (
-                          <td className="py-3.5 px-4 text-stone-600 font-medium whitespace-nowrap">
+                          <td className="py-3.5 px-4 text-slate-600 font-medium whitespace-nowrap">
                             {formatDate(row.enquiryDate || row.createdAt)}
                           </td>
                         )}
 
                         {/* Name */}
                         {visibleColumns.name && (
-                          <td className="py-3.5 px-4 font-bold text-stone-900">
+                          <td className="py-3.5 px-4 font-bold text-slate-900">
                             {row.salutation && row.salutation !== "Mr" && (
-                              <span className="text-stone-400 font-normal mr-1">{row.salutation}</span>
+                              <span className="text-slate-400 font-normal mr-1">{row.salutation}</span>
                             )}
-                            <span className="hover:text-[#9E7B1D] transition cursor-pointer" onClick={() => setSelectedEnquiry(row)}>
+                            <span className="hover:text-blue-600 transition cursor-pointer" onClick={() => setSelectedEnquiry(row)}>
                               {row.name}
                             </span>
                             {row.isDuplicate && (
-                              <span className="ml-2 text-[10px] bg-amber-50 text-[#9E7B1D] border border-amber-200 px-1.5 py-0.2 rounded font-bold">
+                              <span className="ml-2 text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded font-bold">
                                 Dup
                               </span>
                             )}
@@ -1808,21 +1808,21 @@ export default function EnquiryManagement() {
 
                         {/* Phone */}
                         {visibleColumns.phone && (
-                          <td className="py-3.5 px-4 text-stone-700 font-mono">
+                          <td className="py-3.5 px-4 text-slate-700 font-mono">
                             {row.phone}
                           </td>
                         )}
 
                         {/* Project Type */}
                         {visibleColumns.projectType && (
-                          <td className="py-3.5 px-4 font-medium text-stone-700 whitespace-nowrap">
+                          <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                             {row.projectType || "Residential"}
                           </td>
                         )}
 
                         {/* Project Location */}
                         {visibleColumns.projectLocation && (
-                          <td className="py-3.5 px-4 text-stone-600 max-w-xs truncate" title={row.siteLocation || row.address}>
+                          <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate" title={row.siteLocation || row.address}>
                             {row.siteLocation || row.address || "-"}
                           </td>
                         )}
@@ -1839,10 +1839,10 @@ export default function EnquiryManagement() {
                                   : row.status === "Under Installation"
                                   ? "bg-teal-50 text-teal-700 border border-teal-200"
                                   : row.status === "Design Phase" || row.status === "Proposal"
-                                  ? "bg-amber-50 text-[#9E7B1D] border border-amber-200"
+                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
                                   : row.status === "Booking"
-                                  ? "bg-amber-100/70 text-[#9E7B1D] border border-amber-300 font-extrabold"
-                                  : "bg-[#FFFDF7] text-stone-800 border border-[#EAE3D2]"
+                                  ? "bg-indigo-50 text-indigo-700 border border-indigo-200 font-extrabold"
+                                  : "bg-slate-100 text-slate-800 border border-slate-200"
                               }`}
                             >
                               {row.status || "Inquiry"}
@@ -1856,21 +1856,21 @@ export default function EnquiryManagement() {
                             <button
                               onClick={() => setSelectedEnquiry(row)}
                               title="View Details"
-                              className="p-1.5 text-stone-400 hover:text-[#9E7B1D] hover:bg-amber-50 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                             >
                               <Eye size={15} />
                             </button>
                             <button
                               onClick={() => handleEditEnquiry(row)}
                               title="Edit Enquiry"
-                              className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                             >
                               <Edit2 size={15} />
                             </button>
                             <button
                               onClick={() => handleDeleteEnquiry(row._id)}
                               title="Delete Enquiry"
-                              className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                             >
                               <Trash2 size={15} />
                             </button>
@@ -1886,7 +1886,7 @@ export default function EnquiryManagement() {
         )}
 
         {/* ============================================================= */}
-        {/* PIPELINE / KANBAN VIEW (Golden Theme) */}
+        {/* PIPELINE / KANBAN VIEW */}
         {/* ============================================================= */}
         {viewMode === "pipeline" && (
           <div className="p-5 overflow-x-auto">
@@ -1898,15 +1898,15 @@ export default function EnquiryManagement() {
                 return (
                   <div
                     key={stage.key}
-                    className="flex-1 bg-[#FAF9F5] border border-[#EAE3D2] rounded-xl p-3 space-y-3"
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-3"
                   >
                     {/* Stage Header */}
-                    <div className="flex items-center justify-between pb-2 border-b border-[#EAE3D2]">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                       <div className="flex items-center gap-2">
                         <span className={`w-2.5 h-2.5 rounded-full ${stage.color}`} />
-                        <h4 className="text-xs font-bold text-stone-800">{stage.label}</h4>
+                        <h4 className="text-xs font-bold text-slate-800">{stage.label}</h4>
                       </div>
-                      <span className="text-[11px] font-bold text-[#9E7B1D] bg-white px-2 py-0.5 rounded-full border border-[#EAE3D2]">
+                      <span className="text-[11px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded-full border border-slate-200">
                         {stageLeads.length}
                       </span>
                     </div>
@@ -1917,25 +1917,25 @@ export default function EnquiryManagement() {
                         <div
                           key={card._id}
                           onClick={() => setSelectedEnquiry(card)}
-                          className="bg-white p-3.5 rounded-xl border border-[#EAE3D2] shadow-2xs hover:shadow-xs hover:border-[#D4AF37] transition cursor-pointer space-y-2"
+                          className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-400 transition cursor-pointer space-y-2"
                         >
                           <div className="flex items-start justify-between gap-1">
-                            <h5 className="text-xs font-bold text-stone-900 truncate">
+                            <h5 className="text-xs font-bold text-slate-900 truncate">
                               {card.name}
                             </h5>
-                            <span className="text-[10px] font-semibold text-stone-400">
+                            <span className="text-[10px] font-semibold text-slate-400">
                               {formatDate(card.enquiryDate || card.createdAt)}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-[11px] text-stone-600 font-mono">
-                            <Phone size={12} className="text-[#9E7B1D]" />
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-mono">
+                            <Phone size={12} className="text-blue-600" />
                             <span>{card.phone}</span>
                           </div>
 
-                          <div className="flex items-center justify-between text-[11px] text-stone-500 pt-1 border-t border-[#F0EBE0]">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
                             <span>{card.projectType || "Residential"}</span>
-                            <span className="font-bold text-[#9E7B1D]">{card.budget || "-"}</span>
+                            <span className="font-bold text-blue-600">{card.budget || "-"}</span>
                           </div>
                         </div>
                       ))}
@@ -1947,17 +1947,17 @@ export default function EnquiryManagement() {
           </div>
         )}
 
-        {/* Bottom Pagination Bar (Screenshot 3 - Golden Theme) */}
+        {/* Bottom Pagination Bar */}
         {viewMode === "list" && (
-          <div className="px-5 py-3.5 border-t border-[#EAE3D2] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600 bg-[#FAF9F5]">
+          <div className="px-5 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 bg-slate-50">
             {/* Left: Bulk actions count if selected */}
             <div>
               {selectedIds.length > 0 ? (
-                <span className="font-bold text-[#9E7B1D]">
+                <span className="font-bold text-blue-700">
                   {selectedIds.length} enquiries selected
                 </span>
               ) : (
-                <span className="text-stone-400">
+                <span className="text-slate-400">
                   Showing {enquiries.length} of {pagination.total || enquiries.length} entries
                 </span>
               )}
@@ -1977,7 +1977,7 @@ export default function EnquiryManagement() {
                       page: 1
                     }))
                   }
-                  className="h-8 px-2 bg-white border border-[#EAE3D2] rounded-lg text-xs text-stone-800 font-semibold focus:outline-none"
+                  className="h-8 px-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500"
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -1986,7 +1986,7 @@ export default function EnquiryManagement() {
               </div>
 
               {/* 1 - 10 of 17 */}
-              <div className="font-semibold text-stone-700">
+              <div className="font-semibold text-slate-700">
                 {(pagination.page - 1) * pagination.limit + 1} -{" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total || enquiries.length)}{" "}
                 of {pagination.total || enquiries.length}
@@ -1997,28 +1997,28 @@ export default function EnquiryManagement() {
                 <button
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((prev) => ({ ...prev, page: 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronsLeft size={15} />
                 </button>
                 <button
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronLeft size={15} />
                 </button>
                 <button
                   disabled={pagination.page >= pagination.pages}
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronRight size={15} />
                 </button>
                 <button
                   disabled={pagination.page >= pagination.pages}
                   onClick={() => setPagination((prev) => ({ ...prev, page: pagination.pages }))}
-                  className="p-1 rounded-lg border border-[#EAE3D2] bg-white text-stone-600 hover:bg-amber-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  className="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                 >
                   <ChevronsRight size={15} />
                 </button>
@@ -2029,118 +2029,118 @@ export default function EnquiryManagement() {
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL: DETAIL DRAWER / POPUP (Golden Theme) */}
+      {/* MODAL: DETAIL DRAWER / POPUP */}
       {/* ========================================================================= */}
       {selectedEnquiry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl border border-[#EAE3D2] w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-[#9E7B1D] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
                   {selectedEnquiry.name?.charAt(0) || "E"}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     {selectedEnquiry.name}
-                    <span className="text-[10px] font-bold text-[#9E7B1D] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                       {selectedEnquiry.status || "Inquiry"}
                     </span>
                   </h3>
-                  <p className="text-xs text-stone-500 font-mono">{selectedEnquiry.phone}</p>
+                  <p className="text-xs text-slate-500 font-mono">{selectedEnquiry.phone}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedEnquiry(null)}
-                className="p-2 text-stone-400 hover:text-stone-700 hover:bg-amber-50 rounded-xl transition"
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Content Details */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-stone-700">
+            <div className="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-700">
               {/* Contact Information */}
-              <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2] space-y-3">
-                <h4 className="font-bold text-[#9E7B1D] uppercase tracking-wider text-[11px]">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <h4 className="font-bold text-blue-700 uppercase tracking-wider text-[11px]">
                   Contact Information
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Email</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.email || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Email</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.email || "-"}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Enquiry Date</span>
-                    <span className="font-medium text-stone-800">
+                    <span className="text-slate-400 block mb-0.5">Enquiry Date</span>
+                    <span className="font-medium text-slate-800">
                       {formatDate(selectedEnquiry.enquiryDate || selectedEnquiry.createdAt)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Occupation</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.occupation || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Occupation</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.occupation || "-"}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Company</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.companyName || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Company</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.companyName || "-"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Project & Site Details */}
-              <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EAE3D2] space-y-3">
-                <h4 className="font-bold text-[#9E7B1D] uppercase tracking-wider text-[11px]">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <h4 className="font-bold text-blue-700 uppercase tracking-wider text-[11px]">
                   Project & Site Details
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Project Type</span>
-                    <span className="font-bold text-stone-800">
+                    <span className="text-slate-400 block mb-0.5">Project Type</span>
+                    <span className="font-bold text-slate-800">
                       {selectedEnquiry.projectType} ({selectedEnquiry.projectSubtype || "General"})
                     </span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Site Location</span>
-                    <span className="font-medium text-stone-800">
+                    <span className="text-slate-400 block mb-0.5">Site Location</span>
+                    <span className="font-medium text-slate-800">
                       {selectedEnquiry.siteLocation || selectedEnquiry.address || "-"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Site Status</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.siteStatus || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Site Status</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.siteStatus || "-"}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Site Size</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.siteSize || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Site Size</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.siteSize || "-"}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Estimated Budget</span>
-                    <span className="font-bold text-[#9E7B1D]">{selectedEnquiry.budget || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Estimated Budget</span>
+                    <span className="font-bold text-blue-600">{selectedEnquiry.budget || "-"}</span>
                   </div>
                   <div>
-                    <span className="text-stone-400 block mb-0.5">Timeline</span>
-                    <span className="font-medium text-stone-800">{selectedEnquiry.timeline || "-"}</span>
+                    <span className="text-slate-400 block mb-0.5">Timeline</span>
+                    <span className="font-medium text-slate-800">{selectedEnquiry.timeline || "-"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Remarks */}
               {selectedEnquiry.remarks && (
-                <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-200">
-                  <span className="text-[#9E7B1D] font-bold block mb-1">Remarks</span>
-                  <p className="text-stone-700">{selectedEnquiry.remarks}</p>
+                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-200">
+                  <span className="text-blue-700 font-bold block mb-1">Remarks</span>
+                  <p className="text-slate-700">{selectedEnquiry.remarks}</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-[#EAE3D2] flex items-center justify-between bg-[#FAF9F5]">
+            <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
               <button
                 onClick={() => {
                   handleEditEnquiry(selectedEnquiry);
                   setSelectedEnquiry(null);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-[#EAE3D2] rounded-xl hover:bg-amber-50 transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition cursor-pointer"
               >
                 <Edit2 size={13} />
                 <span>Edit Details</span>
@@ -2148,7 +2148,7 @@ export default function EnquiryManagement() {
 
               <button
                 onClick={() => setSelectedEnquiry(null)}
-                className="px-5 py-2 text-xs font-bold text-stone-950 bg-gradient-to-r from-[#D4AF37] to-[#B38E2D] rounded-xl transition"
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition cursor-pointer shadow-xs"
               >
                 Close
               </button>

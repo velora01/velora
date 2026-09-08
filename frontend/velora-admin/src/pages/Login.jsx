@@ -41,17 +41,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
       <div className="max-w-md w-full space-y-8 z-10">
         
         {/* Branding Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-[#FFFBF0] rounded-full flex items-center justify-center border border-[#E8D49E] shadow-sm">
-            <Briefcase size={32} className="text-[#9E7B1D]" />
+          <div className="mx-auto h-16 w-16 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-200 shadow-2xs">
+            <Briefcase size={30} className="text-blue-600" />
           </div>
           
           <h2 className="mt-6 text-3xl font-black tracking-widest text-slate-900 uppercase">
-            VELORA <span className="text-[#9E7B1D] font-light">CRM</span>
+            VELORA <span className="text-blue-600 font-light">CRM</span>
           </h2>
           
           <p className="mt-2 text-xs text-slate-500 font-medium">
@@ -77,7 +77,7 @@ export default function Login() {
         )}
 
         {/* Form Box */}
-        <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm relative space-y-6">
+        <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-xs relative space-y-6">
           
           <form onSubmit={handleSubmit} className="space-y-5">
             
@@ -94,7 +94,7 @@ export default function Login() {
                     placeholder="e.g. Priya Sharma"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#C5A059] text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
                   />
                 </div>
               </div>
@@ -112,7 +112,7 @@ export default function Login() {
                   placeholder="e.g. admin@velora.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#C5A059] text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#C5A059] text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
                 />
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#D4AF37] to-[#C5A059] text-slate-950 font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-6"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-xs transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-6"
             >
               {loading ? (
                 <>
@@ -160,11 +160,11 @@ export default function Login() {
                 setError("");
                 setSuccess("");
               }}
-              className="text-xs text-[#9E7B1D] hover:underline font-bold tracking-wider cursor-pointer"
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 transition"
             >
-              {isRegistering 
-                ? "Already have an account? Sign In" 
-                : "New staff? Register Administrator Account"}
+              {isRegistering
+                ? "Already have an admin account? Sign In"
+                : "Need a new administrator account? Register here"}
             </button>
           </div>
 

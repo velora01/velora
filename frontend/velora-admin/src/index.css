@@ -1,30 +1,84 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary: #C9A227;
+  --color-primary-hover: #A8861C;
+  --color-primary-50: #FAF6E8;
+  --color-primary-100: #F3EBD1;
+  --color-primary-200: #E6D7A3;
+  --color-primary-300: #D8C375;
+  --color-primary-400: #CBAF47;
+  --color-primary-500: #C9A227;
+  --color-primary-600: #A8861C;
+  --color-primary-700: #866B14;
+  --color-primary-800: #65500D;
+  --color-primary-900: #433507;
+  --color-primary-950: #251E03;
 
-  /* Executive Blue / Slate theme fallbacks */
-  --color-gold-50: #eff6ff;
-  --color-gold-100: #dbeafe;
-  --color-gold-200: #bfdbfe;
-  --color-gold-300: #93c5fd;
-  --color-gold-400: #60a5fa;
-  --color-gold-500: #3b82f6;
-  --color-gold-600: #2563eb;
-  --color-gold-700: #1d4ed8;
-  --color-gold-800: #1e40af;
-  --color-gold-900: #1e3a8a;
+  /* Velora Signature Luxury Gold Palette */
+  --color-gold-50: #FAF6E8;
+  --color-gold-100: #F3EBD1;
+  --color-gold-200: #E6D7A3;
+  --color-gold-300: #D8C375;
+  --color-gold-400: #CBAF47;
+  --color-gold-500: #C9A227;
+  --color-gold-600: #A8861C;
+  --color-gold-700: #866B14;
+  --color-gold-800: #65500D;
+  --color-gold-900: #433507;
+  --color-gold-950: #251E03;
+
+  /* Map Amber to Gold */
+  --color-amber-50: #FAF6E8;
+  --color-amber-100: #F3EBD1;
+  --color-amber-200: #E6D7A3;
+  --color-amber-300: #D8C375;
+  --color-amber-400: #CBAF47;
+  --color-amber-500: #C9A227;
+  --color-amber-600: #A8861C;
+  --color-amber-700: #866B14;
+  --color-amber-800: #65500D;
+  --color-amber-900: #433507;
+  --color-amber-950: #251E03;
+
+  /* Map Yellow to Gold */
+  --color-yellow-50: #FAF6E8;
+  --color-yellow-100: #F3EBD1;
+  --color-yellow-200: #E6D7A3;
+  --color-yellow-300: #D8C375;
+  --color-yellow-400: #CBAF47;
+  --color-yellow-500: #C9A227;
+  --color-yellow-600: #A8861C;
+  --color-yellow-700: #866B14;
+  --color-yellow-800: #65500D;
+  --color-yellow-900: #433507;
+  --color-yellow-950: #251E03;
+
+  /* Convert Blue theme tokens completely to Warm Gold Palette */
+  --color-blue-50: #FAF6E8;
+  --color-blue-100: #F3EBD1;
+  --color-blue-200: #E6D7A3;
+  --color-blue-300: #D8C375;
+  --color-blue-400: #CBAF47;
+  --color-blue-500: #C9A227;
+  --color-blue-600: #A8861C;
+  --color-blue-700: #866B14;
+  --color-blue-800: #65500D;
+  --color-blue-900: #433507;
+  --color-blue-950: #251E03;
+
+  /* Convert Indigo theme tokens to Deep Bronze / Gold Palette */
+  --color-indigo-50: #FAF6E8;
+  --color-indigo-100: #F3EBD1;
+  --color-indigo-200: #E6D7A3;
+  --color-indigo-300: #D8C375;
+  --color-indigo-400: #CBAF47;
+  --color-indigo-500: #C9A227;
+  --color-indigo-600: #A8861C;
+  --color-indigo-700: #866B14;
+  --color-indigo-800: #65500D;
+  --color-indigo-900: #433507;
+  --color-indigo-950: #251E03;
 
   --font-sans: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -40,23 +94,23 @@ h1, h2, h3, h4, h5, h6 {
 
 body {
   font-family: var(--font-sans);
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #faf8f4;
+  color: #1c1917;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom sleek scrollbar */
+/* Custom sleek golden scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #faf8f4;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d8c375;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #c9a227;
 }

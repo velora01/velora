@@ -138,9 +138,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
   };
 
-  // Robust CSV Line Parser that handles quotes and commas
   const parseCSVLine = (text) => {
     const result = [];
     let cur = "";
@@ -321,7 +321,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
 
           records.push(leadObj);
         }
-
         setParsedData(records);
       } catch {
         setErrorMsg("Failed to parse CSV file. Please check format.");
@@ -336,13 +335,11 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
       setErrorMsg("No records available to upload.");
       return;
     }
-
     const validRecords = parsedData.filter((r) => r.name && r.phone);
     if (validRecords.length === 0) {
       setErrorMsg("No valid records found with both Name and Phone.");
       return;
     }
-
     setIsProcessing(true);
     setErrorMsg("");
 
@@ -374,12 +371,12 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold">
               <UploadCloud size={22} />
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Bulk Upload Enquiries</h2>
-              <p className="text-xs text-blue-600 font-medium">Import multiple enquiries instantly via CSV file</p>
+              <p className="text-xs text-amber-600 font-medium">Import multiple enquiries instantly via CSV file</p>
             </div>
           </div>
           <button
@@ -393,9 +390,9 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           {/* Action Row: Template Download & Info */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-blue-50/60 border border-blue-200 rounded-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-amber-50/60 border border-amber-200 rounded-xl">
             <div className="flex items-start gap-3">
-              <FileText size={20} className="text-blue-600 shrink-0 mt-0.5" />
+              <FileText size={20} className="text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-slate-900">Standard CSV Template</p>
                 <p className="text-[11px] text-slate-600">
@@ -405,7 +402,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
             </div>
             <button
               onClick={handleDownloadSample}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition shrink-0 shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-amber-800 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 transition shrink-0 shadow-xs cursor-pointer"
             >
               <Download size={14} />
               <span>Download Sample CSV</span>
@@ -418,7 +415,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center cursor-pointer transition bg-slate-50 hover:bg-blue-50/40 flex flex-col items-center justify-center group"
+              className="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl p-8 text-center cursor-pointer transition bg-slate-50 hover:bg-amber-50/40 flex flex-col items-center justify-center group"
             >
               <input
                 ref={fileInputRef}
@@ -427,7 +424,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
                 className="hidden"
                 onChange={handleFileChange}
               />
-              <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-blue-200">
+              <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-amber-200">
                 <UploadCloud size={28} />
               </div>
               <p className="text-sm font-bold text-slate-800 mb-1">
@@ -465,7 +462,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-slate-800">
-                    File: <span className="text-blue-600 font-extrabold">{file.name}</span>
+                    File: <span className="text-amber-600 font-extrabold">{file.name}</span>
                   </span>
                   <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
                     {parsedData.length} records parsed
@@ -510,7 +507,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
                     {parsedData.map((row, idx) => {
                       const isValid = Boolean(row.name && row.phone);
                       return (
-                        <tr key={idx} className={isValid ? "hover:bg-blue-50/30" : "bg-rose-50/50"}>
+                        <tr key={idx} className={isValid ? "hover:bg-amber-50/30" : "bg-rose-50/50"}>
                           <td className="py-2 px-3 font-mono text-slate-400">{idx + 1}</td>
                           <td className="py-2 px-3 font-medium text-slate-900">
                             {row.name ? (
@@ -564,7 +561,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
             <button
               onClick={handleUpload}
               disabled={isProcessing || validCount === 0}
-              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-xs transition cursor-pointer"
             >
               {isProcessing ? (
                 <span>Importing records...</span>

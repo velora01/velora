@@ -7,7 +7,7 @@ export const DEFAULT_COMPANY_SETTINGS = {
   altPhone: "+91 80555 26603",
   email: "info@velora.family",
   website: "https://velora.family",
-  address: "Shop No. 4, Antaraal Plaza, Wakad, Pune, Maharashtra 411057",
+  address: "S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033, Maharashtra",
   gstNumber: "27AAACV1234F1Z5",
   panNumber: "AAACV1234F",
 

@@ -3338,7 +3338,7 @@ export default function BOQManagement() {
                 </button>
               </div>
               <div className="text-[11px] font-bold text-stone-500">
-                Mode: <span className="text-blue-600">{includeTermsInPrint ? "Quotation + T&C Attachment" : "Compact Quotation Only"}</span>
+                Mode: <span className="text-amber-600">{includeTermsInPrint ? "Quotation + T&C Attachment" : "Compact Quotation Only"}</span>
               </div>
             </div>
 
@@ -3347,32 +3347,35 @@ export default function BOQManagement() {
               <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
                 {/* Brand Header matching Image 2 & Image 1 */}
                 <div className="flex flex-wrap items-start justify-between gap-6 pb-4 border-b border-stone-200">
-                  {/* Left: Prepared For */}
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Prepared for</span>
+                  {/* Left: Prepared For Dossier Card */}
+                  <div className="bg-gradient-to-br from-amber-50/40 to-stone-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-4 space-y-1.5 max-w-sm">
+                    <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
                     <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
-                    <p className="text-xs text-stone-600 font-medium">Project: {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
-                    {quotationBOQ.clientPhone && (
-                      <p className="text-xs text-stone-600 font-medium">Phone: {quotationBOQ.clientPhone}</p>
-                    )}
-                    <p className="text-xs text-stone-500">
-                      Date: {new Date(quotationBOQ.enquiryDate || quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
-                    </p>
+                    <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-600 font-medium pt-1">
+                      <p><strong>Project Site:</strong> {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
+                      {quotationBOQ.clientPhone && (
+                        <p><strong>Phone:</strong> {quotationBOQ.clientPhone}</p>
+                      )}
+                      <p>
+                        <strong>Date:</strong> {new Date(quotationBOQ.enquiryDate || quotationBOQ.createdAt || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
+                      </p>
+                      <p><strong>Quotation Ref:</strong> {quotationBOQ.boqNumber || quotationBOQ.enquiryNo || "BOQ-ESTIMATE"}</p>
+                    </div>
                   </div>
 
-                  {/* Right: Velora Antaraal Branding from Image 2 */}
+                  {/* Right: Velora Antaraal Branding */}
                   <div className="text-right space-y-1">
-                    <h1 className="text-2xl font-black text-blue-600 tracking-wide">VELORA ANTARAAL</h1>
+                    <h1 className="text-2xl font-black text-amber-600 tracking-wide">VELORA ANTARAAL</h1>
                     <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
                       INTERIOR DESIGN | DÉCOR | RETAIL
                     </p>
                     <p className="text-[11px] text-stone-600">
-                      Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road, Wakad, Pune-411057
+                      S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033
                     </p>
                     <p className="text-[11px] text-stone-600 font-semibold">
                       +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
                     </p>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
                       Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
                     </span>
                   </div>
@@ -3690,26 +3693,26 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-blue-600 text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>
 
                     {/* Footer */}
                     <div className="pt-4 border-t border-slate-200 text-center space-y-1 text-stone-500 text-[10px]">
-                      <p className="font-bold text-blue-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
-                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
+                      <p className="font-bold text-amber-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033</p>
                     </div>
                   </div>
                 ) : (
                   /* Standalone Signatures Row when T&C is Excluded */
                   <div className="pt-6 border-t border-stone-200">
-                    <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl mb-6 text-xs text-stone-600 flex items-center justify-between">
+                    <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl mb-6 text-xs text-stone-600 flex items-center justify-between">
                       <span>Terms & Conditions pages are currently <strong>Excluded</strong> from export.</span>
                       <button
                         type="button"
                         onClick={() => setIncludeTermsInPrint(true)}
-                        className="font-bold text-blue-600 underline cursor-pointer hover:text-blue-800"
+                        className="font-bold text-amber-700 underline cursor-pointer hover:text-amber-900"
                       >
                         Enable T&C Pages
                       </button>
@@ -3719,13 +3722,13 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-blue-600 text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>
                     <div className="pt-4 border-t border-slate-200 text-center space-y-1 text-stone-500 text-[10px]">
-                      <p className="font-bold text-blue-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
-                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra, India</p>
+                      <p className="font-bold text-amber-600 uppercase tracking-wider">SPACES WITHIN, DESIGNED BEAUTIFULLY</p>
+                      <p>+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033</p>
                     </div>
                   </div>
                 )}

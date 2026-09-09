@@ -105,40 +105,50 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     }
   }
 
-  // Header Left: Prepared For matching Image 1
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(120, 113, 108);
-  doc.text("Prepared for", 40, 42);
+  // Header Left: Professional Client Dossier Card
+  doc.setFillColor(250, 246, 237);
+  doc.roundedRect(40, 36, 255, 78, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1);
+  doc.roundedRect(40, 36, 255, 78, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
+  doc.setFontSize(8);
+  doc.setTextColor(158, 123, 29);
+  doc.text("PREPARED EXCLUSIVELY FOR", 50, 50);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
   doc.setTextColor(28, 25, 23);
-  doc.text(clientName, 40, 58);
+  doc.text(String(clientName).toUpperCase(), 50, 66);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(87, 83, 78);
-  doc.text(`Project: ${siteLocation}`, 40, 72);
-  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 40, 84);
-  doc.text(formattedDate, 40, clientPhone ? 96 : 84);
+  doc.setFontSize(8.5);
+  doc.setTextColor(75, 70, 65);
+  doc.text(`Project Site: ${siteLocation}`, 50, 80);
+  if (clientPhone) {
+    doc.text(`Phone: ${clientPhone}  |  Date: ${formattedDate}`, 50, 93);
+    doc.text(`Quotation Ref: ${boqNum}`, 50, 105);
+  } else {
+    doc.text(`Date: ${formattedDate}  |  Quotation Ref: ${boqNum}`, 50, 93);
+  }
 
   // Header Right: Velora Antaraal Branding matching Image 2
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.setTextColor(37, 99, 235); // Royal Blue #2563EB
+  doc.setTextColor(201, 162, 39); // Luxury Gold #C9A227
   doc.text("VELORA ANTARAAL", 555, 42, { align: "right" });
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(120, 113, 108);
   doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 555, 54, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(87, 83, 78);
-  doc.text("Shop No.242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,", 555, 66, { align: "right" });
-  doc.text("Wakad, Pune-411057, Maharashtra", 555, 77, { align: "right" });
+  doc.text("S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,", 555, 66, { align: "right" });
+  doc.text("Wakad, Pune - 411033, Maharashtra", 555, 77, { align: "right" });
   doc.text("+91 86055 26603 / 9284664507", 555, 88, { align: "right" });
   doc.text("info@velora.family | https://velora.family", 555, 99, { align: "right" });
 
@@ -395,7 +405,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(100, 100, 100);
-    doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  Wakad, Pune, Maharashtra", 297.5, 814, { align: "center" });
+    doc.text("+91 86055 26603 | +91 820-8732741  •  info@velora.family  •  https://velora.family  •  S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033", 297.5, 814, { align: "center" });
 
     doc.save(`${boqNum}.pdf`);
     return;
@@ -623,7 +633,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(100, 100, 100);
-  doc.text(`${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 80555 26603"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra"}`, 297.5, 814, { align: "center" });
+  doc.text(`${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 80555 26603"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033"}`, 297.5, 814, { align: "center" });
 
   doc.save(`${boqNum}.pdf`);
 };
@@ -769,25 +779,41 @@ export const printBOQQuotation = (boq, options = {}) => {
       padding-bottom: 14px;
       border-bottom: 1px solid #e7e5e4;
     }
-    .client-box h4 {
-      margin: 0 0 3px 0;
-      font-size: 12px;
-      color: #78716c;
+    .client-box {
+      background: linear-gradient(135deg, #faf6ed 0%, #fffdfa 100%);
+      border: 1px solid #e8dec8;
+      border-left: 4px solid #c9a227;
+      border-radius: 8px;
+      padding: 12px 18px;
+      max-width: 440px;
+    }
+    .client-box .prep-badge {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #9e7b1d;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 700;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
     }
     .client-box h2 {
-      margin: 0 0 5px 0;
-      font-size: 22px;
+      margin: 2px 0 6px 0;
+      font-size: 20px;
       font-weight: 900;
-      color: #0c0a09;
+      color: #1c1917;
+      letter-spacing: -0.2px;
     }
-    .client-box p {
-      margin: 3px 0;
-      font-size: 13.5px;
-      color: #44403c;
-      font-weight: 500;
+    .client-box .client-meta-grid {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 4px 16px;
+      font-size: 11.5px;
+      color: #57534e;
+      margin-top: 4px;
+    }
+    .client-box .client-meta-grid strong {
+      color: #292524;
+      font-weight: 700;
     }
     .brand-box {
       text-align: right;
@@ -796,7 +822,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       margin: 0;
       font-size: 24px;
       font-weight: 900;
-      color: #2563eb;
+      color: #c9a227;
       letter-spacing: 0.5px;
     }
     .brand-box .tagline {
@@ -1140,11 +1166,11 @@ export const printBOQQuotation = (boq, options = {}) => {
     <!-- Live In-Preview T&C Toggle Switch -->
     <div style="display: flex; align-items: center; gap: 16px;">
       <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
-        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer;" />
+        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #c9a227; cursor: pointer;" />
         <span>Include Terms & Conditions (T&C) Pages</span>
       </label>
 
-      <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
+      <button onclick="window.print()" style="background: #c9a227; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
         Print / Save PDF
       </button>
       <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;">
@@ -1157,19 +1183,22 @@ export const printBOQQuotation = (boq, options = {}) => {
     <!-- Brand Header -->
     <div class="header-row">
       <div class="client-box">
-        <h4>Prepared for</h4>
+        <span class="prep-badge">PREPARED EXCLUSIVELY FOR</span>
         <h2>${clientName}</h2>
-        <p><strong>Project:</strong> ${siteLocation}</p>
-        ${clientPhone ? `<p><strong>Phone:</strong> ${clientPhone}</p>` : ""}
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Ref No:</strong> ${boqNumber}</p>
+        <div class="client-meta-grid">
+          <div><strong>Project Site:</strong> ${siteLocation}</div>
+          <div><strong>Date of Issue:</strong> ${formattedDate}</div>
+          ${clientPhone && clientPhone !== "-" ? `<div><strong>Phone:</strong> ${clientPhone}</div>` : ""}
+          ${clientEmail && clientEmail !== "-" ? `<div><strong>Email:</strong> ${clientEmail}</div>` : ""}
+          <div><strong>Quotation Ref:</strong> ${boqNumber}</div>
+        </div>
       </div>
 
       <div class="brand-box">
         <h1>VELORA ANTARAAL</h1>
         <div class="tagline">INTERIOR DESIGN | DÉCOR | RETAIL</div>
-        <p>Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Road,</p>
-        <p>Wakad, Pune-411057, Maharashtra, India</p>
+        <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,</p>
+        <p>Wakad, Pune - 411033, Maharashtra, India</p>
         <p>+91 86055 26603 / 9284664507</p>
         <p>info@velora.family | https://velora.family</p>
       </div>
@@ -1381,14 +1410,14 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #2563eb; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>
 
       <div class="footer-bar">
         <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
-        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra, India"}</div>
+        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033"}</div>
       </div>
     </div>
 
@@ -1400,13 +1429,13 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #2563eb; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>
       <div class="footer-bar">
         <div><strong>SPACES WITHIN, DESIGNED BEAUTIFULLY</strong></div>
-        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "Wakad, Pune, Maharashtra, India"}</div>
+        <div>${companySettings.phone || "+91 86055 26603"} | ${companySettings.altPhone || "+91 820-8732741"}  •  ${companySettings.email || "info@velora.family"}  •  ${companySettings.website || "https://velora.family"}  •  ${companySettings.address || "S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033"}</div>
       </div>
     </div>
   </div>

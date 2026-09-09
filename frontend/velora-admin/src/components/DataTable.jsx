@@ -77,7 +77,7 @@ export default function DataTable({
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             {title}
-            <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">
+            <span className="text-xs bg-amber-50 text-amber-800 px-2.5 py-0.5 rounded-full font-bold border border-amber-200">
               {processedData.length} records
             </span>
           </h2>
@@ -88,17 +88,17 @@ export default function DataTable({
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition shadow-2xs cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50/50 transition shadow-2xs cursor-pointer"
             title="Export Table Data to CSV/Excel"
           >
-            <Download size={14} className="text-blue-600" />
+            <Download size={14} className="text-amber-600" />
             <span>Export Data</span>
           </button>
 
           {onAddNew && (
             <button
               onClick={onAddNew}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-xs cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition shadow-xs cursor-pointer"
             >
               <span>+ {addNewLabel}</span>
             </button>
@@ -115,17 +115,17 @@ export default function DataTable({
             placeholder="Search records..."
             value={search || ""}
             onChange={(e) => setSearch && setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100"
           />
         </div>
 
         {statusOptions.length > 0 && (
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter size={14} className="text-blue-600" />
+            <Filter size={14} className="text-amber-600" />
             <select
               value={statusFilter || ""}
               onChange={(e) => setStatusFilter && setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-blue-500 font-medium"
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-amber-500 font-medium"
             >
               <option value="">All Statuses</option>
               {statusOptions.map((opt) => (
@@ -147,7 +147,7 @@ export default function DataTable({
                 <th
                   key={col.key || col.header}
                   onClick={() => col.sortable && handleSort(col.key)}
-                  className={`px-4 py-3.5 select-none ${col.sortable ? "cursor-pointer hover:text-blue-600" : ""}`}
+                  className={`px-4 py-3.5 select-none ${col.sortable ? "cursor-pointer hover:text-amber-600" : ""}`}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>{col.header}</span>
@@ -172,7 +172,7 @@ export default function DataTable({
               </tr>
             ) : (
               paginatedData.map((row, idx) => (
-                <tr key={row._id || idx} className="hover:bg-slate-50/80 transition">
+                <tr key={row._id || idx} className="hover:bg-amber-50/30 transition">
                   {columns.map((col) => (
                     <td key={col.key || col.header} className="px-4 py-3.5 font-medium text-slate-800">
                       {col.render ? (
@@ -202,14 +202,14 @@ export default function DataTable({
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer"
+            className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40 hover:border-amber-400 hover:text-amber-600 transition cursor-pointer"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer"
+            className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40 hover:border-amber-400 hover:text-amber-600 transition cursor-pointer"
           >
             <ChevronRight size={16} />
           </button>

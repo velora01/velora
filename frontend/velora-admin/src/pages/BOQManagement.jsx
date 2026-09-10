@@ -3365,7 +3365,7 @@ export default function BOQManagement() {
 
                   {/* Right: Velora Antaraal Branding */}
                   <div className="text-right space-y-1">
-                    <h1 className="text-2xl font-black text-amber-600 tracking-wide">VELORA ANTARAAL</h1>
+                    <h1 className="text-2xl font-black text-amber-600 tracking-wide">VELORA ANTARAAL LLP</h1>
                     <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
                       INTERIOR DESIGN | DÉCOR | RETAIL
                     </p>
@@ -3693,7 +3693,7 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL LLP</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>
@@ -3722,7 +3722,7 @@ export default function BOQManagement() {
                         <p className="text-xs font-semibold text-stone-600">Client Acceptance Sign: ___________________________</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL</p>
+                        <p className="font-extrabold text-amber-600 text-xs">For VELORA ANTARAAL LLP</p>
                         <p className="text-xs text-stone-500 pt-6">Authorized Signatory</p>
                       </div>
                     </div>

@@ -137,7 +137,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(201, 162, 39); // Luxury Gold #C9A227
-  doc.text("VELORA ANTARAAL", 555, 42, { align: "right" });
+  doc.text("VELORA ANTARAAL LLP", 555, 42, { align: "right" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
@@ -390,7 +390,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     doc.text("Client Signature: _______________________", 40, currentY + 16);
 
     doc.setFont("helvetica", "bold");
-    doc.text("For VELORA ANTARAAL", 555, currentY + 16, { align: "right" });
+    doc.text("For VELORA ANTARAAL LLP", 555, currentY + 16, { align: "right" });
     doc.setFont("helvetica", "normal");
     doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
 
@@ -612,7 +612,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.text("Client Signature: _______________________", 40, currentY + 16);
 
   doc.setFont("helvetica", "bold");
-  doc.text("For VELORA ANTARAAL", 555, currentY + 16, { align: "right" });
+  doc.text("For VELORA ANTARAAL LLP", 555, currentY + 16, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.text("Authorized Signatory", 555, currentY + 38, { align: "right" });
 
@@ -1195,7 +1195,7 @@ export const printBOQQuotation = (boq, options = {}) => {
       </div>
 
       <div class="brand-box">
-        <h1>VELORA ANTARAAL</h1>
+        <h1>VELORA ANTARAAL LLP</h1>
         <div class="tagline">INTERIOR DESIGN | DÉCOR | RETAIL</div>
         <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,</p>
         <p>Wakad, Pune - 411033, Maharashtra, India</p>
@@ -1410,7 +1410,7 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL LLP</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>
@@ -1429,7 +1429,7 @@ export const printBOQQuotation = (boq, options = {}) => {
           <div style="font-size: 11px; font-style: italic; color: #78716c; margin-top: 6px;">${userStamp}</div>
         </div>
         <div style="text-align: right;">
-          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL</p>
+          <p style="font-weight: 800; color: #c9a227; margin: 0;">For VELORA ANTARAAL LLP</p>
           <p style="margin: 30px 0 0 0; color: #57534e;">Authorized Signatory</p>
         </div>
       </div>

@@ -3373,7 +3373,7 @@ export default function BOQManagement() {
                       S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033
                     </p>
                     <p className="text-[11px] text-stone-600 font-semibold">
-                      +91 86055 26603 / 9284664507 • info@velora.family • https://velora.family
+                      +91 80555 26603 / 77059 65556 • info@velora.family • https://velora.family
                     </p>
                     <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
                       Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
@@ -3382,7 +3382,7 @@ export default function BOQManagement() {
                 </div>
 
                 {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
-                <div className="text-center py-2">
+                <div className="text-center py-6">
                   <h3 className="text-2xl sm:text-3xl font-black text-[#A83232] tracking-wider uppercase font-serif sm:font-sans">
                     INTERIOR ESTIMATE & QUOTATION
                   </h3>

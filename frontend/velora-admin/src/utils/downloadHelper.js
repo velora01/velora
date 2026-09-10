@@ -149,20 +149,20 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.setTextColor(87, 83, 78);
   doc.text("S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,", 555, 66, { align: "right" });
   doc.text("Wakad, Pune - 411033, Maharashtra", 555, 77, { align: "right" });
-  doc.text("+91 86055 26603 / 9284664507", 555, 88, { align: "right" });
+  doc.text("+91 80555 26603 / 77059 65556", 555, 88, { align: "right" });
   doc.text("info@velora.family | https://velora.family", 555, 99, { align: "right" });
 
   // Center Red/Maroon ESTIMATE Title matching Image 1 & 2
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(168, 50, 50); // Maroon from Image 1
-  doc.text("INTERIOR ESTIMATE & QUOTATION", 297.5, 122, { align: "center" });
+  doc.text("INTERIOR ESTIMATE & QUOTATION", 297.5, 144, { align: "center" });
 
   doc.setDrawColor(234, 227, 210);
   doc.setLineWidth(0.75);
-  doc.line(40, 130, 555, 130);
+  doc.line(40, 154, 555, 154);
 
-  let currentY = 140;
+  let currentY = 170;
 
   // Space-by-Space Tables matching Image 1
   spaces.forEach((space) => {
@@ -839,7 +839,7 @@ export const printBOQQuotation = (boq, options = {}) => {
     }
     .title-banner {
       text-align: center;
-      margin: 16px 0 20px 0;
+      margin: 26px 0 26px 0;
     }
     .title-banner h2 {
       margin: 0;
@@ -1199,7 +1199,7 @@ export const printBOQQuotation = (boq, options = {}) => {
         <div class="tagline">INTERIOR DESIGN | DÉCOR | RETAIL</div>
         <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,</p>
         <p>Wakad, Pune - 411033, Maharashtra, India</p>
-        <p>+91 86055 26603 / 9284664507</p>
+        <p>+91 80555 26603 / 77059 65556</p>
         <p>info@velora.family | https://velora.family</p>
       </div>
     </div>

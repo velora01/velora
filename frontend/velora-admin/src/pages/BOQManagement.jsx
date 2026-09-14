@@ -92,6 +92,7 @@ export default function BOQManagement() {
   const [includeTermsInPrint, setIncludeTermsInPrint] = useState(true);
   const [quotationModalTab, setQuotationModalTab] = useState("preview"); // "preview" | "tc_template"
   const [isColumnChooserOpen, setIsColumnChooserOpen] = useState(false);
+  const [isBuilderColumnChooserOpen, setIsBuilderColumnChooserOpen] = useState(false);
   const [printColumns, setPrintColumns] = useState(() => {
     try {
       const saved = localStorage.getItem("velora_boq_print_columns");
@@ -2448,6 +2449,72 @@ export default function BOQManagement() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Column Visibility Selector Dropdown Popover */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsBuilderColumnChooserOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-stone-50 border border-stone-300 text-xs font-bold text-stone-800 rounded-xl transition cursor-pointer shadow-2xs"
+                title="Choose columns to show/hide in print and PDF"
+              >
+                <SlidersHorizontal size={14} className="text-stone-600" />
+                <span>Print Columns</span>
+                <ChevronDown size={13} className={`text-stone-500 transition-transform ${isBuilderColumnChooserOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {isBuilderColumnChooserOpen && (
+                <div className="absolute right-0 bottom-full mb-2 w-72 bg-white border border-stone-200 rounded-2xl shadow-2xl p-3.5 z-50 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                    <span className="text-xs font-black text-stone-900">Print Column Chooser</span>
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllPrintColumns(true)}
+                        className="text-blue-600 font-bold hover:underline cursor-pointer"
+                      >
+                        All
+                      </button>
+                      <span className="text-stone-300">•</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllPrintColumns(false)}
+                        className="text-stone-500 font-bold hover:underline cursor-pointer"
+                      >
+                        None
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1.5 max-h-64 overflow-y-auto pr-1">
+                    {[
+                      { key: "showSN", label: "SN (Serial No.)" },
+                      { key: "showItemName", label: "Product / Item Name" },
+                      { key: "showDimensions", label: "Dimensions (Ft / In)" },
+                      { key: "showDescription", label: "Description & Hardware" },
+                      { key: "showRefImage", label: "Reference Image" },
+                      { key: "showUom", label: "UOM (Sq.Ft / Unit)" },
+                      { key: "showUnitRate", label: "Unit Rate (₹)" },
+                      { key: "showQuantity", label: "Quantity (Qty)" },
+                      { key: "showPrice", label: "Price / Total Amount (₹)" }
+                    ].map((col) => (
+                      <label
+                        key={col.key}
+                        className="flex items-center justify-between p-1.5 hover:bg-stone-50 rounded-lg cursor-pointer select-none transition"
+                      >
+                        <span className="text-xs font-semibold text-stone-700">{col.label}</span>
+                        <input
+                          type="checkbox"
+                          checked={printColumns[col.key] !== false}
+                          onChange={() => handleTogglePrintColumn(col.key)}
+                          className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => handleOpenQuotationModal(activeBOQ)}
@@ -3336,167 +3403,194 @@ export default function BOQManagement() {
                   </h3>
                 </div>
 
-                {/* Space-by-Space Tables matching Image 1 */}
+                {/* Space-by-Space Tables - ONLY render spaces with actual added items */}
                 <div className="space-y-8">
-                  {(quotationBOQ.spaces || []).map((space, sIdx) => {
-                    const sItems = (space.items && space.items.length > 0) ? space.items : [
-                      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
-                    ];
+                  {(() => {
+                    const allSpaces = Array.isArray(quotationBOQ.spaces) ? quotationBOQ.spaces : [];
+                    const populatedSpaces = allSpaces.filter((sp) => Array.isArray(sp.items) && sp.items.length > 0);
+                    const displaySpaces = populatedSpaces.length > 0 ? populatedSpaces : allSpaces.filter((sp) => Number(sp.roomTotal) > 0);
+
+                    if (displaySpaces.length === 0) {
+                      return (
+                        <div className="p-12 text-center border-2 border-dashed border-stone-200 rounded-2xl bg-stone-50/50">
+                          <p className="text-sm font-bold text-stone-600">No components added to this BOQ yet.</p>
+                          <p className="text-xs text-stone-400 mt-1">Add items from the library or create custom components to generate quotation rows.</p>
+                        </div>
+                      );
+                    }
 
                     const hasDescCol = printColumns.showItemName !== false || printColumns.showDescription !== false || printColumns.showDimensions !== false;
 
-                    return (
-                      <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
-                        {/* Space Maroon Title Bar matching Image 1 */}
-                        <div className="bg-[#FEF2F2] border-b-2 border-[#A83232] px-5 py-3 flex items-center justify-between">
-                          <span className="font-black text-base sm:text-lg text-[#A83232] uppercase tracking-wider">
-                            {space.name}
-                          </span>
-                          <span className="font-black text-sm sm:text-base text-[#A83232] font-mono">
-                            Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
-                          </span>
-                        </div>
+                    return displaySpaces.map((space, sIdx) => {
+                      const sItems = Array.isArray(space.items) && space.items.length > 0 ? space.items : [];
+                      if (sItems.length === 0) return null;
 
-                        {/* Items Table matching Image 1 Columns */}
+                      return (
+                        <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
+                          {/* Space Maroon Title Bar matching Image 1 */}
+                          <div className="bg-[#FEF2F2] border-b-2 border-[#A83232] px-5 py-3 flex items-center justify-between">
+                            <span className="font-black text-base sm:text-lg text-[#A83232] uppercase tracking-wider">
+                              {space.name}
+                            </span>
+                            <span className="font-black text-sm sm:text-base text-[#A83232] font-mono">
+                              Room Total: ₹{(space.roomTotal || 0).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+
+                          {/* Items Table matching Image 1 Columns */}
+                          <table className="w-full text-left border-collapse text-sm">
+                            <thead className="bg-slate-50 border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
+                              <tr>
+                                {printColumns.showSN !== false && <th className="py-3 px-3 w-12 text-center">SN</th>}
+                                {hasDescCol && <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>}
+                                {printColumns.showRefImage !== false && <th className="py-3 px-3 w-28 text-center">Ref.</th>}
+                                {printColumns.showUom !== false && <th className="py-3 px-3 w-24 text-center">UOM</th>}
+                                {printColumns.showUnitRate !== false && <th className="py-3 px-3 w-32 text-right">Unit Rate</th>}
+                                {printColumns.showQuantity !== false && <th className="py-3 px-2 w-16 text-center">Qty</th>}
+                                {printColumns.showPrice !== false && <th className="py-3 px-4 w-36 text-right">Price</th>}
+                              </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-stone-200 text-stone-900">
+                              {sItems.map((it, itIdx) => {
+                                const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
+                                const rate = Number(it.rate) || 0;
+                                const qty = Number(it.qty) || 1;
+                                const sqft = Number(it.sqft) || 0;
+                                const amt = Number(it.amount) !== undefined && !isNaN(Number(it.amount)) && Number(it.amount) > 0
+                                  ? Number(it.amount)
+                                  : (rate * (sqft || qty));
+                                const dims = (it.lengthFt || it.lengthIn || it.heightFt || it.heightIn || it.depthFt)
+                                  ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
+                                  : "";
+
+                                return (
+                                  <tr key={itIdx} className="hover:bg-slate-50 transition">
+                                    {printColumns.showSN !== false && (
+                                      <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
+                                        {itIdx + 1}
+                                      </td>
+                                    )}
+                                    {hasDescCol && (
+                                      <td className="py-3.5 px-4 space-y-1.5">
+                                        {printColumns.showItemName !== false && (
+                                          <>
+                                            <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
+                                            <p className="text-xs font-bold text-stone-500">
+                                              {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}
+                                            </p>
+                                          </>
+                                        )}
+                                        {printColumns.showDescription !== false && (
+                                          <>
+                                            <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
+                                              {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
+                                            </p>
+                                            <p className="text-xs text-stone-600 font-semibold">
+                                              Hardware (Channels, fittings): Onyx / Ebco / Hettich
+                                            </p>
+                                          </>
+                                        )}
+                                        {printColumns.showDimensions !== false && dims && (
+                                          <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
+                                            {dims}
+                                          </p>
+                                        )}
+                                      </td>
+                                    )}
+                                    {printColumns.showRefImage !== false && (
+                                      <td className="py-3.5 px-2 text-center align-middle">
+                                        {imgUrl ? (
+                                          <img
+                                            src={imgUrl}
+                                            alt={it.name}
+                                            className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
+                                          />
+                                        ) : (
+                                          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
+                                            <span>Ref. Image</span>
+                                          </div>
+                                        )}
+                                      </td>
+                                    )}
+                                    {printColumns.showUom !== false && (
+                                      <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
+                                        {it.uom || it.unit || "Sq. Ft"}
+                                      </td>
+                                    )}
+                                    {printColumns.showUnitRate !== false && (
+                                      <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
+                                        ₹{rate.toLocaleString("en-IN")}
+                                      </td>
+                                    )}
+                                    {printColumns.showQuantity !== false && (
+                                      <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
+                                        {qty}
+                                      </td>
+                                    )}
+                                    {printColumns.showPrice !== false && (
+                                      <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
+                                        ₹{amt.toLocaleString("en-IN")}
+                                      </td>
+                                    )}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Area Summary Table matching Image 4 & 5 */}
+                {(() => {
+                  const allSpaces = Array.isArray(quotationBOQ.spaces) ? quotationBOQ.spaces : [];
+                  const populatedSpaces = allSpaces.filter((sp) => Array.isArray(sp.items) && sp.items.length > 0);
+                  const displaySpaces = populatedSpaces.length > 0 ? populatedSpaces : allSpaces.filter((sp) => Number(sp.roomTotal) > 0);
+
+                  if (displaySpaces.length === 0) return null;
+
+                  return (
+                    <div className="space-y-3 pt-2">
+                      <h4 className="text-xl font-black text-[#A83232] tracking-wider">Summary</h4>
+                      <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
                         <table className="w-full text-left border-collapse text-sm">
-                          <thead className="bg-slate-50 border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
+                          <thead className="bg-slate-50 border-b border-stone-300 text-xs font-extrabold text-stone-900">
                             <tr>
-                              {printColumns.showSN !== false && <th className="py-3 px-3 w-12 text-center">SN</th>}
-                              {hasDescCol && <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>}
-                              {printColumns.showRefImage !== false && <th className="py-3 px-3 w-28 text-center">Ref.</th>}
-                              {printColumns.showUom !== false && <th className="py-3 px-3 w-24 text-center">UOM</th>}
-                              {printColumns.showUnitRate !== false && <th className="py-3 px-3 w-32 text-right">Unit Rate</th>}
-                              {printColumns.showQuantity !== false && <th className="py-3 px-2 w-16 text-center">Qty</th>}
-                              {printColumns.showPrice !== false && <th className="py-3 px-4 w-36 text-right">Price</th>}
+                              <th className="py-3 px-4 w-16 text-center">SN</th>
+                              <th className="py-3 px-4">Area</th>
+                              <th className="py-3 px-4 w-32 text-center">Quantity</th>
+                              <th className="py-3 px-6 w-48 text-right">Total Amount</th>
                             </tr>
                           </thead>
-
-                          <tbody className="divide-y divide-stone-200 text-stone-900">
-                            {sItems.map((it, itIdx) => {
-                              const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
-                              const rate = Number(it.rate) || 0;
-                              const qty = Number(it.qty) || 1;
-                              const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
-                              const dims = (it.lengthFt || it.heightFt)
-                                ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
-                                : "";
+                          <tbody className="divide-y divide-stone-200">
+                            {displaySpaces.map((sp, idx) => {
+                              let sSum = 0;
+                              (sp.items || []).forEach((it) => {
+                                sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
+                              });
+                              if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
+                              const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
 
                               return (
-                                <tr key={itIdx} className="hover:bg-slate-50 transition">
-                                  {printColumns.showSN !== false && (
-                                    <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
-                                      {itIdx + 1}
-                                    </td>
-                                  )}
-                                  {hasDescCol && (
-                                    <td className="py-3.5 px-4 space-y-1.5">
-                                      {printColumns.showItemName !== false && (
-                                        <>
-                                          <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
-                                          <p className="text-xs font-bold text-stone-500">
-                                            {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: {it.packageVariant || "Standard"}
-                                          </p>
-                                        </>
-                                      )}
-                                      {printColumns.showDescription !== false && (
-                                        <>
-                                          <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
-                                            {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
-                                          </p>
-                                          <p className="text-xs text-stone-600 font-semibold">
-                                            Hardware (Channels, fittings): Onyx / Ebco / Hettich
-                                          </p>
-                                        </>
-                                      )}
-                                      {printColumns.showDimensions !== false && dims && (
-                                        <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
-                                          {dims}
-                                        </p>
-                                      )}
-                                    </td>
-                                  )}
-                                  {printColumns.showRefImage !== false && (
-                                    <td className="py-3.5 px-2 text-center align-middle">
-                                      {imgUrl ? (
-                                        <img
-                                          src={imgUrl}
-                                          alt={it.name}
-                                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
-                                        />
-                                      ) : (
-                                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
-                                          <span>Ref. Image</span>
-                                        </div>
-                                      )}
-                                    </td>
-                                  )}
-                                  {printColumns.showUom !== false && (
-                                    <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
-                                      {it.uom || it.unit || "Sq. Ft"}
-                                    </td>
-                                  )}
-                                  {printColumns.showUnitRate !== false && (
-                                    <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
-                                      ₹{rate.toLocaleString("en-IN")}
-                                    </td>
-                                  )}
-                                  {printColumns.showQuantity !== false && (
-                                    <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
-                                      {qty}
-                                    </td>
-                                  )}
-                                  {printColumns.showPrice !== false && (
-                                    <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
-                                      ₹{amt.toLocaleString("en-IN")}
-                                    </td>
-                                  )}
+                                <tr key={idx} className="hover:bg-slate-50">
+                                  <td className="py-3 px-4 text-center font-bold text-stone-600">{idx + 1}</td>
+                                  <td className="py-3 px-4 font-bold text-stone-950 uppercase">{sp.name}</td>
+                                  <td className="py-3 px-4 text-center font-bold text-stone-800">{count}</td>
+                                  <td className="py-3 px-6 text-right font-mono font-black text-stone-950 text-base">
+                                    ₹{sSum.toLocaleString("en-IN")}
+                                  </td>
                                 </tr>
                               );
                             })}
                           </tbody>
                         </table>
                       </div>
-                    );
-                  })}
-                </div>
-
-                {/* Area Summary Table matching Image 4 & 5 */}
-                <div className="space-y-3 pt-2">
-                  <h4 className="text-xl font-black text-[#A83232] tracking-wider">Summary</h4>
-                  <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead className="bg-slate-50 border-b border-stone-300 text-xs font-extrabold text-stone-900">
-                        <tr>
-                          <th className="py-3 px-4 w-16 text-center">SN</th>
-                          <th className="py-3 px-4">Area</th>
-                          <th className="py-3 px-4 w-32 text-center">Quantity</th>
-                          <th className="py-3 px-6 w-48 text-right">Total Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-200">
-                        {(quotationBOQ.spaces || []).map((sp, idx) => {
-                          let sSum = 0;
-                          (sp.items || []).forEach((it) => {
-                            sSum += Number(it.amount || ((Number(it.rate) || 0) * (Number(it.sqft) || Number(it.qty) || 1)));
-                          });
-                          if (sSum === 0 && sp.roomTotal) sSum = Number(sp.roomTotal);
-                          const count = (sp.items && sp.items.length > 0) ? sp.items.length : 1;
-
-                          return (
-                            <tr key={idx} className="hover:bg-slate-50">
-                              <td className="py-3 px-4 text-center font-bold text-stone-600">{idx + 1}</td>
-                              <td className="py-3 px-4 font-bold text-stone-950 uppercase">{sp.name}</td>
-                              <td className="py-3 px-4 text-center font-bold text-stone-800">{count}</td>
-                              <td className="py-3 px-6 text-right font-mono font-black text-stone-950 text-base">
-                                ₹{sSum.toLocaleString("en-IN")}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Commercial Totals Box with PROPER LARGE TEXT matching Image 5 */}
                 {(() => {

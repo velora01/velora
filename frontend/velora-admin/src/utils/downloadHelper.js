@@ -101,7 +101,9 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   const issueDate = boq?.enquiryDate || boq?.createdAt || Date.now();
   const formattedDate = new Date(issueDate).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
 
-  const spaces = (boq?.spaces && boq.spaces.length > 0) ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
+  const allSpaces = Array.isArray(boq?.spaces) ? boq.spaces : [];
+  const populatedSpaces = allSpaces.filter((sp) => Array.isArray(sp.items) && sp.items.length > 0);
+  const spaces = populatedSpaces.length > 0 ? populatedSpaces : allSpaces.filter((sp) => Number(sp.roomTotal) > 0);
 
   let spacesSubtotal = 0;
   spaces.forEach((sp) => {
@@ -236,8 +238,11 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     colStyles[0] = { cellWidth: "auto" };
   }
 
-  // Space-by-Space Tables matching Image 1
+  // Space-by-Space Tables - ONLY render spaces with actual added items
   spaces.forEach((space) => {
+    const spaceItems = Array.isArray(space.items) && space.items.length > 0 ? space.items : [];
+    if (spaceItems.length === 0) return;
+
     if (currentY > 660) {
       doc.addPage();
       currentY = 40;
@@ -254,15 +259,11 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     doc.setTextColor(168, 50, 50);
     doc.text(space.name.toUpperCase(), 48, currentY + 18);
 
-    const spaceItems = (space.items && space.items.length > 0) ? space.items : [
-      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
-    ];
-
     const tableRows = spaceItems.map((item, idx) => {
       const name = item.name || "Interior Component";
       const spaceCategory = `${space.name.toUpperCase()} > ${space.name.toUpperCase()} - Category: ${item.typeVariant || "Wood Work"}, Sub Category: ${item.packageVariant || "Standard"}`;
       const description = item.description || `Providing and Installation ${item.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`;
-      const dims = (item.lengthFt || item.heightFt)
+      const dims = (item.lengthFt || item.lengthIn || item.heightFt || item.heightIn || item.depthFt)
         ? `Dimension 1: ${item.lengthFt || 0}ft ${item.lengthIn ? `${item.lengthIn}in` : ""} | Dimension 2: ${item.heightFt || 0}ft ${item.heightIn ? `${item.heightIn}in` : ""}${item.depthFt ? ` | Depth: ${item.depthFt}ft` : ""}`
         : "";
       const hardware = `Hardware (Channels, fittings): Onyx / Ebco`;
@@ -282,7 +283,10 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
       const uom = item.uom || item.unit || "Sq. Ft";
       const rate = Number(item.rate) || 0;
       const qty = Number(item.qty) || 1;
-      const amount = Number(item.amount) || (rate * (Number(item.sqft) || qty));
+      const sqft = Number(item.sqft) || 0;
+      const amount = Number(item.amount) !== undefined && !isNaN(Number(item.amount)) && Number(item.amount) > 0
+        ? Number(item.amount)
+        : (rate * (sqft || qty));
 
       const row = [];
       if (showSN) row.push(String(idx + 1));
@@ -779,7 +783,9 @@ export const printBOQQuotation = (boq, options = {}) => {
     year: "numeric"
   });
 
-  const spaces = boq.spaces && boq.spaces.length > 0 ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
+  const allSpaces = Array.isArray(boq.spaces) ? boq.spaces : [];
+  const populatedSpaces = allSpaces.filter((sp) => Array.isArray(sp.items) && sp.items.length > 0);
+  const spaces = populatedSpaces.length > 0 ? populatedSpaces : allSpaces.filter((sp) => Number(sp.roomTotal) > 0);
 
   let spacesSubtotal = 0;
   spaces.forEach((sp) => {
@@ -1379,9 +1385,8 @@ export const printBOQQuotation = (boq, options = {}) => {
 
     <!-- Space-by-Space Tables matching Image 1 to 4 -->
     ${spaces.map((space) => {
-    const sItems = (space.items && space.items.length > 0) ? space.items : [
-      { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
-    ];
+    const sItems = Array.isArray(space.items) && space.items.length > 0 ? space.items : [];
+    if (sItems.length === 0) return "";
 
     return `
         <div class="space-block">
@@ -1403,8 +1408,11 @@ export const printBOQQuotation = (boq, options = {}) => {
       const imgUrl = (it.photos && it.photos[0]?.url) || it.image || it.photos?.[0] || "";
       const rate = Number(it.rate) || 0;
       const qty = Number(it.qty) || 1;
-      const amt = Number(it.amount) || (rate * (Number(it.sqft) || qty));
-      const dims = (it.lengthFt || it.heightFt)
+      const sqft = Number(it.sqft) || 0;
+      const amt = Number(it.amount) !== undefined && !isNaN(Number(it.amount)) && Number(it.amount) > 0
+        ? Number(it.amount)
+        : (rate * (sqft || qty));
+      const dims = (it.lengthFt || it.lengthIn || it.heightFt || it.heightIn || it.depthFt)
         ? `Dimension 1: ${it.lengthFt || 0}ft ${it.lengthIn ? `${it.lengthIn}in` : ""} | Dimension 2: ${it.heightFt || 0}ft ${it.heightIn ? `${it.heightIn}in` : ""}${it.depthFt ? ` | Depth: ${it.depthFt}ft` : ""}`
         : "";
 

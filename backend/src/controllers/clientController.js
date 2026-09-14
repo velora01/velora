@@ -138,7 +138,6 @@ export const getClients = async (req, res) => {
       await Client.insertMany(SEED_CLIENTS);
     }
 
-    // Auto-sync any BOQ clients into the Client collection
     try {
       const allBOQs = await BOQ.find();
       for (const b of allBOQs) {
@@ -213,6 +212,7 @@ export const getClients = async (req, res) => {
       .limit(parseInt(limit));
     const total = await Client.countDocuments(query);
 
+
     res.json({ success: true, data: clients, pagination: { total, page: parseInt(page), pages: Math.ceil(total / limit) } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -227,7 +227,8 @@ export const getClientById = async (req, res) => {
         .populate("boqs")
         .populate("invoices")
         .populate("enquiry");
-    }
+      }
+
     if (!client) {
       client = await Client.findOne({
         $or: [{ clientCode: req.params.id }, { clientId: req.params.id }, { phone: req.params.id }]
@@ -259,7 +260,6 @@ export const updateClient = async (req, res) => {
   try {
     const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!client) return res.status(404).json({ success: false, message: "Client not found" });
-
     await logActivity({ userName: req.user?.name || "Admin", action: "Updated", module: "Clients", description: `Updated client profile & requirements for ${client.name}` });
     res.json({ success: true, data: client });
   } catch (err) {
@@ -271,7 +271,6 @@ export const deleteClient = async (req, res) => {
   try {
     const client = await Client.findByIdAndDelete(req.params.id);
     if (!client) return res.status(404).json({ success: false, message: "Client not found" });
-
     await logActivity({ userName: req.user?.name || "Admin", action: "Deleted", module: "Clients", description: `Deleted client ${client.name}` });
     res.json({ success: true, message: "Client deleted successfully" });
   } catch (err) {

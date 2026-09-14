@@ -198,138 +198,6 @@ export default function EnquiryManagement() {
         if (saved) localEnqs = JSON.parse(saved);
       } catch (e) {}
 
-      // Fallback mock dataset
-      const mockData = [
-        {
-          _id: "mock1",
-          enquiryDate: "2026-08-13",
-          salutation: "Mr",
-          name: "PREM SHUKLA",
-          phone: "78000 20496",
-          email: "prem.shukla@example.com",
-          projectType: "Commercial",
-          projectSubtype: "Corporate Office",
-          siteLocation: "PHASE 2",
-          siteStatus: "Ready to Move",
-          budget: "₹45 Lakhs",
-          handledBy: "Admin",
-          status: "Inquiry",
-          prospectStatus: "Hot"
-        },
-        {
-          _id: "mock2",
-          enquiryDate: "2026-08-08",
-          salutation: "Mr",
-          name: "Rajeev Singhal",
-          phone: "89482 74553",
-          email: "rajeev.s@example.com",
-          projectType: "Renovation",
-          projectSubtype: "3BHK Flat",
-          siteLocation: "RISHITA - SERENITY POCKET C, SECTOR-6, SUSHANT GOLF CITY",
-          siteStatus: "Possession Handed Over",
-          budget: "₹30 Lakhs",
-          handledBy: "Admin",
-          status: "Booking",
-          prospectStatus: "Warm"
-        },
-        {
-          _id: "mock3",
-          enquiryDate: "2026-07-11",
-          salutation: "Mr",
-          name: "Rasid sir",
-          phone: "84128 52592",
-          email: "rasid@example.com",
-          projectType: "Commercial",
-          projectSubtype: "Retail Showroom",
-          siteLocation: "Wakad",
-          siteStatus: "Bare Shell",
-          budget: "₹25 Lakhs",
-          handledBy: "Admin",
-          status: "Inquiry",
-          prospectStatus: "Warm"
-        },
-        {
-          _id: "mock4",
-          enquiryDate: "2026-06-21",
-          salutation: "Ms",
-          name: "Meenakshi Krishnani",
-          phone: "91671 35606",
-          email: "meenakshi@example.com",
-          projectType: "Residential",
-          projectSubtype: "4BHK Penthouse",
-          siteLocation: "Kalyani Nagar",
-          siteStatus: "Ready to Move",
-          budget: "₹60 Lakhs",
-          handledBy: "Admin",
-          status: "Design Phase",
-          prospectStatus: "Hot"
-        },
-        {
-          _id: "mock5",
-          enquiryDate: "2026-06-18",
-          salutation: "Mrs",
-          name: "Khushi",
-          phone: "73551 23408",
-          email: "khushi@example.com",
-          projectType: "Residential",
-          projectSubtype: "2BHK Apartment",
-          siteLocation: "Baner Highway",
-          siteStatus: "Under Construction",
-          budget: "₹18 Lakhs",
-          handledBy: "Admin",
-          status: "Inquiry",
-          prospectStatus: "Cold"
-        },
-        {
-          _id: "mock6",
-          enquiryDate: "2026-05-25",
-          salutation: "Mr",
-          name: "Akash Jain",
-          phone: "89778 99643",
-          email: "akash.jain@example.com",
-          projectType: "Commercial",
-          projectSubtype: "Co-working Space",
-          siteLocation: "Viman Nagar",
-          siteStatus: "Ready to Move",
-          budget: "₹50 Lakhs",
-          handledBy: "Admin",
-          status: "Proposal",
-          prospectStatus: "Warm"
-        },
-        {
-          _id: "mock7",
-          enquiryDate: "2026-05-19",
-          salutation: "Dr",
-          name: "Dr Saurabh",
-          phone: "77090 19535",
-          email: "saurabh.clinic@example.com",
-          projectType: "Commercial",
-          projectSubtype: "Dental Clinic",
-          siteLocation: "shop no 84, vj happiness street, Hinjewadi phase 2",
-          siteStatus: "Bare Shell",
-          budget: "₹35 Lakhs",
-          handledBy: "Admin",
-          status: "Booking",
-          prospectStatus: "Hot"
-        },
-        {
-          _id: "mock8",
-          enquiryDate: "2026-04-28",
-          salutation: "Mr",
-          name: "WIPRO LINCRAFT AI PRIVATE LIMITED",
-          phone: "96323 00992",
-          email: "contact@wiprolincraft.com",
-          projectType: "Commercial",
-          projectSubtype: "Tech HQ",
-          siteLocation: "Sus Pashan Baner",
-          siteStatus: "Ready to Move",
-          budget: "₹1.2 Crore",
-          handledBy: "Admin",
-          status: "Under Installation",
-          prospectStatus: "Hot"
-        }
-      ];
-
       // 3. Strictly deduplicate so each enquiry is unique
       const uniqueMap = new Map();
 
@@ -349,20 +217,12 @@ export default function EnquiryManagement() {
         }
       });
 
-      // Mock defaults (only if not already registered)
-      mockData.forEach((item) => {
-        const key = getEnquiryKey(item);
-        if (key && !uniqueMap.has(key)) {
-          uniqueMap.set(key, item);
-        }
-      });
-
       const deduplicatedList = Array.from(uniqueMap.values());
       setEnquiries(deduplicatedList);
       setPagination((prev) => ({
         ...prev,
         total: deduplicatedList.length,
-        pages: Math.max(1, Math.ceil(deduplicatedList.length / pagination.limit))
+        pages: Math.max(1, Math.ceil(deduplicatedList.length / (pagination.limit || 10)))
       }));
     } catch (err) {
       console.error("Error in fetchEnquiries:", err);

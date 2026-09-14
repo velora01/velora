@@ -14,36 +14,52 @@ import erpApi from "../services/erpService";
 
 export default function Dashboard() {
   const [analytics, setAnalytics] = useState({
-    totalLeads: 142,
-    runningProjects: 24,
-    completedProjects: 58,
-    pendingPayments: 2450000,
-    revenue: 16800000,
-    monthlyRevenue: 4200000,
-    conversionRate: "74.2%"
+    totalLeads: 0,
+    runningProjects: 0,
+    completedProjects: 0,
+    pendingPayments: 0,
+    revenue: 0,
+    monthlyRevenue: 0,
+    conversionRate: "0%"
   });
+  const [recentLeads, setRecentLeads] = useState([]);
+  const [recentProduction, setRecentProduction] = useState([]);
+  const [recentInstallations, setRecentInstallations] = useState([]);
 
   useEffect(() => {
     erpApi.getAnalytics().then((res) => {
-      if (res) setAnalytics(res);
-    });
+      if (res?.data) setAnalytics(res.data);
+      else if (res) setAnalytics((prev) => ({ ...prev, ...res }));
+    }).catch(() => {});
+
+    erpApi.getLeads({ limit: 5 }).then((res) => {
+      if (res?.data) setRecentLeads(res.data);
+    }).catch(() => {});
+
+    erpApi.getProduction({ limit: 5 }).then((res) => {
+      if (res?.data) setRecentProduction(res.data);
+    }).catch(() => {});
+
+    erpApi.getInstallations({ limit: 5 }).then((res) => {
+      if (res?.data) setRecentInstallations(res.data);
+    }).catch(() => {});
   }, []);
 
   const salesData = [
-    { month: "Jan", revenue: 2400000, leads: 28 },
-    { month: "Feb", revenue: 3100000, leads: 34 },
-    { month: "Mar", revenue: 2900000, leads: 30 },
-    { month: "Apr", revenue: 4200000, leads: 45 },
-    { month: "May", revenue: 3800000, leads: 40 },
-    { month: "Jun", revenue: 5100000, leads: 52 }
+    { month: "Jan", revenue: 0, leads: 0 },
+    { month: "Feb", revenue: 0, leads: 0 },
+    { month: "Mar", revenue: 0, leads: 0 },
+    { month: "Apr", revenue: 0, leads: 0 },
+    { month: "May", revenue: 0, leads: 0 },
+    { month: "Jun", revenue: analytics.revenue || 0, leads: analytics.totalLeads || 0 }
   ];
 
   const projectStageData = [
-    { stage: "Consultation", count: 8 },
-    { stage: "Design", count: 12 },
-    { stage: "Estimate", count: 6 },
-    { stage: "Production", count: 9 },
-    { stage: "Installation", count: 5 }
+    { stage: "Consultation", count: 0 },
+    { stage: "Design", count: 0 },
+    { stage: "Estimate", count: 0 },
+    { stage: "Production", count: 0 },
+    { stage: "Installation", count: 0 }
   ];
 
   return (
@@ -64,8 +80,8 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-            <span className="text-slate-500 block font-semibold">Monthly Revenue Target</span>
-            <span className="font-extrabold text-blue-600">₹5,00,00,000 (84% Achieved)</span>
+            <span className="text-slate-500 block font-semibold">Live System Status</span>
+            <span className="font-extrabold text-emerald-600">Connected & Synced</span>
           </div>
         </div>
       </div>
@@ -79,9 +95,9 @@ export default function Dashboard() {
               <Users size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">{analytics.totalLeads}</p>
-          <div className="flex items-center text-[11px] text-emerald-600 font-bold">
-            <ArrowUpRight size={14} /> <span>+14.2% vs last month</span>
+          <p className="text-2xl font-black text-slate-900 tracking-tight">{analytics.totalLeads || 0}</p>
+          <div className="flex items-center text-[11px] text-slate-500 font-medium">
+            <span>Active database entries</span>
           </div>
         </div>
 
@@ -92,8 +108,8 @@ export default function Dashboard() {
               <Briefcase size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">{analytics.runningProjects}</p>
-          <p className="text-[11px] text-slate-500 font-medium">{analytics.completedProjects} Completed Handovers</p>
+          <p className="text-2xl font-black text-slate-900 tracking-tight">{analytics.runningProjects || 0}</p>
+          <p className="text-[11px] text-slate-500 font-medium">{analytics.completedProjects || 0} Completed Handovers</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
@@ -103,8 +119,8 @@ export default function Dashboard() {
               <DollarSign size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">₹{analytics.pendingPayments.toLocaleString("en-IN")}</p>
-          <p className="text-[11px] text-slate-500 font-medium">8 Milestone Invoices</p>
+          <p className="text-2xl font-black text-slate-900 tracking-tight">₹{(analytics.pendingPayments || 0).toLocaleString("en-IN")}</p>
+          <p className="text-[11px] text-slate-500 font-medium">Outstanding invoices</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
@@ -114,8 +130,8 @@ export default function Dashboard() {
               <TrendingUp size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">₹{analytics.revenue.toLocaleString("en-IN")}</p>
-          <p className="text-[11px] text-emerald-600 font-bold">Conversion Rate: {analytics.conversionRate}</p>
+          <p className="text-2xl font-black text-slate-900 tracking-tight">₹{(analytics.revenue || 0).toLocaleString("en-IN")}</p>
+          <p className="text-[11px] text-emerald-600 font-bold">Conversion Rate: {analytics.conversionRate || "0%"}</p>
         </div>
       </div>
 
@@ -129,7 +145,7 @@ export default function Dashboard() {
               <p className="text-xs text-slate-500">Monthly breakdown of gross revenue (₹)</p>
             </div>
             <span className="text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
-              2026 Financial Year
+              Current Financial Year
             </span>
           </div>
 
@@ -157,7 +173,7 @@ export default function Dashboard() {
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <h3 className="font-extrabold text-base text-slate-900">Active Project Stages</h3>
-            <span className="text-xs text-slate-500 font-bold">40 Active</span>
+            <span className="text-xs text-slate-500 font-bold">{analytics.runningProjects || 0} Active</span>
           </div>
 
           <div className="h-64 w-full">
@@ -182,21 +198,22 @@ export default function Dashboard() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
               <Clock size={16} className="text-blue-600" />
-              Today's Follow-ups
+              Latest Inquiries
             </h4>
-            <span className="text-xs text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">3 Scheduled</span>
+            <span className="text-xs text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">{recentLeads.length} Available</span>
           </div>
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <p className="font-bold text-slate-800">Dr. Ananya Kulkarni (4BHK Villa)</p>
-              <p className="text-slate-500">Discussion on Cost Estimate & Marble selection</p>
-              <span className="text-[10px] text-blue-600 font-bold">11:30 AM • Sales Team</span>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <p className="font-bold text-slate-800">Mr. Vikramaditya Rao (Penthouse)</p>
-              <p className="text-slate-500">Final Design Sign-off & Advance Receipt</p>
-              <span className="text-[10px] text-blue-600 font-bold">03:00 PM • Senior Designer</span>
-            </div>
+            {recentLeads.length === 0 ? (
+              <p className="text-slate-400 py-4 text-center">No new inquiries yet</p>
+            ) : (
+              recentLeads.slice(0, 3).map((lead, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <p className="font-bold text-slate-800">{lead.name || lead.clientName || "Client"}</p>
+                  <p className="text-slate-500">{lead.projectType || "Residential"} • {lead.siteLocation || lead.city || "Pune"}</p>
+                  <span className="text-[10px] text-blue-600 font-bold">{lead.status || "Inquiry"}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -207,23 +224,22 @@ export default function Dashboard() {
               <Factory size={16} className="text-blue-600" />
               Factory Manufacturing Queue
             </h4>
-            <span className="text-xs text-slate-500 font-semibold">Plant Chakan</span>
+            <span className="text-xs text-slate-500 font-semibold">{recentProduction.length} Orders</span>
           </div>
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <div className="flex justify-between font-bold text-slate-800">
-                <span>The Crest Villa - Kitchen</span>
-                <span className="text-blue-600 font-bold">Polishing</span>
-              </div>
-              <p className="text-slate-500">Est. Dispatch: Aug 08, 2026</p>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <div className="flex justify-between font-bold text-slate-800">
-                <span>Solitaire Heights - Wardrobes</span>
-                <span className="text-emerald-700 font-bold">Assembly</span>
-              </div>
-              <p className="text-slate-500">Est. Dispatch: Aug 10, 2026</p>
-            </div>
+            {recentProduction.length === 0 ? (
+              <p className="text-slate-400 py-4 text-center">No manufacturing orders in queue</p>
+            ) : (
+              recentProduction.slice(0, 3).map((item, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div className="flex justify-between font-bold text-slate-800">
+                    <span>{item.projectName || item.productionCode}</span>
+                    <span className="text-blue-600 font-bold">{item.status}</span>
+                  </div>
+                  <p className="text-slate-500">{item.factoryLocation || "Plant Floor"}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -234,17 +250,19 @@ export default function Dashboard() {
               <Truck size={16} className="text-blue-600" />
               Site Installations
             </h4>
-            <span className="text-xs text-slate-500 font-semibold">Active Crew</span>
+            <span className="text-xs text-slate-500 font-semibold">{recentInstallations.length} Active</span>
           </div>
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <p className="font-bold text-slate-800">Koregaon Park Estate - False Ceiling</p>
-              <p className="text-slate-500">Team Alpha • Progress: 80%</p>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <p className="font-bold text-slate-800">Baler Royal Towers - Joinery Fitment</p>
-              <p className="text-slate-500">Team Beta • Progress: 45%</p>
-            </div>
+            {recentInstallations.length === 0 ? (
+              <p className="text-slate-400 py-4 text-center">No active site installations scheduled</p>
+            ) : (
+              recentInstallations.slice(0, 3).map((inst, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <p className="font-bold text-slate-800">{inst.projectName || inst.installationCode}</p>
+                  <p className="text-slate-500">{inst.assignedTeam || "Field Crew"} • {inst.status}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

@@ -53,12 +53,41 @@ export const loadImageDataUrl = (url) => {
   });
 };
 
+export const DEFAULT_BOQ_PRINT_COLUMNS = {
+  showSN: true,
+  showItemName: true,
+  showDescription: true,
+  showDimensions: true,
+  showRefImage: true,
+  showUom: true,
+  showUnitRate: true,
+  showQuantity: true,
+  showPrice: true
+};
+
 /**
  * Client-Side Luxury BOQ / Estimate PDF Generator Matching User Images
  * (Image 1 Table Structure with Ref. Images + Image 2 Velora Antaraal Theme, Totals & T&C)
  */
 export const generateClientSideBOQPdf = async (boq, options = {}) => {
   const includeTerms = options.includeTerms !== false;
+  const printCols = {
+    ...DEFAULT_BOQ_PRINT_COLUMNS,
+    ...(boq?.printColumns || {}),
+    ...(options?.printColumns || {})
+  };
+
+  const showSN = printCols.showSN !== false;
+  const showItemName = printCols.showItemName !== false;
+  const showDescription = printCols.showDescription !== false;
+  const showDimensions = printCols.showDimensions !== false;
+  const showRefImage = printCols.showRefImage !== false;
+  const showUom = printCols.showUom !== false;
+  const showUnitRate = printCols.showUnitRate !== false;
+  const showQuantity = printCols.showQuantity !== false;
+  const showPrice = printCols.showPrice !== false;
+  const showMainDesc = showItemName || showDescription || showDimensions;
+
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "pt",
@@ -73,7 +102,6 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   const formattedDate = new Date(issueDate).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
 
   const spaces = (boq?.spaces && boq.spaces.length > 0) ? boq.spaces : [{ name: "Living Room", roomTotal: 0, items: [] }];
-
 
   let spacesSubtotal = 0;
   spaces.forEach((sp) => {
@@ -164,6 +192,50 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
 
   let currentY = 170;
 
+  // Build dynamic headers and column styles based on active printColumns
+  const headCols = [];
+  const colStyles = {};
+  let cIdx = 0;
+
+  if (showSN) {
+    headCols.push("SN");
+    colStyles[cIdx++] = { cellWidth: 26, halign: "center", fontStyle: "bold" };
+  }
+  let descColIndex = -1;
+  if (showMainDesc) {
+    headCols.push("Item Description & Specification");
+    descColIndex = cIdx;
+    colStyles[cIdx++] = { cellWidth: "auto" };
+  }
+  let imgColIndex = -1;
+  if (showRefImage) {
+    headCols.push("Image");
+    imgColIndex = cIdx;
+    colStyles[cIdx++] = { cellWidth: 68, halign: "center" };
+  }
+  if (showUom) {
+    headCols.push("UOM");
+    colStyles[cIdx++] = { cellWidth: 38, halign: "center", fontStyle: "bold" };
+  }
+  if (showUnitRate) {
+    headCols.push("Unit Rate");
+    colStyles[cIdx++] = { cellWidth: 60, halign: "right", fontStyle: "bold" };
+  }
+  if (showQuantity) {
+    headCols.push("Qty");
+    colStyles[cIdx++] = { cellWidth: 28, halign: "center", fontStyle: "bold" };
+  }
+  if (showPrice) {
+    headCols.push("Price");
+    colStyles[cIdx++] = { cellWidth: 75, halign: "right", fontStyle: "bold" };
+  }
+
+  // Ensure fallback header if all columns somehow deselected
+  if (headCols.length === 0) {
+    headCols.push("Item Description");
+    colStyles[0] = { cellWidth: "auto" };
+  }
+
   // Space-by-Space Tables matching Image 1
   spaces.forEach((space) => {
     if (currentY > 660) {
@@ -191,32 +263,44 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
       const spaceCategory = `${space.name.toUpperCase()} > ${space.name.toUpperCase()} - Category: ${item.typeVariant || "Wood Work"}, Sub Category: ${item.packageVariant || "Standard"}`;
       const description = item.description || `Providing and Installation ${item.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`;
       const dims = (item.lengthFt || item.heightFt)
-        ? `Dimension 1: ${item.lengthFt || 0}ft ${item.lengthIn ? `${item.lengthIn}in` : ""}\nDimension 2: ${item.heightFt || 0}ft ${item.heightIn ? `${item.heightIn}in` : ""}${item.depthFt ? `\nDepth: ${item.depthFt}ft` : ""}`
-        : "-";
+        ? `Dimension 1: ${item.lengthFt || 0}ft ${item.lengthIn ? `${item.lengthIn}in` : ""} | Dimension 2: ${item.heightFt || 0}ft ${item.heightIn ? `${item.heightIn}in` : ""}${item.depthFt ? ` | Depth: ${item.depthFt}ft` : ""}`
+        : "";
       const hardware = `Hardware (Channels, fittings): Onyx / Ebco`;
 
-      const fullDesc = `${name}\n\n${spaceCategory}\n${description}\n${hardware}\n${dims}`;
+      const descParts = [];
+      if (showItemName) {
+        descParts.push(`${name}\n\n${spaceCategory}`);
+      }
+      if (showDescription) {
+        descParts.push(`${description}\n${hardware}`);
+      }
+      if (showDimensions && dims) {
+        descParts.push(dims);
+      }
 
+      const fullDesc = descParts.length > 0 ? descParts.join("\n\n") : (item.name || "Custom Component");
       const uom = item.uom || item.unit || "Sq. Ft";
       const rate = Number(item.rate) || 0;
       const qty = Number(item.qty) || 1;
       const amount = Number(item.amount) || (rate * (Number(item.sqft) || qty));
 
-      return [
-        String(idx + 1),
-        fullDesc,
-        { content: "", img: item._base64 },
-        uom,
-        `Rs. ${rate.toLocaleString("en-IN")}`,
-        String(qty),
-        `Rs. ${amount.toLocaleString("en-IN")}`
-      ];
+      const row = [];
+      if (showSN) row.push(String(idx + 1));
+      if (showMainDesc) row.push(fullDesc);
+      if (showRefImage) row.push({ content: "", img: item._base64 });
+      if (showUom) row.push(uom);
+      if (showUnitRate) row.push(`Rs. ${rate.toLocaleString("en-IN")}`);
+      if (showQuantity) row.push(String(qty));
+      if (showPrice) row.push(`Rs. ${amount.toLocaleString("en-IN")}`);
+
+      if (row.length === 0) row.push(name);
+      return row;
     });
 
     autoTable(doc, {
       startY: currentY + 26,
       margin: { left: 40, right: 40 },
-      head: [["SN", "Item Description & Specification", "Image", "UOM", "Unit Rate", "Qty", "Price"]],
+      head: [headCols],
       body: tableRows,
       theme: "grid",
       headStyles: {
@@ -236,17 +320,9 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
         valign: "middle",
         cellPadding: 6
       },
-      columnStyles: {
-        0: { cellWidth: 26, halign: "center", fontStyle: "bold" },
-        1: { cellWidth: 224 },
-        2: { cellWidth: 68, halign: "center" },
-        3: { cellWidth: 38, halign: "center", fontStyle: "bold" },
-        4: { cellWidth: 58, halign: "right", fontStyle: "bold" },
-        5: { cellWidth: 26, halign: "center", fontStyle: "bold" },
-        6: { cellWidth: 75, halign: "right", fontStyle: "bold" }
-      },
+      columnStyles: colStyles,
       didDrawCell: (data) => {
-        if (data.section === "body" && data.column.index === 2 && data.cell.raw?.img) {
+        if (data.section === "body" && imgColIndex !== -1 && data.column.index === imgColIndex && data.cell.raw?.img) {
           try {
             const pad = 4;
             const size = Math.min(data.cell.width - (pad * 2), data.cell.height - (pad * 2), 60);
@@ -261,7 +337,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     });
 
     currentY = doc.lastAutoTable.finalY + 18;
-  });
+  });;
 
   // Area-by-Area Summary Table Matching Reference Image 4 & 5
   if (currentY > 580) {
@@ -686,6 +762,12 @@ export const printBOQQuotation = (boq, options = {}) => {
   if (!boq) return;
 
   const includeTerms = options.includeTerms !== false;
+  const printCols = {
+    ...DEFAULT_BOQ_PRINT_COLUMNS,
+    ...(boq.printColumns || {}),
+    ...(options.printColumns || {})
+  };
+
   const clientName = boq.clientName || "Valued Client";
   const clientPhone = boq.clientPhone || "-";
   const clientEmail = boq.clientEmail || "-";
@@ -734,6 +816,18 @@ export const printBOQQuotation = (boq, options = {}) => {
   const accType = companySettings.accountType || tcTemplate.bankDetails?.accountType || "Current Account";
   const upiId = companySettings.upiId || "velora.interiors@hdfcbank";
   const qrUrl = companySettings.qrCodeUrl || "";
+
+  const bodyClasses = [
+    !printCols.showSN ? "hide-sn" : "",
+    !printCols.showItemName ? "hide-prod" : "",
+    !printCols.showDescription ? "hide-desc" : "",
+    !printCols.showDimensions ? "hide-dims" : "",
+    !printCols.showRefImage ? "hide-ref" : "",
+    !printCols.showUom ? "hide-uom" : "",
+    !printCols.showUnitRate ? "hide-rate" : "",
+    !printCols.showQuantity ? "hide-qty" : "",
+    !printCols.showPrice ? "hide-price" : ""
+  ].filter(Boolean).join(" ");
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
@@ -932,6 +1026,27 @@ export const printBOQQuotation = (boq, options = {}) => {
       margin: 0 auto;
       text-align: center;
     }
+
+    /* DYNAMIC COLUMN VISIBILITY CLASSES */
+    .col-sn { display: table-cell; }
+    .col-prod { display: block; }
+    .col-desc { display: block; }
+    .col-dims { display: block; }
+    .col-ref { display: table-cell; }
+    .col-uom { display: table-cell; }
+    .col-rate { display: table-cell; }
+    .col-qty { display: table-cell; }
+    .col-price { display: table-cell; }
+
+    body.hide-sn .col-sn { display: none !important; }
+    body.hide-prod .col-prod { display: none !important; }
+    body.hide-desc .col-desc, body.hide-desc .col-specs { display: none !important; }
+    body.hide-dims .col-dims { display: none !important; }
+    body.hide-ref .col-ref { display: none !important; }
+    body.hide-uom .col-uom { display: none !important; }
+    body.hide-rate .col-rate { display: none !important; }
+    body.hide-qty .col-qty { display: none !important; }
+    body.hide-price .col-price { display: none !important; }
 
     /* SUMMARY SECTION MATCHING IMAGE 4 & 5 */
     .summary-section {
@@ -1156,26 +1271,79 @@ export const printBOQQuotation = (boq, options = {}) => {
     }
   </style>
 </head>
-<body>
-  <div class="no-print" style="background: #0f172a; color: #fff; padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <div style="display: flex; align-items: center; gap: 14px;">
-      <span style="font-weight: 900; font-size: 14px; color: #60a5fa; letter-spacing: 0.5px;">VELORA INTERIOR ESTIMATE & BOQ</span>
-      <span style="color: #94a3b8; font-size: 12px;">| Print or Select "Save as PDF"</span>
+<body class="${bodyClasses}">
+  <!-- Top Preview & Printing Control Bar -->
+  <div class="no-print" style="background: #0f172a; color: #fff; padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-weight: 900; font-size: 14px; color: #60a5fa; letter-spacing: 0.5px;">VELORA INTERIOR ESTIMATE & BOQ</span>
+        <span style="color: #94a3b8; font-size: 12px;">| Choose Visible Columns & Print</span>
+      </div>
+
+      <!-- Live Action Buttons -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <label style="display: inline-flex; align-items: center; gap: 6px; color: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
+          <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 15px; height: 15px; accent-color: #c9a227; cursor: pointer;" />
+          <span>Include T&C</span>
+        </label>
+
+        <button onclick="window.print()" style="background: #c9a227; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
+          Print / Save PDF
+        </button>
+        <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;">
+          Close
+        </button>
+      </div>
     </div>
 
-    <!-- Live In-Preview T&C Toggle Switch -->
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
-        <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 16px; height: 16px; accent-color: #c9a227; cursor: pointer;" />
-        <span>Include Terms & Conditions (T&C) Pages</span>
+    <!-- Live Column Chooser Toggle Pills -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px solid #334155; font-size: 11.5px;">
+      <span style="color: #94a3b8; font-weight: 800; margin-right: 4px; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px;">Visible Columns:</span>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showSN !== false ? "checked" : ""} onchange="window.toggleColumn('sn', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>SN</span>
       </label>
 
-      <button onclick="window.print()" style="background: #c9a227; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12.5px; cursor: pointer; transition: background 0.2s;">
-        Print / Save PDF
-      </button>
-      <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer;">
-        Close
-      </button>
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showItemName !== false ? "checked" : ""} onchange="window.toggleColumn('prod', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Item Name</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showDimensions !== false ? "checked" : ""} onchange="window.toggleColumn('dims', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Dimensions (Ft / In)</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showDescription !== false ? "checked" : ""} onchange="window.toggleColumn('desc', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Description & Specs</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showRefImage !== false ? "checked" : ""} onchange="window.toggleColumn('ref', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Image</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showUom !== false ? "checked" : ""} onchange="window.toggleColumn('uom', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>UOM</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showUnitRate !== false ? "checked" : ""} onchange="window.toggleColumn('rate', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Rate (₹)</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showQuantity !== false ? "checked" : ""} onchange="window.toggleColumn('qty', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Qty</span>
+      </label>
+
+      <label style="display: inline-flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; padding: 3px 8px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; user-select: none;">
+        <input type="checkbox" ${printCols.showPrice !== false ? "checked" : ""} onchange="window.toggleColumn('price', this.checked)" style="accent-color: #3b82f6; cursor: pointer;" />
+        <span>Price (₹)</span>
+      </label>
     </div>
   </div>
 
@@ -1221,13 +1389,13 @@ export const printBOQQuotation = (boq, options = {}) => {
           <table class="item-table">
             <thead>
               <tr>
-                <th style="width: 32px;">SN</th>
-                <th style="text-align: left;">Item Description & Specification</th>
-                <th style="width: 80px;">Ref.</th>
-                <th style="width: 55px;">UOM</th>
-                <th style="width: 85px; text-align: right;">Unit Rate</th>
-                <th style="width: 38px;">Qty</th>
-                <th style="width: 95px; text-align: right;">Price</th>
+                <th class="col-sn" style="width: 32px;">SN</th>
+                <th class="col-main" style="text-align: left;">Item Description & Specification</th>
+                <th class="col-ref" style="width: 80px;">Ref.</th>
+                <th class="col-uom" style="width: 55px;">UOM</th>
+                <th class="col-rate" style="width: 85px; text-align: right;">Unit Rate</th>
+                <th class="col-qty" style="width: 38px;">Qty</th>
+                <th class="col-price" style="width: 95px; text-align: right;">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -1242,21 +1410,21 @@ export const printBOQQuotation = (boq, options = {}) => {
 
       return `
                   <tr>
-                    <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
-                    <td>
-                      <div class="item-name">${it.name || "Custom Component"}</div>
-                      <div class="item-cat">${space.name.toUpperCase()} &gt; ${space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}</div>
-                      <div class="item-desc">${it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}</div>
-                      <div class="item-specs">Hardware (Channels, fittings): Onyx / Ebco / Hettich</div>
-                      ${dims ? `<div class="item-specs">${dims}</div>` : ""}
+                    <td class="col-sn" style="text-align: center; font-weight: 700;">${idx + 1}</td>
+                    <td class="col-main">
+                      <div class="item-name col-prod">${it.name || "Custom Component"}</div>
+                      <div class="item-cat col-prod">${space.name.toUpperCase()} &gt; ${space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}</div>
+                      <div class="item-desc col-desc">${it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}</div>
+                      <div class="item-specs col-desc">Hardware (Channels, fittings): Onyx / Ebco / Hettich</div>
+                      ${dims ? `<div class="item-specs col-dims" style="font-weight: 700; color: #991b1b; margin-top: 2px;">${dims}</div>` : ""}
                     </td>
-                    <td style="text-align: center;">
+                    <td class="col-ref" style="text-align: center;">
                       ${imgUrl ? `<img src="${imgUrl}" class="ref-img" alt="Image" onerror="this.style.display='none'" />` : `<div class="no-img">Ref. Image</div>`}
                     </td>
-                    <td style="text-align: center; font-weight: 600;">${it.uom || it.unit || "Sq. Ft"}</td>
-                    <td style="text-align: right; font-weight: 700;">₹ ${(rate).toLocaleString("en-IN")}</td>
-                    <td style="text-align: center; font-weight: 700;">${qty}</td>
-                    <td style="text-align: right; font-weight: 900;">₹ ${(amt).toLocaleString("en-IN")}</td>
+                    <td class="col-uom" style="text-align: center; font-weight: 600;">${it.uom || it.unit || "Sq. Ft"}</td>
+                    <td class="col-rate" style="text-align: right; font-weight: 700;">₹ ${(rate).toLocaleString("en-IN")}</td>
+                    <td class="col-qty" style="text-align: center; font-weight: 700;">${qty}</td>
+                    <td class="col-price" style="text-align: right; font-weight: 900;">₹ ${(amt).toLocaleString("en-IN")}</td>
                   </tr>
                 `;
     }).join("")}
@@ -1446,6 +1614,14 @@ export const printBOQQuotation = (boq, options = {}) => {
       var standaloneSig = document.getElementById('standalone-signatures');
       if (tcEl) tcEl.style.display = show ? 'block' : 'none';
       if (standaloneSig) standaloneSig.style.display = show ? 'none' : 'block';
+    };
+
+    window.toggleColumn = function(colName, show) {
+      if (show) {
+        document.body.classList.remove('hide-' + colName);
+      } else {
+        document.body.classList.add('hide-' + colName);
+      }
     };
   </script>
 </body>

@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
-import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation } from "../utils/downloadHelper";
+import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation, DEFAULT_BOQ_PRINT_COLUMNS } from "../utils/downloadHelper";
 import {
   DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
   calculateMilestones,
@@ -86,11 +86,45 @@ export default function BOQManagement() {
   const [successToast, setSuccessToast] = useState("");
   const [savedSuccessModal, setSavedSuccessModal] = useState(null);
 
-  // Quotation Modal State
+  // Quotation Modal State & Print Columns Visibility Configuration
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [quotationBOQ, setQuotationBOQ] = useState(null);
   const [includeTermsInPrint, setIncludeTermsInPrint] = useState(true);
   const [quotationModalTab, setQuotationModalTab] = useState("preview"); // "preview" | "tc_template"
+  const [isColumnChooserOpen, setIsColumnChooserOpen] = useState(false);
+  const [printColumns, setPrintColumns] = useState(() => {
+    try {
+      const saved = localStorage.getItem("velora_boq_print_columns");
+      if (saved) return { ...DEFAULT_BOQ_PRINT_COLUMNS, ...JSON.parse(saved) };
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_BOQ_PRINT_COLUMNS;
+  });
+
+  const handleTogglePrintColumn = (colKey) => {
+    setPrintColumns((prev) => {
+      const updated = { ...prev, [colKey]: !prev[colKey] };
+      localStorage.setItem("velora_boq_print_columns", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleSetAllPrintColumns = (value) => {
+    const updated = {
+      showSN: value,
+      showItemName: value,
+      showDescription: value,
+      showDimensions: value,
+      showRefImage: value,
+      showUom: value,
+      showUnitRate: value,
+      showQuantity: value,
+      showPrice: value
+    };
+    setPrintColumns(updated);
+    localStorage.setItem("velora_boq_print_columns", JSON.stringify(updated));
+  };
 
   // Measurement Unit State (Default: Feet & Inches permanently)
   const [measurementUnit, setMeasurementUnit] = useState("Feet.inch");
@@ -241,104 +275,12 @@ export default function BOQManagement() {
   // Fetch BOQ List
   const fetchBOQList = useCallback(async () => {
     setLoadingList(true);
-    const mockList = [
-      {
-        _id: "boq18",
-        enquiryNo: "ENQ-2026-018",
-        enquiryDate: "2026-08-08",
-        clientName: "Rajeev Singhal",
-        clientEmail: "rajeev.s@example.com",
-        clientPhone: "89482 74553",
-        numberOfSpaces: 10,
-        grandTotal: 3964567,
-        spaces: defaultStandardSpaces
-      },
-      {
-        _id: "boq17",
-        enquiryNo: "ENQ-2026-017",
-        enquiryDate: "2026-07-11",
-        clientName: "Rasid sir",
-        clientEmail: "rasid@example.com",
-        clientPhone: "84128 52592",
-        numberOfSpaces: 1,
-        grandTotal: 185000,
-        spaces: [{ name: "Showroom Front", roomTotal: 185000, items: [] }]
-      },
-      {
-        _id: "boq16",
-        enquiryNo: "ENQ-2026-016",
-        enquiryDate: "2026-06-21",
-        clientName: "Meenakshi Krishnani",
-        clientEmail: "meenakshi@example.com",
-        clientPhone: "91671 35606",
-        numberOfSpaces: 5,
-        grandTotal: 1450000,
-        spaces: []
-      },
-      {
-        _id: "boq15",
-        enquiryNo: "ENQ-2026-015",
-        enquiryDate: "2026-06-18",
-        clientName: "Khushi",
-        clientEmail: "khushi@example.com",
-        clientPhone: "73551 23408",
-        numberOfSpaces: 1,
-        grandTotal: 95000,
-        spaces: []
-      },
-      {
-        _id: "boq14",
-        enquiryNo: "ENQ-2026-014",
-        enquiryDate: "2026-05-25",
-        clientName: "Akash Jain",
-        clientEmail: "abc@gmail.com",
-        clientPhone: "89778 99643",
-        numberOfSpaces: 8,
-        grandTotal: 2200000,
-        spaces: []
-      },
-      {
-        _id: "boq13",
-        enquiryNo: "ENQ-2026-013",
-        enquiryDate: "2026-08-13",
-        clientName: "PREM SHUKLA",
-        clientEmail: "PREMSHUKLA@GMAIL.COM",
-        clientPhone: "78000 20496",
-        numberOfSpaces: 1,
-        grandTotal: 4500000,
-        spaces: []
-      },
-      {
-        _id: "boq12",
-        enquiryNo: "ENQ-2026-012",
-        enquiryDate: "2026-05-19",
-        clientName: "Dr Saurabh",
-        clientEmail: "abc@gmail.com",
-        clientPhone: "77090 19535",
-        numberOfSpaces: 2,
-        grandTotal: 850000,
-        spaces: []
-      },
-      {
-        _id: "boq11",
-        enquiryNo: "ENQ-2026-011",
-        enquiryDate: "2026-04-28",
-        clientName: "WIPRO LINCRAFT AI PRIVATE LIMITED",
-        clientEmail: "contact@wiprolincraft.com",
-        clientPhone: "96323 00992",
-        numberOfSpaces: 1,
-        grandTotal: 12000000,
-        spaces: []
-      }
-    ];
-
     const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
 
     try {
       const res = await erpApi.getBOQs({ search, page: pagination.page, limit: 100 });
       const apiList = res?.success && res.data ? res.data : [];
-      // localBOQs take highest priority, followed by apiList, and reference mockList
-      const combined = [...localBOQs, ...apiList, ...mockList];
+      const combined = [...localBOQs, ...apiList];
       
       const uniqueMap = new Map();
       combined.forEach((item) => {
@@ -355,10 +297,8 @@ export default function BOQManagement() {
         pages: 1
       }));
     } catch {
-      // Fallback mock BOQ list merged with localBOQs
-      const combined = [...localBOQs, ...mockList];
       const uniqueMap = new Map();
-      combined.forEach((item) => {
+      localBOQs.forEach((item) => {
         const key = (item.enquiryNo || item._id || item.boqNumber || "").toLowerCase().trim();
         if (key && !uniqueMap.has(key)) {
           uniqueMap.set(key, item);
@@ -387,70 +327,12 @@ export default function BOQManagement() {
     // Merge with any freshly created local enquiries
     const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
 
-    // Default reference list matching user's exact demo
-    const referenceList = [
-      {
-        _id: "enq_rohan",
-        name: "rohan",
-        enquiryNo: "ENQ-2026-019",
-        phone: "98220 12345",
-        email: "rohan@example.com",
-        projectType: "Residential",
-        siteLocation: "Pune"
-      },
-      {
-        _id: "enq_rajeev",
-        name: "Rajeev Singhal",
-        enquiryNo: "ENQ-2026-018",
-        phone: "89482 74553",
-        email: "rajeev.s@example.com",
-        projectType: "Renovation",
-        siteLocation: "Sushant Golf City"
-      },
-      {
-        _id: "enq_rasid",
-        name: "Rasid sir",
-        enquiryNo: "ENQ-2026-017",
-        phone: "84128 52592",
-        email: "rasid@example.com",
-        projectType: "Commercial",
-        siteLocation: "Wakad"
-      },
-      {
-        _id: "enq_meenakshi",
-        name: "Meenakshi Krishnani",
-        enquiryNo: "ENQ-2026-016",
-        phone: "91671 35606",
-        email: "meenakshi@example.com",
-        projectType: "Residential",
-        siteLocation: "Kalyani Nagar"
-      },
-      {
-        _id: "enq_prem",
-        name: "PREM SHUKLA",
-        enquiryNo: "ENQ-2026-013",
-        phone: "78000 20496",
-        email: "prem.shukla@example.com",
-        projectType: "Commercial",
-        siteLocation: "PHASE 2"
-      },
-      {
-        _id: "enq_saurabh",
-        name: "Dr Saurabh",
-        enquiryNo: "ENQ-2026-012",
-        phone: "77090 19535",
-        email: "saurabh.clinic@example.com",
-        projectType: "Commercial",
-        siteLocation: "Hinjewadi Phase 2"
-      }
-    ];
-
     // Combine avoiding duplicate IDs
-    const combined = [...localSaved, ...list, ...referenceList];
+    const combined = [...localSaved, ...list];
     const uniqueMap = new Map();
     combined.forEach((item) => {
       const key = item.enquiryNo || item._id || item.name;
-      if (!uniqueMap.has(key)) {
+      if (key && !uniqueMap.has(key)) {
         uniqueMap.set(key, item);
       }
     });
@@ -1316,7 +1198,7 @@ export default function BOQManagement() {
   const handleSaveBOQ = async () => {
     if (!activeBOQ) return;
     try {
-      const payloadToSave = { ...activeBOQ, isDraft: false };
+      const payloadToSave = { ...activeBOQ, printColumns, isDraft: false };
       let res = null;
       if (activeBOQ._id && !activeBOQ._id.startsWith("temp_") && !activeBOQ._id.startsWith("boq_")) {
         res = await erpApi.updateBOQ(activeBOQ._id, payloadToSave);
@@ -1572,12 +1454,12 @@ export default function BOQManagement() {
           if (found) fullBOQ = found;
         }
       }
-      await downloadBOQPdf(fullBOQ);
+      await downloadBOQPdf(fullBOQ, null, { includeTerms: includeTermsInPrint, printColumns: fullBOQ.printColumns || printColumns });
       setSuccessToast(`Quotation PDF downloaded!`);
       setTimeout(() => setSuccessToast(""), 3000);
     } catch (err) {
       console.error(err);
-      downloadBOQPdf(row);
+      downloadBOQPdf(row, null, { includeTerms: includeTermsInPrint, printColumns: row?.printColumns || printColumns });
     }
   };
 
@@ -2576,7 +2458,7 @@ export default function BOQManagement() {
             </button>
             <button
               type="button"
-              onClick={() => downloadBOQPdf(activeBOQ)}
+              onClick={() => downloadBOQPdf(activeBOQ, null, { includeTerms: includeTermsInPrint, printColumns })}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition cursor-pointer"
             >
               <Download size={14} />
@@ -3276,6 +3158,72 @@ export default function BOQManagement() {
                 </h3>
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
+                {/* Column Visibility Selector Dropdown Popover */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsColumnChooserOpen((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-stone-300 hover:bg-stone-50 text-xs font-bold text-stone-800 rounded-xl transition cursor-pointer shadow-2xs"
+                    title="Choose columns to show/hide in print and PDF"
+                  >
+                    <SlidersHorizontal size={14} className="text-stone-600" />
+                    <span>Columns</span>
+                    <ChevronDown size={13} className={`text-stone-500 transition-transform ${isColumnChooserOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isColumnChooserOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-stone-200 rounded-2xl shadow-2xl p-3.5 z-50 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                        <span className="text-xs font-black text-stone-900">Print Column Chooser</span>
+                        <div className="flex items-center gap-1 text-[11px]">
+                          <button
+                            type="button"
+                            onClick={() => handleSetAllPrintColumns(true)}
+                            className="text-blue-600 font-bold hover:underline cursor-pointer"
+                          >
+                            All
+                          </button>
+                          <span className="text-stone-300">•</span>
+                          <button
+                            type="button"
+                            onClick={() => handleSetAllPrintColumns(false)}
+                            className="text-stone-500 font-bold hover:underline cursor-pointer"
+                          >
+                            None
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-1.5 max-h-64 overflow-y-auto pr-1">
+                        {[
+                          { key: "showSN", label: "SN (Serial No.)" },
+                          { key: "showItemName", label: "Product / Item Name" },
+                          { key: "showDimensions", label: "Dimensions (Ft / In)" },
+                          { key: "showDescription", label: "Description & Hardware" },
+                          { key: "showRefImage", label: "Reference Image" },
+                          { key: "showUom", label: "UOM (Sq.Ft / Unit)" },
+                          { key: "showUnitRate", label: "Unit Rate (₹)" },
+                          { key: "showQuantity", label: "Quantity (Qty)" },
+                          { key: "showPrice", label: "Price / Total Amount (₹)" }
+                        ].map((col) => (
+                          <label
+                            key={col.key}
+                            className="flex items-center justify-between p-1.5 hover:bg-stone-50 rounded-lg cursor-pointer select-none transition"
+                          >
+                            <span className="text-xs font-semibold text-stone-700">{col.label}</span>
+                            <input
+                              type="checkbox"
+                              checked={printColumns[col.key] !== false}
+                              onChange={() => handleTogglePrintColumn(col.key)}
+                              className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Interactive T&C Print / PDF Toggle */}
                 <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-stone-300 rounded-xl cursor-pointer hover:bg-stone-50 select-none transition shadow-2xs">
                   <input
@@ -3294,7 +3242,7 @@ export default function BOQManagement() {
 
                 <button
                   type="button"
-                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
+                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint, printColumns })}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl transition cursor-pointer"
                   title="Download Official PDF Quotation"
                 >
@@ -3303,7 +3251,7 @@ export default function BOQManagement() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint })}
+                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint, printColumns })}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-xs font-bold text-stone-700 border border-stone-200 rounded-xl transition cursor-pointer"
                   title="Print or Save as High-Res Vector PDF"
                 >
@@ -3395,6 +3343,8 @@ export default function BOQManagement() {
                       { name: `${space.name} Scope Execution`, typeVariant: "Turnkey", qty: 1, rate: space.roomTotal || 0, amount: space.roomTotal || 0, sqft: 1 }
                     ];
 
+                    const hasDescCol = printColumns.showItemName !== false || printColumns.showDescription !== false || printColumns.showDimensions !== false;
+
                     return (
                       <div key={sIdx} className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
                         {/* Space Maroon Title Bar matching Image 1 */}
@@ -3411,13 +3361,13 @@ export default function BOQManagement() {
                         <table className="w-full text-left border-collapse text-sm">
                           <thead className="bg-slate-50 border-b border-stone-300 text-xs sm:text-sm font-extrabold text-stone-900">
                             <tr>
-                              <th className="py-3 px-3 w-12 text-center">SN</th>
-                              <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>
-                              <th className="py-3 px-3 w-28 text-center">Ref.</th>
-                              <th className="py-3 px-3 w-24 text-center">UOM</th>
-                              <th className="py-3 px-3 w-32 text-right">Unit Rate</th>
-                              <th className="py-3 px-2 w-16 text-center">Qty</th>
-                              <th className="py-3 px-4 w-36 text-right">Price</th>
+                              {printColumns.showSN !== false && <th className="py-3 px-3 w-12 text-center">SN</th>}
+                              {hasDescCol && <th className="py-3 px-4 min-w-[280px]">Item Description & Specification</th>}
+                              {printColumns.showRefImage !== false && <th className="py-3 px-3 w-28 text-center">Ref.</th>}
+                              {printColumns.showUom !== false && <th className="py-3 px-3 w-24 text-center">UOM</th>}
+                              {printColumns.showUnitRate !== false && <th className="py-3 px-3 w-32 text-right">Unit Rate</th>}
+                              {printColumns.showQuantity !== false && <th className="py-3 px-2 w-16 text-center">Qty</th>}
+                              {printColumns.showPrice !== false && <th className="py-3 px-4 w-36 text-right">Price</th>}
                             </tr>
                           </thead>
 
@@ -3433,51 +3383,73 @@ export default function BOQManagement() {
 
                               return (
                                 <tr key={itIdx} className="hover:bg-slate-50 transition">
-                                  <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
-                                    {itIdx + 1}
-                                  </td>
-                                  <td className="py-3.5 px-4 space-y-1.5">
-                                    <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
-                                    <p className="text-xs font-bold text-stone-500">
-                                      {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: ${it.typeVariant || "Wood Work"}, Sub Category: ${it.packageVariant || "Standard"}
-                                    </p>
-                                    <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
-                                      {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
-                                    </p>
-                                    <p className="text-xs text-stone-600 font-semibold">
-                                      Hardware (Channels, fittings): Onyx / Ebco / Hettich
-                                    </p>
-                                    {dims && (
-                                      <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
-                                        {dims}
-                                      </p>
-                                    )}
-                                  </td>
-                                  <td className="py-3.5 px-2 text-center align-middle">
-                                    {imgUrl ? (
-                                      <img
-                                        src={imgUrl}
-                                        alt={it.name}
-                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
-                                      />
-                                    ) : (
-                                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
-                                        <span>Ref. Image</span>
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
-                                    {it.uom || it.unit || "Sq. Ft"}
-                                  </td>
-                                  <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
-                                    ₹{rate.toLocaleString("en-IN")}
-                                  </td>
-                                  <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
-                                    {qty}
-                                  </td>
-                                  <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
-                                    ₹{amt.toLocaleString("en-IN")}
-                                  </td>
+                                  {printColumns.showSN !== false && (
+                                    <td className="py-3.5 px-3 text-center font-bold text-stone-600 text-sm sm:text-base">
+                                      {itIdx + 1}
+                                    </td>
+                                  )}
+                                  {hasDescCol && (
+                                    <td className="py-3.5 px-4 space-y-1.5">
+                                      {printColumns.showItemName !== false && (
+                                        <>
+                                          <h5 className="font-black text-stone-950 text-sm sm:text-base tracking-tight">{it.name || "Custom Component"}</h5>
+                                          <p className="text-xs font-bold text-stone-500">
+                                            {space.name.toUpperCase()} &gt; {space.name.toUpperCase()} - Category: {it.typeVariant || "Wood Work"}, Sub Category: {it.packageVariant || "Standard"}
+                                          </p>
+                                        </>
+                                      )}
+                                      {printColumns.showDescription !== false && (
+                                        <>
+                                          <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-normal">
+                                            {it.description || `Providing and Installation ${it.name}, made in 18 mm thk Hardcore Triple A grade Okuma face Commercial plywood`}
+                                          </p>
+                                          <p className="text-xs text-stone-600 font-semibold">
+                                            Hardware (Channels, fittings): Onyx / Ebco / Hettich
+                                          </p>
+                                        </>
+                                      )}
+                                      {printColumns.showDimensions !== false && dims && (
+                                        <p className="text-xs text-stone-700 font-mono font-medium bg-stone-50 p-1 rounded inline-block">
+                                          {dims}
+                                        </p>
+                                      )}
+                                    </td>
+                                  )}
+                                  {printColumns.showRefImage !== false && (
+                                    <td className="py-3.5 px-2 text-center align-middle">
+                                      {imgUrl ? (
+                                        <img
+                                          src={imgUrl}
+                                          alt={it.name}
+                                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-stone-300 mx-auto shadow-sm"
+                                        />
+                                      ) : (
+                                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-stone-100 border border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center text-stone-400 mx-auto text-xs font-bold">
+                                          <span>Ref. Image</span>
+                                        </div>
+                                      )}
+                                    </td>
+                                  )}
+                                  {printColumns.showUom !== false && (
+                                    <td className="py-3.5 px-3 text-center text-stone-800 font-semibold text-xs sm:text-sm">
+                                      {it.uom || it.unit || "Sq. Ft"}
+                                    </td>
+                                  )}
+                                  {printColumns.showUnitRate !== false && (
+                                    <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-900 text-sm sm:text-base">
+                                      ₹{rate.toLocaleString("en-IN")}
+                                    </td>
+                                  )}
+                                  {printColumns.showQuantity !== false && (
+                                    <td className="py-3.5 px-2 text-center font-black text-stone-950 text-sm sm:text-base">
+                                      {qty}
+                                    </td>
+                                  )}
+                                  {printColumns.showPrice !== false && (
+                                    <td className="py-3.5 px-4 text-right font-mono font-black text-stone-950 text-sm sm:text-base">
+                                      ₹{amt.toLocaleString("en-IN")}
+                                    </td>
+                                  )}
                                 </tr>
                               );
                             })}
@@ -3836,14 +3808,14 @@ export default function BOQManagement() {
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint })}
+                  onClick={() => downloadBOQPdf(quotationBOQ, null, { includeTerms: includeTermsInPrint, printColumns })}
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition cursor-pointer"
                 >
                   <Download size={14} />
                   <span>Download Quotation PDF {includeTermsInPrint ? "(with T&C)" : ""}</span>
                 </button>
                 <button
-                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint })}
+                  onClick={() => printBOQQuotation(quotationBOQ, { includeTerms: includeTermsInPrint, printColumns })}
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition cursor-pointer"
                 >
                   <Printer size={14} />
@@ -4027,7 +3999,7 @@ export default function BOQManagement() {
 
                 <button
                   type="button"
-                  onClick={() => downloadBOQPdf(savedSuccessModal.boq, null, { includeTerms: includeTermsInPrint })}
+                  onClick={() => downloadBOQPdf(savedSuccessModal.boq, null, { includeTerms: includeTermsInPrint, printColumns: savedSuccessModal.boq?.printColumns || printColumns })}
                   className="px-3 py-2 bg-stone-100 hover:bg-blue-50 text-blue-700 border border-blue-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Download size={14} />
@@ -4036,7 +4008,7 @@ export default function BOQManagement() {
 
                 <button
                   type="button"
-                  onClick={() => printBOQQuotation(savedSuccessModal.boq, { includeTerms: includeTermsInPrint })}
+                  onClick={() => printBOQQuotation(savedSuccessModal.boq, { includeTerms: includeTermsInPrint, printColumns: savedSuccessModal.boq?.printColumns || printColumns })}
                   className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Printer size={14} />

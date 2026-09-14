@@ -120,77 +120,8 @@ export default function LibraryComponents() {
         }
       }
     } catch {
-      // Local fallback mock data
-      const mockList = [
-        {
-          _id: "comp1",
-          name: "Kitchen Base Cabinet",
-          relevantSpace: "Modular Kitchen",
-          selectedVariants: ["Elite", "Premium", "Standard"],
-          elite: {
-            type: "Box",
-            rate: 2200,
-            unit: { lengthFt: 2, lengthIn: 6, heightFt: 2, heightIn: 8, depthFt: 2, depthIn: 0, rate: 2200 },
-            images: [],
-            description: "Elite marine ply with high gloss acrylic shutter"
-          },
-          premium: {
-            type: "Box",
-            rate: 1800,
-            unit: { lengthFt: 2, lengthIn: 6, heightFt: 2, heightIn: 8, depthFt: 2, depthIn: 0, rate: 1800 },
-            images: [],
-            description: "Premium HDHMR with textured laminate finish"
-          },
-          standard: {
-            type: "Box",
-            rate: 1500,
-            unit: { lengthFt: 2, lengthIn: 6, heightFt: 2, heightIn: 8, depthFt: 2, depthIn: 0, rate: 1500 },
-            images: [],
-            description: "Standard commercial ply with 0.8mm laminate"
-          },
-          variant: "Box",
-          description: "Standard modular kitchen base counter carcass with PVC edge banding",
-          visibility: true
-        },
-        {
-          _id: "comp2",
-          name: "Loft",
-          relevantSpace: "Modular Kitchen",
-          selectedVariants: ["Elite", "Premium", "Standard"],
-          elite: { type: "Box", rate: 2200, unit: { lengthFt: 3, lengthIn: 0, heightFt: 2, heightIn: 0, depthFt: 2, depthIn: 0, rate: 2200 }, images: [], description: "" },
-          premium: { type: "Box", rate: 1800, unit: { lengthFt: 3, lengthIn: 0, heightFt: 2, heightIn: 0, depthFt: 2, depthIn: 0, rate: 1800 }, images: [], description: "" },
-          standard: { type: "Box", rate: 1500, unit: { lengthFt: 3, lengthIn: 0, heightFt: 2, heightIn: 0, depthFt: 2, depthIn: 0, rate: 1500 }, images: [], description: "" },
-          variant: "Box",
-          description: "Overhead ceiling-height loft storage unit",
-          visibility: true
-        },
-        {
-          _id: "comp3",
-          name: "Kitchen SS Trolly",
-          relevantSpace: "Modular Kitchen",
-          selectedVariants: ["Elite", "Premium", "Standard"],
-          elite: { type: "Box", rate: 6000, unit: { lengthFt: 1, lengthIn: 6, heightFt: 1, heightIn: 6, depthFt: 1, depthIn: 8, rate: 6000 }, images: [], description: "" },
-          premium: { type: "Box", rate: 6000, unit: { lengthFt: 1, lengthIn: 6, heightFt: 1, heightIn: 6, depthFt: 1, depthIn: 8, rate: 6000 }, images: [], description: "" },
-          standard: { type: "Box", rate: 6000, unit: { lengthFt: 1, lengthIn: 6, heightFt: 1, heightIn: 6, depthFt: 1, depthIn: 8, rate: 6000 }, images: [], description: "" },
-          variant: "Box",
-          description: "High grade SS-304 soft-close pull-out baskets and organisers",
-          visibility: true
-        },
-        {
-          _id: "comp4",
-          name: "TV Unit Wall Back Paneling With Louvers",
-          relevantSpace: "Living Room",
-          selectedVariants: ["Elite", "Premium", "Standard"],
-          elite: { type: "Panel", rate: 2200, unit: { lengthFt: 6, lengthIn: 0, heightFt: 8, heightIn: 0, depthFt: 0, depthIn: 3, rate: 2200 }, images: [], description: "" },
-          premium: { type: "Panel", rate: 1800, unit: { lengthFt: 6, lengthIn: 0, heightFt: 8, heightIn: 0, depthFt: 0, depthIn: 3, rate: 1800 }, images: [], description: "" },
-          standard: { type: "Panel", rate: 1500, unit: { lengthFt: 6, lengthIn: 0, heightFt: 8, heightIn: 0, depthFt: 0, depthIn: 3, rate: 1500 }, images: [], description: "" },
-          variant: "Panel",
-          description: "Architectural fluted louvered acoustic wall panel backdrop",
-          visibility: true
-        }
-      ];
-      setComponents(mockList);
-      setPagination((p) => ({ ...p, total: mockList.length }));
+      setComponents([]);
+      setPagination((p) => ({ ...p, total: 0 }));
     } finally {
       setLoading(false);
     }

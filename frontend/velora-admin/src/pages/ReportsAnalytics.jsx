@@ -19,11 +19,7 @@ export default function ReportsAnalytics() {
         { header: "Status", key: "status" },
         { header: "Budget", key: "budget" }
       ],
-      mockData: [
-        { enquiryNo: "ENQ-2026-018", name: "Rajeev Singhal", phone: "89482 74553", status: "Active", budget: "₹35,00,000" },
-        { enquiryNo: "ENQ-2026-017", name: "Rasid sir", phone: "84128 52592", status: "Consultation", budget: "₹18,50,000" },
-        { enquiryNo: "ENQ-2026-016", name: "Meenakshi Krishnani", phone: "91671 35606", status: "Quotation", budget: "₹45,00,000" }
-      ]
+      mockData: []
     },
     {
       title: "Projects Master Lifecycle",
@@ -36,10 +32,7 @@ export default function ReportsAnalytics() {
         { header: "Progress", key: "progress" },
         { header: "Budget", key: "budget" }
       ],
-      mockData: [
-        { title: "Singhal Penthouse", client: "Rajeev Singhal", stage: "Production", progress: "65%", budget: "₹42,00,000" },
-        { title: "Krishnani Residence", client: "Meenakshi Krishnani", stage: "Design", progress: "35%", budget: "₹28,00,000" }
-      ]
+      mockData: []
     },
     {
       title: "Financial Revenue & Ledger",
@@ -53,10 +46,7 @@ export default function ReportsAnalytics() {
         { header: "Grand Total", key: "total" },
         { header: "Status", key: "status" }
       ],
-      mockData: [
-        { invoiceNumber: "INV-VEL-1001", client: "Rajeev Singhal", subtotal: "₹10,00,000", gst: "₹1,80,000", total: "₹11,80,000", status: "Paid" },
-        { invoiceNumber: "INV-VEL-1002", client: "Meenakshi Krishnani", subtotal: "₹7,50,000", gst: "₹1,35,000", total: "₹8,85,000", status: "Partial" }
-      ]
+      mockData: []
     },
     {
       title: "Factory Production Efficiency",
@@ -68,10 +58,7 @@ export default function ReportsAnalytics() {
         { header: "Units", key: "units" },
         { header: "Status", key: "status" }
       ],
-      mockData: [
-        { batch: "BATCH-2026-081", component: "Modular Carcass Box", units: "42 units", status: "CNC Cutting Completed" },
-        { batch: "BATCH-2026-082", component: "Acrylic Shutter Edgebanding", units: "28 units", status: "In Assembly" }
-      ]
+      mockData: []
     }
   ];
   

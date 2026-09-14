@@ -381,27 +381,13 @@ export const exportBOQPdf = async (req, res) => {
       }).populate("lead");
     }
 
-    // Check SEED_BOQS or fallback by number match (e.g. boq18 -> BOQ-2026-018)
     if (!boq) {
-      const numMatch = param ? param.match(/\d+/) : null;
-      const numStr = numMatch ? numMatch[0] : null;
-
-      const foundSeed = SEED_BOQS.find((b) => {
-        if (b.boqNumber === param || b.enquiryNo === param) return true;
-        if (numStr && (b.boqNumber.includes(numStr) || b.enquiryNo.includes(numStr))) return true;
-        return false;
-      });
-
-      boq = foundSeed || SEED_BOQS[0];
+      return res.status(404).json({ success: false, message: "BOQ not found" });
     }
 
     generateBOQPdf(res, boq);
   } catch (err) {
     console.error("exportBOQPdf Error:", err);
-    try {
-      generateBOQPdf(res, SEED_BOQS[0]);
-    } catch (e) {
-      res.status(500).json({ success: false, message: err.message });
-    }
+    res.status(500).json({ success: false, message: err.message });
   }
 };

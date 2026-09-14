@@ -65,20 +65,29 @@ export const isAuthenticated = () => {
   return !!localStorage.getItem("velora_admin_token");
 };
 
-export const fetchAdminProfile = async () => {
+export const updateCurrentUser = (user) => {
+  localStorage.setItem("velora_admin_user", JSON.stringify(user));
+  window.dispatchEvent(new Event("velora_user_updated"));
+  return user;
+};
+
+export const updateAdminProfile = async (profileData) => {
   const response = await fetch(`${getBaseUrl()}/profile`, {
+    method: "PUT",
     headers: {
+      "Content-Type": "application/json",
       ...getAuthHeaders(),
     },
+    body: JSON.stringify(profileData),
   });
 
   const result = await response.json();
   if (!response.ok) {
-    throw new Error(result.message || "Failed to fetch profile info.");
+    throw new Error(result.message || "Failed to update profile.");
   }
 
   if (result.success && result.data) {
-    localStorage.setItem("velora_admin_user", JSON.stringify(result.data));
+    updateCurrentUser(result.data);
     return result.data;
   }
   return null;

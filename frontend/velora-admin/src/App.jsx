@@ -23,55 +23,75 @@ import NotificationsCenter from "./pages/NotificationsCenter";
 import UserManagement from "./pages/UserManagement";
 import ActivityAuditLogs from "./pages/ActivityAuditLogs";
 import SettingsManager from "./pages/SettingsManager";
+import AdminProfile from "./pages/AdminProfile";
+
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
-    <Routes>
-      {/* Public Auth Portal */}
-      <Route path="/login" element={<Login />} />
-
-      {/* Protected Velora Luxury ERP Suite */}
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/enquiry" element={<EnquiryManagement />} />
-                <Route path="/enquiry/add" element={<EnquiryManagement />} />
-                <Route path="/leads" element={<EnquiryManagement />} />
-                <Route path="/website-leads" element={<WebsiteLeads />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/tasks" element={<TaskManagement />} />
-                <Route path="/estimates" element={<BOQManagement />} />
-                <Route path="/boq" element={<BOQManagement />} />
-                <Route path="/boq/:id" element={<BOQManagement />} />
-                <Route path="/library" element={<LibraryComponents />} />
-                <Route path="/library/component" element={<LibraryComponents />} />
-                <Route path="/library/components" element={<LibraryComponents />} />
-                <Route path="/library/:sub" element={<LibraryComponents />} />
-                <Route path="/invoices" element={<QuotationInvoiceManager />} />
-                <Route path="/invoice" element={<QuotationInvoiceManager />} />
-                <Route path="/factory" element={<ProductionFactory />} />
-                <Route path="/inventory" element={<LibraryComponents />} />
-                <Route path="/installation" element={<InstallationManager />} />
-                <Route path="/site-visits" element={<SiteVisits />} />
-                <Route path="/calendar" element={<CalendarView />} />
-                <Route path="/payments" element={<PaymentsManager />} />
-                <Route path="/reports" element={<ReportsAnalytics />} />
-                <Route path="/notifications" element={<NotificationsCenter />} />
-                <Route path="/users" element={<UserManagement />} />
-                <Route path="/settings" element={<SettingsManager />} />
-                <Route path="/logs" element={<ActivityAuditLogs />} />
-              </Routes>
-            </AdminLayout>
-          </ProtectedRoute>
-        }
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
       />
-    </Routes>
+      <Routes>
+        {/* Public Auth Portal */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected Velora Luxury ERP Suite */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AdminLayout>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/profile" element={<AdminProfile />} />
+                  <Route path="/enquiry" element={<EnquiryManagement />} />
+                  <Route path="/enquiry/add" element={<EnquiryManagement />} />
+                  <Route path="/leads" element={<EnquiryManagement />} />
+                  <Route path="/website-leads" element={<WebsiteLeads />} />
+                  <Route path="/clients" element={<Clients />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/tasks" element={<TaskManagement />} />
+                  <Route path="/estimates" element={<BOQManagement />} />
+                  <Route path="/boq" element={<BOQManagement />} />
+                  <Route path="/boq/:id" element={<BOQManagement />} />
+                  <Route path="/library" element={<LibraryComponents />} />
+                  <Route path="/library/component" element={<LibraryComponents />} />
+                  <Route path="/library/components" element={<LibraryComponents />} />
+                  <Route path="/library/:sub" element={<LibraryComponents />} />
+                  <Route path="/invoices" element={<QuotationInvoiceManager />} />
+                  <Route path="/invoice" element={<QuotationInvoiceManager />} />
+                  <Route path="/factory" element={<ProductionFactory />} />
+                  <Route path="/inventory" element={<LibraryComponents />} />
+                  <Route path="/installation" element={<InstallationManager />} />
+                  <Route path="/site-visits" element={<SiteVisits />} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/payments" element={<PaymentsManager />} />
+                  <Route path="/reports" element={<ReportsAnalytics />} />
+                  <Route path="/notifications" element={<NotificationsCenter />} />
+                  <Route path="/users" element={<UserManagement />} />
+                  <Route path="/settings" element={<SettingsManager />} />
+                  <Route path="/logs" element={<ActivityAuditLogs />} />
+                </Routes>
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </>
   );
 }
 
 export default App;
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -18,18 +18,28 @@ import {
   X,
   LogOut,
   ChevronRight,
-  Crown
+  Crown,
+  User
 } from "lucide-react";
 import { getCurrentUser, logout } from "../services/authService";
 
 export default function AdminLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [adminUser] = useState(
-    getCurrentUser() || { name: "Admin", email: "admin@veloradesign.com", role: "Super Admin" }
+  const [adminUser, setAdminUser] = useState(
+    getCurrentUser() || { name: "Admin", email: "admin@veloradesign.com", role: "Super Admin", avatar: "" }
   );
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      const user = getCurrentUser();
+      if (user) setAdminUser(user);
+    };
+    window.addEventListener("velora_user_updated", handleUserUpdate);
+    return () => window.removeEventListener("velora_user_updated", handleUserUpdate);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -59,6 +69,9 @@ export default function AdminLayout({ children }) {
 
   // Helper to determine active title
   const getCurrentPageTitle = () => {
+    if (location.pathname.startsWith("/profile")) {
+      return "Admin Profile";
+    }
     if (location.pathname.startsWith("/enquiry") || location.pathname.startsWith("/leads")) {
       return location.search.includes("mode=add") ? "Add Enquiry" : "Enquiry";
     }
@@ -206,6 +219,14 @@ export default function AdminLayout({ children }) {
 
         {/* Footer Logout & User Profile */}
         <div className="p-3 border-t border-amber-100/60 bg-amber-50/20 space-y-2">
+          <Link
+            to="/profile"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-amber-100/60 hover:text-amber-800 transition cursor-pointer"
+          >
+            <User size={15} className="text-amber-600" />
+            <span>Admin Profile</span>
+          </Link>
+
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
@@ -260,9 +281,17 @@ export default function AdminLayout({ children }) {
                   </div>
 
                   <div
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 text-white font-black text-xs flex items-center justify-center shadow-xs select-none"
+                    className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 text-white font-black text-xs flex items-center justify-center shadow-xs select-none border border-amber-200"
                   >
-                    {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "A"}
+                    {adminUser?.avatar ? (
+                      <img
+                        src={adminUser.avatar}
+                        alt={adminUser.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : "A"}</span>
+                    )}
                   </div>
                 </button>
 
@@ -272,15 +301,39 @@ export default function AdminLayout({ children }) {
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-0 top-11 w-64 bg-white border border-amber-100 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 space-y-2 text-xs"
                   >
-                    <div className="p-3 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl text-white">
-                      <div className="font-black text-sm text-amber-300">{adminUser?.name || "Admin User"}</div>
-                      <div className="text-[11px] text-slate-300 truncate">{adminUser?.email || "admin@velora.family"}</div>
-                      <div className="mt-1.5 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block p-3 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl text-white hover:ring-2 hover:ring-amber-400 transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-amber-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                          {adminUser?.avatar ? (
+                            <img src={adminUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            adminUser?.name?.charAt(0).toUpperCase() || "A"
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-black text-sm text-amber-300 truncate">{adminUser?.name || "Admin User"}</div>
+                          <div className="text-[11px] text-slate-300 truncate">{adminUser?.email || "admin@velora.family"}</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
                         {adminUser?.role || "Super Admin"}
                       </div>
-                    </div>
+                    </Link>
 
                     <div className="space-y-1 pt-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-amber-50 hover:text-amber-700 font-bold transition"
+                      >
+                        <User size={15} className="text-amber-600" />
+                        <span>Admin Profile & Picture</span>
+                      </Link>
+
                       <Link
                         to="/settings"
                         onClick={() => setIsProfileOpen(false)}

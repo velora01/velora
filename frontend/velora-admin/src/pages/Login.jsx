@@ -1,40 +1,32 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, registerAdmin } from "../services/authService";
-import { Loader2, Briefcase, Key, Mail, User, AlertCircle, CheckCircle } from "lucide-react";
+import { login } from "../services/authService";
+import { Loader2, Briefcase, Key, Mail, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const navigate = useNavigate();
   
-  const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        if (!name.trim()) throw new Error("Full name is required.");
-        await registerAdmin(name.trim(), email.trim(), password);
-        setSuccess("Admin account registered successfully! You can now log in.");
-        setIsRegistering(false);
-        setPassword("");
-      } else {
-        await login(email.trim(), password);
-        navigate("/");
-      }
+      const data = await login(email.trim(), password);
+      toast.success(`Welcome back, ${data?.user?.name || "Admin"}!`);
+      navigate("/");
     } catch (err) {
       console.error(err);
-      setError(err.message || "An unexpected authentication error occurred.");
+      const msg = err.message || "Invalid credentials. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -55,24 +47,15 @@ export default function Login() {
           </h2>
           
           <p className="mt-2 text-xs text-slate-500 font-medium">
-            {isRegistering 
-              ? "Provision a new administrator account for system operations" 
-              : "Sign in to access secure workspace pipelines & client records"}
+            Sign in to access secure workspace pipelines & client records
           </p>
         </div>
 
-        {/* Notifications */}
+        {/* Inline Error Alert */}
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl flex items-center gap-3 text-sm">
             <AlertCircle size={18} className="flex-shrink-0" />
             <p className="font-medium text-xs">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-2xl flex items-center gap-3 text-sm">
-            <CheckCircle size={18} className="flex-shrink-0" />
-            <p className="font-medium text-xs">{success}</p>
           </div>
         )}
 
@@ -81,25 +64,6 @@ export default function Login() {
           
           <form onSubmit={handleSubmit} className="space-y-5">
             
-            {isRegistering && (
-              <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Priya Sharma"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1">
                 Work Email Address
@@ -124,13 +88,21 @@ export default function Login() {
               <div className="relative">
                 <Key size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 text-xs bg-slate-50 text-slate-800 placeholder-slate-400 transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-amber-600 transition cursor-pointer p-0.5"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
@@ -142,31 +114,14 @@ export default function Login() {
               {loading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  <span>Processing...</span>
+                  <span>Signing In...</span>
                 </>
               ) : (
-                <span>{isRegistering ? "Register Account" : "Access Workspace"}</span>
+                <span>Access Workspace</span>
               )}
             </button>
 
           </form>
-
-          {/* Toggle Register/Login Link */}
-          <div className="pt-4 border-t border-slate-100 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setError("");
-                setSuccess("");
-              }}
-              className="text-xs font-bold text-amber-600 hover:text-amber-700 transition cursor-pointer"
-            >
-              {isRegistering
-                ? "Already have an admin account? Sign In"
-                : "Need a new administrator account? Register here"}
-            </button>
-          </div>
 
         </div>
 

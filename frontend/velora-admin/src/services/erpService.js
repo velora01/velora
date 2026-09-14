@@ -27,13 +27,13 @@ export const erpApi = {
       return res.data?.data;
     } catch {
       return {
-        totalLeads: 124,
-        runningProjects: 18,
-        completedProjects: 42,
-        pendingPayments: 1850000,
-        revenue: 12800000,
-        monthlyRevenue: 3450000,
-        conversionRate: "72.5%"
+        totalLeads: 0,
+        runningProjects: 0,
+        completedProjects: 0,
+        pendingPayments: 0,
+        revenue: 0,
+        monthlyRevenue: 0,
+        conversionRate: "0%"
       };
     }
   },

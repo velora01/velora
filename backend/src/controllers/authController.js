@@ -402,7 +402,7 @@ export const getProfile = async (req, res) => {
 // Update Profile (PUT /profile or PUT /auth/profile)
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, address, occupation } = req.body;
+    const { name, phone, address, occupation, avatar, password } = req.body;
 
     let updatedEntity;
     if (req.userType === "Customer") {
@@ -411,6 +411,12 @@ export const updateProfile = async (req, res) => {
       if (phone) updateData.phone = phone;
       if (address) updateData.address = address;
       if (occupation) updateData.occupation = occupation;
+      if (avatar) updateData.avatar = avatar;
+
+      if (password && password.trim()) {
+        const salt = await bcrypt.genSalt(10);
+        updateData.password = await bcrypt.hash(password.trim(), salt);
+      }
 
       updatedEntity = await Customer.findByIdAndUpdate(
         req.user._id,
@@ -420,6 +426,13 @@ export const updateProfile = async (req, res) => {
     } else {
       const updateData = {};
       if (name) updateData.name = name;
+      if (phone !== undefined) updateData.phone = phone;
+      if (avatar !== undefined) updateData.avatar = avatar;
+
+      if (password && password.trim()) {
+        const salt = await bcrypt.genSalt(10);
+        updateData.password = await bcrypt.hash(password.trim(), salt);
+      }
 
       updatedEntity = await User.findByIdAndUpdate(
         req.user._id,
@@ -428,7 +441,9 @@ export const updateProfile = async (req, res) => {
       );
     }
 
-    updatedEntity.password = undefined;
+    if (updatedEntity) {
+      updatedEntity.password = undefined;
+    }
 
     return res.status(200).json({
       success: true,

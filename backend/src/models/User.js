@@ -32,6 +32,14 @@ const userSchema = new mongoose.Schema(
       ],
       default: "Admin",
     },
+    avatar: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
     passwordResetToken: String,
     passwordResetExpires: Date,
   },

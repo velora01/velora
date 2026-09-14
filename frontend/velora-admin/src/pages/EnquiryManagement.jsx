@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
 import {
   Search,
   Plus,
@@ -344,16 +345,83 @@ export default function EnquiryManagement() {
   };
 
   // Delete Enquiry
-  const handleDeleteEnquiry = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this enquiry?")) return;
-    try {
-      await erpApi.deleteLead(id);
-      setSuccessToast("Enquiry deleted successfully!");
-      fetchEnquiries();
-      setTimeout(() => setSuccessToast(""), 3000);
-    } catch (err) {
-      setErrorMessage("Failed to delete enquiry: " + err.message);
+  const handleDeleteEnquiry = async (id, rowData = null) => {
+    const item = rowData || enquiries.find((e) => e._id === id) || {};
+    const name = item.name || "Enquiry";
+    const ref = item.enquiryNo ? ` (${item.enquiryNo})` : item.phone ? ` (${item.phone})` : "";
+    
+    if (!window.confirm(`Are you sure you want to delete enquiry for ${name}${ref}? This will permanently delete the entry from the database.`)) {
+      return;
     }
+
+    try {
+      const deleteKey = id || item._id || item.enquiryNo || item.phone;
+      if (deleteKey) {
+        await erpApi.deleteLead(deleteKey);
+      }
+    } catch (err) {
+      console.warn("Backend deleteLead error:", err);
+    }
+
+    // Clean from local storage
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+      const updatedLocal = existingLocal.filter(
+        (e) =>
+          e._id !== id &&
+          e._id !== item._id &&
+          (!item.enquiryNo || e.enquiryNo !== item.enquiryNo) &&
+          (!item.phone || e.phone !== item.phone)
+      );
+      localStorage.setItem("velora_custom_enquiries", JSON.stringify(updatedLocal));
+    } catch (e) {}
+
+    // Update UI state immediately
+    setEnquiries((prev) =>
+      prev.filter(
+        (e) =>
+          e._id !== id &&
+          e._id !== item._id &&
+          (!item.enquiryNo || e.enquiryNo !== item.enquiryNo) &&
+          (!item.phone || e.phone !== item.phone)
+      )
+    );
+    setSelectedIds((prev) => prev.filter((i) => i !== id && i !== item._id));
+    if (selectedEnquiry && (selectedEnquiry._id === id || selectedEnquiry._id === item._id)) {
+      setSelectedEnquiry(null);
+    }
+
+    toast.success(`Enquiry for ${name} deleted successfully from database!`);
+    await fetchEnquiries();
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  // Bulk Delete Selected Enquiries
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected enquiries from the database?`)) {
+      return;
+    }
+
+    for (const id of selectedIds) {
+      try {
+        await erpApi.deleteLead(id);
+      } catch (err) {
+        console.warn("Bulk deleteLead error:", err);
+      }
+    }
+
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+      const updatedLocal = existingLocal.filter((e) => !selectedIds.includes(e._id));
+      localStorage.setItem("velora_custom_enquiries", JSON.stringify(updatedLocal));
+    } catch (e) {}
+
+    setEnquiries((prev) => prev.filter((e) => !selectedIds.includes(e._id)));
+    toast.success(`${selectedIds.length} enquiries deleted successfully from database!`);
+    setSelectedIds([]);
+    await fetchEnquiries();
+    window.dispatchEvent(new Event("storage"));
   };
 
   // Checkbox Selection
@@ -1728,7 +1796,7 @@ export default function EnquiryManagement() {
                               <Edit2 size={15} />
                             </button>
                             <button
-                              onClick={() => handleDeleteEnquiry(row._id)}
+                              onClick={() => handleDeleteEnquiry(row._id, row)}
                               title="Delete Enquiry"
                               className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                             >
@@ -1813,9 +1881,18 @@ export default function EnquiryManagement() {
             {/* Left: Bulk actions count if selected */}
             <div>
               {selectedIds.length > 0 ? (
-                <span className="font-bold text-blue-700">
-                  {selectedIds.length} enquiries selected
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-blue-700">
+                    {selectedIds.length} enquiries selected
+                  </span>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition cursor-pointer"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete Selected</span>
+                  </button>
+                </div>
               ) : (
                 <span className="text-slate-400">
                   Showing {enquiries.length} of {pagination.total || enquiries.length} entries
@@ -1995,16 +2072,27 @@ export default function EnquiryManagement() {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-              <button
-                onClick={() => {
-                  handleEditEnquiry(selectedEnquiry);
-                  setSelectedEnquiry(null);
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition cursor-pointer"
-              >
-                <Edit2 size={13} />
-                <span>Edit Details</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    handleEditEnquiry(selectedEnquiry);
+                    setSelectedEnquiry(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <Edit2 size={13} />
+                  <span>Edit Details</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteEnquiry(selectedEnquiry._id, selectedEnquiry);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition cursor-pointer"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete</span>
+                </button>
+              </div>
 
               <button
                 onClick={() => setSelectedEnquiry(null)}

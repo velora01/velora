@@ -344,18 +344,36 @@ export const updateBOQ = async (req, res) => {
 // DELETE /api/erp/boq/:id
 export const deleteBOQ = async (req, res) => {
   try {
-    const boq = await BOQ.findByIdAndDelete(req.params.id);
+    const param = req.params.id;
+    let boq = null;
+
+    if (param && mongoose.Types.ObjectId.isValid(param)) {
+      boq = await BOQ.findByIdAndDelete(param);
+    }
+
+    if (!boq && param) {
+      boq = await BOQ.findOneAndDelete({
+        $or: [
+          { boqNumber: param },
+          { enquiryNo: param },
+          { boqNumber: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") },
+          { enquiryNo: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") }
+        ]
+      });
+    }
+
     if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
 
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Deleted",
       module: "BOQ",
-      description: `Deleted BOQ ${boq.boqNumber}`
+      description: `Deleted BOQ ${boq.boqNumber || param}`
     });
 
     res.json({ success: true, message: "BOQ deleted successfully" });
   } catch (err) {
+    console.error("deleteBOQ error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

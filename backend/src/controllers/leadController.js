@@ -279,19 +279,36 @@ export const updateLead = async (req, res) => {
 // DELETE /api/leads/:id
 export const deleteLead = async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndDelete(req.params.id);
+    const param = req.params.id;
+    let lead = null;
+
+    if (param && mongoose.Types.ObjectId.isValid(param)) {
+      lead = await Lead.findByIdAndDelete(param);
+    }
+
+    if (!lead && param) {
+      lead = await Lead.findOneAndDelete({
+        $or: [
+          { enquiryNo: param },
+          { phone: param },
+          { enquiryNo: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") }
+        ]
+      });
+    }
+
     if (!lead) return res.status(404).json({ success: false, message: "Lead not found" });
 
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Deleted",
       module: "Leads",
-      description: `Deleted lead ${lead.name}`,
-      targetId: req.params.id
+      description: `Deleted lead ${lead.name || param}`,
+      targetId: String(lead._id || param)
     });
 
     res.json({ success: true, message: "Lead deleted successfully" });
   } catch (err) {
+    console.error("deleteLead error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

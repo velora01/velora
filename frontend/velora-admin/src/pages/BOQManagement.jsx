@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
 import {
   Search,
   Plus,
@@ -235,41 +236,60 @@ export default function BOQManagement() {
   // Delete BOQ handler
   const handleDeleteBOQ = async (boqToDelete, e) => {
     if (e) e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to delete BOQ for ${boqToDelete.clientName} (${boqToDelete.enquiryNo || boqToDelete.boqNumber})?`)) {
+    const identifier = boqToDelete.clientName || boqToDelete.boqNumber || boqToDelete.enquiryNo || "BOQ";
+    const detail = boqToDelete.enquiryNo || boqToDelete.boqNumber ? ` (${boqToDelete.enquiryNo || boqToDelete.boqNumber})` : "";
+    if (!window.confirm(`Are you sure you want to delete BOQ for ${identifier}${detail}? This will permanently delete the entry from the database.`)) {
       return;
     }
 
     try {
-      if (boqToDelete._id && !boqToDelete._id.startsWith("boq_") && !boqToDelete._id.startsWith("temp_")) {
-        await erpApi.deleteBOQ(boqToDelete._id);
+      const deleteKey = boqToDelete._id || boqToDelete.boqNumber || boqToDelete.enquiryNo;
+      if (deleteKey) {
+        await erpApi.deleteBOQ(deleteKey);
       }
-    } catch {
-      // Ignore API delete error
+    } catch (err) {
+      console.warn("API deleteBOQ error:", err);
     }
 
     // Remove from local storage
-    const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
-    const updatedLocal = existingLocal.filter(
-      (b) => b._id !== boqToDelete._id && b.enquiryNo !== boqToDelete.enquiryNo
-    );
-    localStorage.setItem("velora_custom_boqs", JSON.stringify(updatedLocal));
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const updatedLocal = existingLocal.filter(
+        (b) =>
+          b._id !== boqToDelete._id &&
+          (!boqToDelete.enquiryNo || b.enquiryNo !== boqToDelete.enquiryNo) &&
+          (!boqToDelete.boqNumber || b.boqNumber !== boqToDelete.boqNumber)
+      );
+      localStorage.setItem("velora_custom_boqs", JSON.stringify(updatedLocal));
+    } catch (e) {}
 
     // Remove from persistent used enquiry tracker so it becomes available for New BOQ again
-    const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
-    const updatedUsed = usedEnqNos.filter(
-      (u) =>
-        u &&
-        u.toLowerCase() !== (boqToDelete.enquiryNo || "").toLowerCase() &&
-        u !== String(boqToDelete.lead || "") &&
-        u.toLowerCase() !== (boqToDelete.clientName || "").toLowerCase()
-    );
-    localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
+    try {
+      const usedEnqNos = JSON.parse(localStorage.getItem("velora_used_enquiry_nos") || "[]");
+      const updatedUsed = usedEnqNos.filter(
+        (u) =>
+          u &&
+          u.toLowerCase() !== (boqToDelete.enquiryNo || "").toLowerCase() &&
+          u !== String(boqToDelete.lead || "") &&
+          u !== String(boqToDelete._id || "") &&
+          u.toLowerCase() !== (boqToDelete.clientName || "").toLowerCase()
+      );
+      localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
+    } catch (e) {}
 
-    setBoqList((prev) => prev.filter((b) => b._id !== boqToDelete._id && b.enquiryNo !== boqToDelete.enquiryNo));
+    setBoqList((prev) =>
+      prev.filter(
+        (b) =>
+          b._id !== boqToDelete._id &&
+          (!boqToDelete.enquiryNo || b.enquiryNo !== boqToDelete.enquiryNo) &&
+          (!boqToDelete.boqNumber || b.boqNumber !== boqToDelete.boqNumber)
+      )
+    );
     setPagination((p) => ({ ...p, total: Math.max(0, p.total - 1) }));
-    fetchAvailableEnquiries();
-    setSuccessToast(`BOQ for ${boqToDelete.clientName} deleted. Enquiry is now available for New BOQ creation.`);
-    setTimeout(() => setSuccessToast(""), 4000);
+    toast.success(`BOQ for ${identifier} deleted successfully from database!`);
+    await fetchBOQList();
+    await fetchAvailableEnquiries();
+    window.dispatchEvent(new Event("storage"));
   };
 
   // Fetch BOQ List

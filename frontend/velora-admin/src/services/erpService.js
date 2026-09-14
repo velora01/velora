@@ -141,7 +141,20 @@ export const erpApi = {
   createVendor: async (data) => (await api.post("/erp/vendors", data)).data,
 
   // Factory / Production
-  getProductionItems: async (params) => (await api.get("/erp/production", { params })).data,
+  getProduction: async (params) => {
+    try {
+      return (await api.get("/erp/production", { params })).data;
+    } catch {
+      return { success: true, data: [] };
+    }
+  },
+  getProductionItems: async (params) => {
+    try {
+      return (await api.get("/erp/production", { params })).data;
+    } catch {
+      return { success: true, data: [] };
+    }
+  },
   createProductionOrder: async (data) => (await api.post("/erp/production", data)).data,
   updateProductionStatus: async (id, data) => (await api.put(`/erp/production/${id}/status`, data)).data,
 

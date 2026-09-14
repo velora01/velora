@@ -42,7 +42,6 @@ import erpApi from "../services/erpService";
 import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation, DEFAULT_BOQ_PRINT_COLUMNS } from "../utils/downloadHelper";
 import {
   DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
-  calculateMilestones,
   getActiveTermsTemplate
 } from "../constants/termsAndConditionsTemplates";
 
@@ -276,38 +275,25 @@ export default function BOQManagement() {
   // Fetch BOQ List
   const fetchBOQList = useCallback(async () => {
     setLoadingList(true);
-    const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
 
     try {
       const res = await erpApi.getBOQs({ search, page: pagination.page, limit: 100 });
-      const apiList = res?.success && res.data ? res.data : [];
-      const combined = [...localBOQs, ...apiList];
-      
-      const uniqueMap = new Map();
-      combined.forEach((item) => {
-        const key = (item.enquiryNo || item._id || item.boqNumber || "").toLowerCase().trim();
-        if (key && !uniqueMap.has(key)) {
-          uniqueMap.set(key, item);
-        }
-      });
-      const mergedList = Array.from(uniqueMap.values());
-      setBoqList(mergedList);
-      setPagination((p) => ({
-        ...p,
-        total: mergedList.length,
-        pages: 1
-      }));
+      if (res?.success && Array.isArray(res.data)) {
+        setBoqList(res.data);
+        setPagination((p) => ({
+          ...p,
+          total: res.data.length,
+          pages: 1
+        }));
+      } else {
+        const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+        setBoqList(localBOQs);
+        setPagination((p) => ({ ...p, total: localBOQs.length, pages: 1 }));
+      }
     } catch {
-      const uniqueMap = new Map();
-      localBOQs.forEach((item) => {
-        const key = (item.enquiryNo || item._id || item.boqNumber || "").toLowerCase().trim();
-        if (key && !uniqueMap.has(key)) {
-          uniqueMap.set(key, item);
-        }
-      });
-      const mergedList = Array.from(uniqueMap.values());
-      setBoqList(mergedList);
-      setPagination((p) => ({ ...p, total: mergedList.length }));
+      const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      setBoqList(localBOQs);
+      setPagination((p) => ({ ...p, total: localBOQs.length }));
     } finally {
       setLoadingList(false);
     }
@@ -315,30 +301,18 @@ export default function BOQManagement() {
 
   // Fetch Available Enquiries for the "Select Enquiry" Modal
   const fetchAvailableEnquiries = useCallback(async () => {
-    let list = [];
     try {
       const res = await erpApi.getLeads({ limit: 100 });
-      if (res?.success && res.data && res.data.length > 0) {
-        list = res.data;
+      if (res?.success && Array.isArray(res.data)) {
+        setEnquiryList(res.data);
+      } else {
+        const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+        setEnquiryList(localSaved);
       }
     } catch {
-      // Fallback
+      const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
+      setEnquiryList(localSaved);
     }
-
-    // Merge with any freshly created local enquiries
-    const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
-
-    // Combine avoiding duplicate IDs
-    const combined = [...localSaved, ...list];
-    const uniqueMap = new Map();
-    combined.forEach((item) => {
-      const key = item.enquiryNo || item._id || item.name;
-      if (key && !uniqueMap.has(key)) {
-        uniqueMap.set(key, item);
-      }
-    });
-
-    setEnquiryList(Array.from(uniqueMap.values()));
   }, []);
 
   // Fetch Library Components for Palette
@@ -352,23 +326,23 @@ export default function BOQManagement() {
       // Local fallback
       setLibraryComponents([
         { name: "Shoe Rack", relevantSpace: "Entrance", variant: "Box Standard", standard: { rate: 1500 } },
-        { name: "Entrance Safety Door", relevantSpace: "Entrance", variant: "Frame Standard", standard: { rate: 40000 } },
+        { name: "Entrance Safety Door", relevantSpace: "Entrance", variant: "Frame Standard", standard: { rate: 3500 } },
         { name: "Entrance Paneling", relevantSpace: "Entrance", variant: "Panel", standard: { rate: 1600 } },
-        { name: "Name Plate", relevantSpace: "Entrance", variant: "Custom", standard: { rate: 3500 } },
-        { name: "Smart Lock", relevantSpace: "Entrance", variant: "Box Standard", standard: { rate: 15000 } },
+        { name: "Name Plate", relevantSpace: "Entrance", variant: "Custom", standard: { rate: 350 } },
+        { name: "Smart Lock", relevantSpace: "Entrance", variant: "Box Standard", standard: { rate: 1800 } },
         { name: "Shoe Rack Seating", relevantSpace: "Entrance", variant: "Box", standard: { rate: 2200 } },
         { name: "Living Room TV Unit & Paneling", relevantSpace: "Living Room", variant: "Box Standard", standard: { rate: 1800 } },
         { name: "Living Room Wall Louver Paneling", relevantSpace: "Living Room", variant: "Panel", standard: { rate: 1600 } },
         { name: "Crockery & Display Console", relevantSpace: "Living Room", variant: "Glass Box", standard: { rate: 2100 } },
         { name: "Living Room Foyer Divider Partition", relevantSpace: "Living Room", variant: "Partition", standard: { rate: 2400 } },
         { name: "Bar Counter & Storage Cabinet", relevantSpace: "Living Room", variant: "Luxury Box", standard: { rate: 2800 } },
-        { name: "King Size Hydraulic Bed", relevantSpace: "Master Bedroom", variant: "Bed", standard: { rate: 45000 } },
+        { name: "King Size Hydraulic Bed", relevantSpace: "Master Bedroom", variant: "Bed", standard: { rate: 4500 } },
         { name: "4-Door Openable Wardrobe", relevantSpace: "Master Bedroom", variant: "Wardrobe", standard: { rate: 1900 } },
         { name: "Dressing Unit with LED Mirror", relevantSpace: "Master Bedroom", variant: "Dresser", standard: { rate: 2200 } },
-        { name: "Bedside Tables (Pair)", relevantSpace: "Master Bedroom", variant: "Side Table", standard: { rate: 8500 } },
+        { name: "Bedside Tables (Pair)", relevantSpace: "Master Bedroom", variant: "Side Table", standard: { rate: 1800 } },
         { name: "Kitchen Base Cabinet", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Loft", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
-        { name: "Kitchen SS Trolly", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 6000 } },
+        { name: "Kitchen SS Trolly", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1800 } },
         { name: "Kitchen Overhead Storage", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Kitchen Wall Unit- Open", relevantSpace: "Modular Kitchen", variant: "Open Box", standard: { rate: 1500 } }
       ]);
@@ -3658,38 +3632,7 @@ export default function BOQManagement() {
                       <div className="h-px bg-stone-300 flex-1"></div>
                     </div>
 
-                    {/* 1. Payment Plan Table */}
-                    <div className="space-y-3">
-                      <h4 className="text-lg font-black text-[#A83232] tracking-wider">Payment Plan</h4>
-                      {(() => {
-                        const tcTemplate = getActiveTermsTemplate();
-                        const milestones = calculateMilestones(quotationBOQ.grandTotal || quotationBOQ.subtotal || 0, tcTemplate.paymentPlan);
-                        return (
-                          <div className="border border-stone-300 rounded-2xl overflow-hidden shadow-xs">
-                            <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                              <thead className="bg-slate-50 border-b border-stone-300 font-extrabold text-stone-900">
-                                <tr>
-                                  <th className="py-2.5 px-4">Milestone</th>
-                                  <th className="py-2.5 px-4 w-28 text-center">Percent</th>
-                                  <th className="py-2.5 px-4 w-44 text-right">Amount</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-stone-200">
-                                {milestones.map((m, mIdx) => (
-                                  <tr key={mIdx}>
-                                    <td className="py-2.5 px-4 font-bold text-stone-800">{m.milestone}</td>
-                                    <td className="py-2.5 px-4 text-center font-bold text-stone-700">{m.percent}%</td>
-                                    <td className="py-2.5 px-4 text-right font-mono font-black text-stone-900">
-                                      ₹{m.amount.toLocaleString("en-IN")}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        );
-                      })()}
-                    </div>
+
 
                     {/* 2. Bank Account Details */}
                     {(() => {

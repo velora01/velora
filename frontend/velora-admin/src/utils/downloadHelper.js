@@ -5,7 +5,6 @@ import { getCurrentUser } from "../services/authService";
 import { getActiveCompanySettings } from "../constants/companySettings";
 import {
   DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
-  calculateMilestones,
   getActiveTermsTemplate
 } from "../constants/termsAndConditionsTemplates";
 
@@ -500,49 +499,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
 
   const tcTemplate = getActiveTermsTemplate();
 
-  // 1. Payment Plan Table
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(168, 50, 50); // Maroon
-  doc.text("Payment Plan", 40, currentY + 10);
 
-  const milestones = calculateMilestones(grandTotal, tcTemplate.paymentPlan);
-  const paymentRows = milestones.map((m) => [
-    m.milestone,
-    `${m.percent}%`,
-    `Rs. ${m.amount.toLocaleString("en-IN")}`
-  ]);
-
-  autoTable(doc, {
-    startY: currentY + 18,
-    margin: { left: 40, right: 40 },
-    head: [["Milestone", "Percent", "Amount"]],
-    body: paymentRows,
-    theme: "grid",
-    headStyles: {
-      fillColor: [250, 246, 237],
-      textColor: [28, 25, 23],
-      fontSize: 9.5,
-      fontStyle: "bold",
-      lineWidth: 0.5,
-      lineColor: [200, 200, 200],
-      cellPadding: 5
-    },
-    bodyStyles: {
-      fontSize: 8.5,
-      textColor: [40, 40, 40],
-      lineColor: [215, 215, 215],
-      lineWidth: 0.5,
-      cellPadding: 5
-    },
-    columnStyles: {
-      0: { cellWidth: 260 },
-      1: { cellWidth: 90, halign: "center", fontStyle: "bold" },
-      2: { cellWidth: 165, halign: "right", fontStyle: "bold" }
-    }
-  });
-
-  currentY = doc.lastAutoTable.finalY + 16;
 
   // 2. Bank Account Details & Payment QR Code
   const companySettings = getActiveCompanySettings();
@@ -808,7 +765,6 @@ export const printBOQQuotation = (boq, options = {}) => {
   const grandTotal = Number(boq.grandTotal) || (taxableAmount + gstTotal);
 
   const tcTemplate = getActiveTermsTemplate();
-  const milestones = calculateMilestones(grandTotal, tcTemplate.paymentPlan);
 
   const companySettings = getActiveCompanySettings();
   const currentUser = getCurrentUser() || { name: "Admin", role: "Super Admin" };
@@ -1508,28 +1464,7 @@ export const printBOQQuotation = (boq, options = {}) => {
     <!-- DEDICATED TERMS & CONDITIONS PAGES MATCHING IMAGE 5 & 6 -->
     <!-- STARTS ON A CLEAN NEW PAGE! -->
     <div id="tc-page-section" class="tc-page-container" style="${includeTerms ? '' : 'display: none;'}">
-      <!-- 1. Payment Plan Table -->
-      <h3 class="tc-section-title">Payment Plan</h3>
-      <table class="payment-table">
-        <thead>
-          <tr>
-            <th>Milestone</th>
-            <th style="width: 110px; text-align: center;">Percent</th>
-            <th style="width: 170px; text-align: right;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${milestones.map((m) => `
-            <tr>
-              <td style="font-weight: 700;">${m.milestone}</td>
-              <td style="text-align: center; font-weight: 800;">${m.percent}%</td>
-              <td style="text-align: right; font-weight: 900;">₹ ${m.amount.toLocaleString("en-IN")}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-
-      <!-- 2. Bank Account Details & Universal Payment QR -->
+      <!-- Bank Account Details & Universal Payment QR -->
       <div class="bank-card" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
         <div>
           <h4>Bank Account Details</h4>

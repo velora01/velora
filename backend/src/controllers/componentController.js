@@ -118,9 +118,9 @@ const DEFAULT_COMPONENTS = [
     variant: "Frame Standard",
     description: "CNC designer grill heavy safety door with multi-point brass lock",
     visibility: true,
-    elite: { type: "Frame", rate: 45000 },
-    premium: { type: "Frame", rate: 40000 },
-    standard: { type: "Frame", rate: 35000 }
+    elite: { type: "Frame", rate: 4500 },
+    premium: { type: "Frame", rate: 4000 },
+    standard: { type: "Frame", rate: 3500 }
   },
   {
     name: "Entrance Paneling",
@@ -138,9 +138,9 @@ const DEFAULT_COMPONENTS = [
     variant: "Custom",
     description: "Laser cut backlit acrylic with warm LED letter embossing",
     visibility: true,
-    elite: { type: "Custom", rate: 8000 },
-    premium: { type: "Custom", rate: 5000 },
-    standard: { type: "Custom", rate: 3500 }
+    elite: { type: "Custom", rate: 800 },
+    premium: { type: "Custom", rate: 500 },
+    standard: { type: "Custom", rate: 350 }
   },
   {
     name: "Smart Lock",
@@ -148,9 +148,9 @@ const DEFAULT_COMPONENTS = [
     variant: "Box Standard",
     description: "Digital fingerprint, RFID, and mobile app enabled security lock",
     visibility: true,
-    elite: { type: "Hardware", rate: 22000 },
-    premium: { type: "Hardware", rate: 18000 },
-    standard: { type: "Hardware", rate: 15000 }
+    elite: { type: "Hardware", rate: 2200 },
+    premium: { type: "Hardware", rate: 1800 },
+    standard: { type: "Hardware", rate: 1500 }
   },
   {
     name: "Shoe Rack Seating",

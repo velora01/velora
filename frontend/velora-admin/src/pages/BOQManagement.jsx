@@ -586,6 +586,7 @@ export default function BOQManagement() {
       activePackage: "Standard",
       measurementUnit: "Feet.inch",
       subtotal: 0,
+      gstPercent: 0,
       gstTotal: 0,
       grandTotal: 0,
       spaces: JSON.parse(JSON.stringify(defaultStandardSpaces)),
@@ -623,8 +624,9 @@ export default function BOQManagement() {
 
   // Open Quotation Preview & Export Modal from BOQ
   const handleOpenQuotationModal = async (boqTarget = null) => {
-    const target = boqTarget || activeBOQ;
-    if (!target) return;
+    const rawTarget = boqTarget || activeBOQ;
+    if (!rawTarget) return;
+    const target = recalculateBOQ(rawTarget);
     setQuotationBOQ(target);
     setIsQuotationModalOpen(true);
 
@@ -694,7 +696,7 @@ export default function BOQManagement() {
       : Math.min(spacesSubtotal, Math.round(discountValue));
 
     const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
-    const gstPercent = updatedBOQ.gstPercent !== undefined ? Number(updatedBOQ.gstPercent) : 18;
+    const gstPercent = updatedBOQ.gstPercent !== undefined ? Number(updatedBOQ.gstPercent) : 0;
     const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
     const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
     const gstTotal = cgstAmount + sgstAmount;
@@ -715,6 +717,16 @@ export default function BOQManagement() {
       gstTotal,
       grandTotal
     };
+  };
+
+  // Manually update or toggle GST Percent on the active BOQ
+  const handleUpdateGSTPercent = (newPercent) => {
+    if (!activeBOQ) return;
+    const recalculated = recalculateBOQ({
+      ...activeBOQ,
+      gstPercent: Number(newPercent) || 0
+    });
+    persistBOQChange(recalculated);
   };
 
   // Open Description Popup Modal
@@ -1996,6 +2008,49 @@ export default function BOQManagement() {
                   }`}
               />
             </button>
+          </div>
+
+          {/* Manual GST Toggle / Rate Selector Button */}
+          <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
+            <span className="text-[11px] font-bold text-slate-600">GST:</span>
+            <div className="inline-flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => handleUpdateGSTPercent(0)}
+                className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition cursor-pointer ${
+                  Number(activeBOQ?.gstPercent || 0) === 0
+                    ? "bg-white text-slate-800 shadow-xs border border-slate-200/80"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+                title="Disable GST (0%)"
+              >
+                0% OFF
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateGSTPercent(18)}
+                className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition cursor-pointer ${
+                  Number(activeBOQ?.gstPercent || 0) === 18
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+                title="Enable Standard GST (18%)"
+              >
+                18% ON
+              </button>
+              <select
+                value={activeBOQ?.gstPercent !== undefined ? activeBOQ.gstPercent : 0}
+                onChange={(e) => handleUpdateGSTPercent(Number(e.target.value))}
+                className="bg-transparent text-[11px] font-bold text-slate-700 px-1 py-0.5 outline-hidden cursor-pointer hover:bg-slate-200 rounded"
+                title="Custom GST Rate"
+              >
+                <option value={0}>0%</option>
+                <option value={5}>5%</option>
+                <option value={12}>12%</option>
+                <option value={18}>18%</option>
+                <option value={28}>28%</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -3684,8 +3739,12 @@ export default function BOQManagement() {
                   });
 
                   const discountAmount = Number(quotationBOQ.discountAmount) || 0;
-                  const gstTotal = Number(quotationBOQ.gstTotal) || 0;
-                  const grandTotal = Number(quotationBOQ.grandTotal) || (subtotal - discountAmount + gstTotal);
+                  const taxableAmount = Math.max(0, subtotal - discountAmount);
+                  const gstPercent = quotationBOQ.gstPercent !== undefined ? Number(quotationBOQ.gstPercent) : 0;
+                  const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+                  const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
+                  const gstTotal = cgstAmount + sgstAmount;
+                  const grandTotal = taxableAmount + gstTotal;
 
                   return (
                     <div className="flex justify-end pt-2">
@@ -3707,7 +3766,7 @@ export default function BOQManagement() {
                           )}
                           {gstTotal > 0 && (
                             <div className="flex justify-between items-center px-5 py-3 text-stone-700 font-bold">
-                              <span className="text-base">GST (18%)</span>
+                              <span className="text-base">GST ({gstPercent}%)</span>
                               <span className="font-mono font-black text-lg text-stone-900">
                                 ₹{gstTotal.toLocaleString("en-IN")}
                               </span>

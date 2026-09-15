@@ -122,7 +122,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const gstTotal = cgstAmount + sgstAmount;
-  const grandTotal = Number(boq?.grandTotal) || (taxableAmount + gstTotal);
+  const grandTotal = taxableAmount + gstTotal;
 
   // Pre-load all line item images into base64
   for (const space of spaces) {
@@ -762,7 +762,7 @@ export const printBOQQuotation = (boq, options = {}) => {
   const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const gstTotal = cgstAmount + sgstAmount;
-  const grandTotal = Number(boq.grandTotal) || (taxableAmount + gstTotal);
+  const grandTotal = taxableAmount + gstTotal;
 
   const tcTemplate = getActiveTermsTemplate();
 

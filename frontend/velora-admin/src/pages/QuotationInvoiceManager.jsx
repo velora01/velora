@@ -467,8 +467,8 @@ export default function QuotationInvoiceManager() {
     setActiveDropdownId(null);
   };
 
-  // Save Invoice (Persists and Shows on Invoice List Tab)
-  const handleSaveInvoice = (e) => {
+  // Save Invoice (Persists to localStorage & MongoDB and Shows on Invoice List Tab)
+  const handleSaveInvoice = async (e) => {
     if (e) e.preventDefault();
     if (!formData.billTo.name) {
       alert("Please enter a Client / Billed To name.");
@@ -494,19 +494,33 @@ export default function QuotationInvoiceManager() {
 
     try {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
+      if (invoiceRecord._id && !String(invoiceRecord._id).startsWith("inv_") && !String(invoiceRecord._id).startsWith("NCI")) {
+        await erpApi.updateInvoice(invoiceRecord._id, invoiceRecord).catch(() => {});
+      } else {
+        const res = await erpApi.createInvoice(invoiceRecord).catch(() => {});
+        if (res?.data?._id) {
+          invoiceRecord._id = res.data._id;
+          const refreshed = [invoiceRecord, ...invoices.filter((i) => i.invoiceNumber !== invoiceRecord.invoiceNumber && i._id !== invoiceRecord._id)];
+          setInvoices(refreshed);
+          localStorage.setItem("velora_local_invoices", JSON.stringify(refreshed));
+        }
+      }
     } catch (err) { }
 
-    showToast(`Invoice ${invoiceRecord.invoiceNumber} created and added to list!`);
+    showToast(`Invoice ${invoiceRecord.invoiceNumber} created and saved.`);
     setViewMode("list");
   };
 
-  // Delete Invoice
-  const handleDeleteInvoice = (inv) => {
-    if (!window.confirm(`Are you sure you want to delete Invoice ${inv.invoiceNumber}?`)) return;
+  // Delete Invoice (Manual User Action Only)
+  const handleDeleteInvoice = async (inv) => {
+    if (!window.confirm(`Are you sure you want to permanently delete Invoice ${inv.invoiceNumber}?`)) return;
     const updated = invoices.filter((i) => i.invoiceNumber !== inv.invoiceNumber && i._id !== inv._id);
     setInvoices(updated);
     try {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
+      if (inv._id && !String(inv._id).startsWith("inv_") && !String(inv._id).startsWith("NCI")) {
+        await erpApi.deleteInvoice(inv._id).catch(() => {});
+      }
     } catch (err) { }
     setActiveDropdownId(null);
     showToast(`Invoice ${inv.invoiceNumber} deleted.`);
@@ -1604,141 +1618,93 @@ export default function QuotationInvoiceManager() {
               {/* Main Document Preview (Crisp White High-Res Sheet) */}
               <div className="flex-1 bg-stone-900/80 p-4 sm:p-8 overflow-y-auto flex justify-center">
                 <div className="w-full max-w-3xl bg-white text-stone-900 rounded-2xl shadow-2xl p-8 sm:p-10 space-y-6 text-xs min-h-[850px] border border-stone-300 font-sans">
-                  {/* Page 1: Tax Invoice (Exact Screenshot 1) */}
+                  {/* Page 1: Tax Invoice */}
                   {activePdfPage === 1 && (
                     <div className="space-y-6 animate-in fade-in">
-                      {/* Top Header */}
-                      <div className="flex items-start justify-between border-b border-stone-200 pb-5">
-                        <div className="space-y-1.5">
-                          {/* Velora Antaraal Luxury Logo Badge */}
-                          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 font-black text-sm tracking-wider shadow-2xs">
-                            <Building size={16} />
-                            <span>VELORA ANTARAAL</span>
+                      {/* Header Row with Exact Yellow BOQ Dossier Cards */}
+                      <div className="flex flex-wrap items-stretch justify-between gap-4">
+                        {/* Left: Prepared Exclusively For */}
+                        <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] shadow-2xs">
+                          <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
+                          <h2 className="text-base font-black text-stone-950 tracking-tight">
+                            {(previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName || "Valued Client").toUpperCase()}
+                          </h2>
+                          <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-700 font-medium pt-1">
+                            <p><strong>Project Site:</strong> {previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress || "Pune, Maharashtra"}</p>
+                            {(previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone) && (
+                              <p><strong>Phone:</strong> (+91) {previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone}</p>
+                            )}
+                            {(previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail) && (
+                              <p><strong>Email:</strong> {previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail}</p>
+                            )}
+                            <p>
+                              <strong>Date:</strong> {previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate || new Date().toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" })}
+                              &nbsp;|&nbsp;
+                              <strong>Due Date:</strong> {previewInvoiceData.dueDate || "--"}
+                            </p>
+                            <p>
+                              <strong>Invoice No:</strong> {previewInvoiceData.invoiceNumber || "NCI006"}
+                              &nbsp;|&nbsp;
+                              <strong>Project PID:</strong> {previewInvoiceData.projectNumber || "PRJ-2026-012"}
+                            </p>
                           </div>
-                          <p className="font-bold text-stone-800 text-xs leading-relaxed max-w-[320px]">
-                            BAFANA NIWAS, AUNDH HINJEWADI WAKAD CHOWK, WAKAD, SR NO 242/2/B1, Hinjawadi, Pune, Maharashtra, 411057
-                          </p>
-                          <div className="flex flex-wrap items-center gap-3 text-stone-600 text-xs font-medium">
-                            <span className="flex items-center gap-1 font-mono">
-                              <Phone size={12} className="text-stone-400" />
-                              <span>(+91) 80555 26603</span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Mail size={12} className="text-stone-400" />
-                              <span>velora.family@gmail.com</span>
-                            </span>
-                          </div>
-                          <p className="text-stone-800 font-bold font-mono text-xs">
-                            GST No: <span className="text-blue-700">27CHCPS9945R1Z4</span>
-                          </p>
                         </div>
 
-                        <div className="text-right space-y-1">
-                          <h1 className="text-3xl font-black text-blue-600 tracking-tight">INVOICE</h1>
-                        </div>
-                      </div>
-
-                      {/* Blue Info Banner (Screenshot 1 exact layout) */}
-                      <div className="flex justify-end">
-                        <div className="w-full sm:w-80 space-y-2">
-                          <div className="bg-blue-600 text-white rounded-xl p-3.5 flex items-center justify-between shadow-md">
-                            <span className="text-xs font-medium text-blue-100">Total Value:</span>
-                            <span className="font-mono text-xl font-black">
-                              ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-
-                          <div className="space-y-1 text-right text-xs text-stone-600 pr-1">
-                            <div>
-                              <span className="text-stone-400 font-medium">Invoice Number: </span>
-                              <span className="font-mono font-bold text-stone-900">{previewInvoiceData.invoiceNumber}</span>
-                            </div>
-                            <div>
-                              <span className="text-stone-400 font-medium">Invoice Date: </span>
-                              <span className="font-bold text-stone-900">{previewInvoiceData.formattedDate || previewInvoiceData.invoiceDate}</span>
-                            </div>
-                            <div>
-                              <span className="text-stone-400 font-medium">Due Date: </span>
-                              <span className="font-bold text-stone-900">{previewInvoiceData.dueDate || "--"}</span>
-                            </div>
+                        {/* Right: Company Dossier Card with same matching yellow background & gold border */}
+                        <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] text-right shadow-2xs">
+                          <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED BY / COMPANY</span>
+                          <h2 className="text-base font-black text-[#c9a227] tracking-tight">VELORA ANTARAAL LLP</h2>
+                          <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-700 font-medium pt-1">
+                            <p className="font-bold text-stone-600 text-[10px] uppercase">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</p>
+                            <p>Shop No. 242/2/B1, Bafna Niwas, Aundh Wakad Rd, Pune - 411057</p>
+                            <p><strong>Phone:</strong> +91 86055 26603 / 80555 26603</p>
+                            <p><strong>Email / Web:</strong> info@velora.family | https://velora.family</p>
+                            <p><strong>GSTIN:</strong> 27CHCPS9945R1Z4 &nbsp;|&nbsp; <strong>PAN:</strong> CHCPS9945R</p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Single Clean Client & Site Details Box (Added Only Once) */}
-                      <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs">
-                        <span className="font-extrabold text-stone-900 text-[11px] uppercase tracking-wider block mb-2 border-b border-stone-200 pb-1">
-                          CLIENT & PROJECT DETAILS
-                        </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-xs text-stone-900">
-                          <div>
-                            <span className="text-stone-500 font-semibold block text-[11px]">Client Name:</span>
-                            <span className="font-bold text-sm text-stone-950 block">
-                              {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName || "Valued Client"}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-stone-500 font-semibold block text-[11px]">Phone:</span>
-                            <span className="font-mono font-bold text-stone-900 block">
-                              {previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone ? `(+91) ${previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone}` : "--"}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-stone-500 font-semibold block text-[11px]">Email:</span>
-                            <span className="text-stone-900 font-medium block">
-                              {previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail || "--"}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-stone-500 font-semibold block text-[11px]">Project Site / Address:</span>
-                            <span className="text-stone-900 font-medium block">
-                              {previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress || "--"}
-                            </span>
-                          </div>
-                          {(previewInvoiceData.billTo?.gstin || previewInvoiceData.gstin) && (
-                            <div>
-                              <span className="text-stone-500 font-semibold block text-[11px]">GSTIN:</span>
-                              <span className="font-mono font-bold text-stone-900 block">
-                                {previewInvoiceData.billTo?.gstin || previewInvoiceData.gstin}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                      {/* Title Divider */}
+                      <div className="flex items-center justify-between border-b-2 border-stone-900 pb-2 pt-1">
+                        <h1 className="text-lg font-black text-stone-950 tracking-tight">TAX INVOICE</h1>
+                        <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-wider">ORIGINAL FOR RECIPIENT</span>
                       </div>
 
-                      {/* Service Items Table (Screenshot 1 Blue header) */}
-                      <div className="border border-stone-200 rounded-xl overflow-hidden shadow-2xs">
+                      {/* Service Items Table (Exact Screenshot Layout, No Blue) */}
+                      <div className="border border-stone-800 rounded-xl overflow-hidden shadow-2xs">
                         <table className="w-full text-left text-xs border-collapse">
                           <thead>
-                            <tr className="bg-blue-600 text-white font-bold text-[11px]">
+                            <tr className="bg-stone-900 text-white font-black text-[11px]">
+                              <th className="py-2.5 px-3 text-center w-10">SN</th>
                               <th className="py-2.5 px-3">Service Description</th>
-                              <th className="py-2.5 px-2">HSN/SAC</th>
-                              <th className="py-2.5 px-2 text-center">Qty</th>
-                              <th className="py-2.5 px-2 text-center">Unit</th>
-                              <th className="py-2.5 px-3 text-right">Rate</th>
-                              <th className="py-2.5 px-2 text-center">GST (%)</th>
-                              <th className="py-2.5 px-2 text-right">GST (₹)</th>
-                              <th className="py-2.5 px-3 text-right">Total</th>
+                              <th className="py-2.5 px-2 text-center w-20">HSN/SAC</th>
+                              <th className="py-2.5 px-2 text-center w-12">Qty</th>
+                              <th className="py-2.5 px-2 text-center w-14">Unit</th>
+                              <th className="py-2.5 px-3 text-right w-24">Rate</th>
+                              <th className="py-2.5 px-2 text-center w-16">GST %</th>
+                              <th className="py-2.5 px-2 text-right w-20">GST (Rs)</th>
+                              <th className="py-2.5 px-3 text-right w-28">Total Amount</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-stone-100 text-stone-700">
+                          <tbody className="divide-y divide-stone-200 text-stone-900">
                             {(previewInvoiceData.items || []).map((it, idx) => (
                               <tr key={idx} className="hover:bg-stone-50/50">
-                                <td className="py-2.5 px-3 font-bold text-stone-900">
+                                <td className="py-2.5 px-3 text-center font-black text-stone-950">{idx + 1}</td>
+                                <td className="py-2.5 px-3 font-black text-stone-950">
                                   {it.serviceDescription || it.productName || "sofa"}
                                 </td>
-                                <td className="py-2.5 px-2 font-mono text-stone-400">{it.hsnSac || ""}</td>
-                                <td className="py-2.5 px-2 text-center font-bold text-stone-900">{it.quantity || 1}</td>
-                                <td className="py-2.5 px-2 text-center text-stone-600">{it.unit || "1"}</td>
+                                <td className="py-2.5 px-2 text-center font-mono font-bold text-stone-600">{it.hsnSac || "9954"}</td>
+                                <td className="py-2.5 px-2 text-center font-black text-stone-950">{it.quantity || 1}</td>
+                                <td className="py-2.5 px-2 text-center font-bold text-stone-700">{it.unit || "Nos"}</td>
                                 <td className="py-2.5 px-3 text-right font-mono font-bold text-stone-900">
-                                  ₹{(it.rate || 65000).toLocaleString("en-IN")}
+                                  Rs. {(it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-2.5 px-2 text-center font-mono text-stone-700">{it.gstPercent || 0} %</td>
-                                <td className="py-2.5 px-2 text-right font-mono text-stone-500">
-                                  ₹{(it.gstAmount || 0).toLocaleString("en-IN")}
+                                <td className="py-2.5 px-2 text-center font-mono font-bold text-stone-950">{it.gstPercent || 0}%</td>
+                                <td className="py-2.5 px-2 text-right font-mono font-bold text-stone-600">
+                                  Rs. {(it.gstAmount || 0).toLocaleString("en-IN")}
                                 </td>
-                                <td className="py-2.5 px-3 text-right font-mono font-black text-stone-900">
-                                  ₹{(it.total || it.rate || 65000).toLocaleString("en-IN")}
+                                <td className="py-2.5 px-3 text-right font-mono font-black text-stone-950">
+                                  Rs. {(it.total || it.rate || 65000).toLocaleString("en-IN")}
                                 </td>
                               </tr>
                             ))}
@@ -1746,70 +1712,78 @@ export default function QuotationInvoiceManager() {
                         </table>
                       </div>
 
-                      {/* Totals & Summary Box */}
-                      <div className="flex justify-end pt-1">
-                        <div className="w-64 space-y-2 text-xs">
-                          <div className="flex justify-between text-stone-600">
-                            <span>Sub Total</span>
-                            <span className="font-mono font-bold text-stone-900">
-                              ₹{(previewInvoiceData.subTotal || 65000).toLocaleString("en-IN")}
+                      {/* Commercial Totals & Amount in Words */}
+                      <div className="flex flex-wrap items-start justify-between gap-6 pt-1">
+                        {/* Amount in Words */}
+                        <div className="flex-1 min-w-[260px] space-y-2 text-xs">
+                          <div>
+                            <span className="font-black text-stone-950">Amount in Words: </span>
+                            <span className="text-stone-800 font-bold">Sixty Thousand Rupees Only</span>
+                          </div>
+                          <div className="text-[11px] text-stone-600">
+                            <span className="font-bold text-stone-800">Notes: </span>
+                            {previewInvoiceData.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
+                          </div>
+                        </div>
+
+                        {/* Totals Summary */}
+                        <div className="w-72 space-y-1.5 text-xs">
+                          <div className="flex justify-between text-stone-700 font-semibold">
+                            <span>Sub Total (Taxable)</span>
+                            <span className="font-mono font-bold text-stone-950">
+                              Rs. {(previewInvoiceData.subTotal || 65000).toLocaleString("en-IN")}
                             </span>
                           </div>
-                          <div className="flex justify-between text-stone-600">
-                            <span>Tax Amount</span>
-                            <span className="font-mono font-bold text-stone-900">
-                              ₹{(previewInvoiceData.taxAmount || 0).toLocaleString("en-IN")}
+                          <div className="flex justify-between text-stone-700 font-semibold">
+                            <span>Tax Amount (GST)</span>
+                            <span className="font-mono font-bold text-stone-950">
+                              Rs. {(previewInvoiceData.taxAmount || 0).toLocaleString("en-IN")}
                             </span>
                           </div>
-                          <div className="flex justify-between pt-2 border-t border-stone-200 font-bold text-stone-900 text-sm">
-                            <span>Total Value</span>
-                            <span className="font-mono font-black text-stone-900">
-                              ₹{(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
+                          <div className="flex justify-between items-center p-2.5 bg-[#faf6ed] border border-[#d97706] rounded-md mt-2">
+                            <span className="font-black text-[#b45309] text-sm">Total Value</span>
+                            <span className="font-mono font-black text-[#b45309] text-base">
+                              Rs. {(previewInvoiceData.totalAmount || previewInvoiceData.dueAmount || 65000).toLocaleString("en-IN")}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Bank Details & Scan to Pay (Screenshot 1 Layout) */}
-                      <div className="space-y-4 pt-2 border-t border-stone-100">
-                        <div className="space-y-1">
-                          <span className="font-bold text-stone-900 text-xs block">
-                            Bank Details & Payment Instructions
+                      {/* Bank Details & Scan to Pay (UPI) - Yellow Dossier Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#d4af37]">
+                        <div className="sm:col-span-2 bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4 space-y-1 text-xs">
+                          <span className="font-black text-[#9e7b1d] text-[10px] uppercase tracking-wider block mb-1">
+                            BANK DETAILS & PAYMENT INSTRUCTIONS
                           </span>
-                          <p className="font-mono text-[11px] text-stone-700 leading-relaxed">
-                            Account Holder: VELORA ANTARAAL<br />
-                            Account Number: 50200073374185<br />
-                            IFSC: HDFC0000282<br />
-                            Branch: WAKAD<br />
-                            Account Type: Current Account
-                          </p>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px] text-stone-800 font-medium">
+                            <div>Account Holder: <strong className="text-stone-950">VELORA ANTARAAL</strong></div>
+                            <div>Account Number: <strong className="text-stone-950">50200073374185</strong></div>
+                            <div>IFSC Code: <strong className="text-stone-950">HDFC0000282</strong></div>
+                            <div>Branch: <strong className="text-stone-950">WAKAD, PUNE</strong></div>
+                            <div>Bank Name: <strong className="text-stone-950">HDFC Bank</strong></div>
+                            <div>Account Type: <strong className="text-stone-950">Current Account</strong></div>
+                          </div>
                         </div>
 
                         {/* Scan to pay */}
-                        <div className="space-y-2">
-                          <span className="font-bold text-stone-900 text-xs block">Scan to pay</span>
-                          <div className="inline-block p-2 bg-white border border-stone-200 rounded-xl shadow-2xs">
+                        <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-2">
+                          <span className="font-black text-[#9e7b1d] text-[10px] uppercase tracking-wider block">
+                            SCAN TO PAY (UPI)
+                          </span>
+                          <div className="p-1.5 bg-white border border-[#d4af37] rounded-lg shadow-2xs">
                             {paymentQrCode ? (
                               <img
                                 src={paymentQrCode}
                                 alt="PhonePe QR Code"
-                                className="w-24 h-24 object-contain rounded-lg"
+                                className="w-18 h-18 object-contain rounded-sm"
                               />
                             ) : (
-                              <div className="w-24 h-24 bg-stone-50 rounded-lg flex flex-col items-center justify-center p-2 text-center border border-dashed border-stone-300">
-                                <QrCode size={36} className="text-blue-600 mb-1" />
-                                <span className="text-[8px] font-black text-stone-600">PhonePe / UPI</span>
+                              <div className="w-18 h-18 bg-stone-50 rounded-sm flex flex-col items-center justify-center p-1 text-center border border-dashed border-stone-300">
+                                <QrCode size={28} className="text-[#b45309] mb-0.5" />
+                                <span className="text-[7px] font-black text-stone-700">PhonePe / UPI</span>
                               </div>
                             )}
                           </div>
-                        </div>
-
-                        {/* Notes */}
-                        <div className="space-y-1 pt-2">
-                          <span className="font-bold text-stone-900 text-xs block">Notes</span>
-                          <p className="text-stone-600 text-xs">
-                            {previewInvoiceData.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
-                          </p>
                         </div>
                       </div>
                     </div>

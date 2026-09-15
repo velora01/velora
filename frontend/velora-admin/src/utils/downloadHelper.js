@@ -835,11 +835,11 @@ export const printBOQQuotation = (boq, options = {}) => {
       border-bottom: 1px solid #e7e5e4;
     }
     .client-box {
-      background: linear-gradient(135deg, #faf6ed 0%, #fffdfa 100%);
-      border: 1px solid #e8dec8;
-      border-left: 4px solid #c9a227;
+      background: #faf6ed;
+      border: 1.5px solid #d4af37;
       border-radius: 8px;
       padding: 12px 18px;
+      flex: 1;
       max-width: 440px;
     }
     .client-box .prep-badge {
@@ -871,11 +871,11 @@ export const printBOQQuotation = (boq, options = {}) => {
       font-weight: 700;
     }
     .brand-box {
-      background: linear-gradient(135deg, #faf6ed 0%, #fffdfa 100%);
-      border: 1px solid #e8dec8;
-      border-right: 4px solid #c9a227;
+      background: #faf6ed;
+      border: 1.5px solid #d4af37;
       border-radius: 8px;
       padding: 12px 18px;
+      flex: 1;
       max-width: 440px;
       text-align: right;
     }
@@ -1623,111 +1623,82 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const gold = [37, 99, 235]; // Unified with Blue
 
   // --- PAGE 1: TAX INVOICE ---
+  const issueDate = invoice?.enquiryDate || invoice?.issueDate || invoice?.createdAt || Date.now();
+  const formattedDate = invoice?.formattedDate || invoice?.invoiceDate || new Date(issueDate).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
+  const dueDate = invoice?.dueDate || "--";
 
-  // Brand Header Logo Badge (Top Left)
-  doc.setFillColor(239, 246, 255);
-  doc.roundedRect(40, 35, 120, 48, 4, 4, "F");
-  doc.setDrawColor(37, 99, 235);
-  doc.roundedRect(40, 35, 120, 48, 4, 4, "S");
+  // Header Left: Prepared Exclusively For (Matching BOQ Yellow Dossier Card)
+  doc.setFillColor(250, 246, 237);
+  doc.roundedRect(40, 36, 255, 82, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1);
+  doc.roundedRect(40, 36, 255, 82, 4, 4, "S");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10.5);
-  doc.setTextColor(37, 99, 235);
-  doc.text("VELORA", 100, 56, { align: "center" });
-  doc.setFontSize(7);
+  doc.setFontSize(8);
+  doc.setTextColor(158, 123, 29);
+  doc.text("PREPARED EXCLUSIVELY FOR", 50, 50);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(28, 25, 23);
+  doc.text(String(clientName).toUpperCase(), 50, 65);
+
   doc.setFont("helvetica", "normal");
-  doc.text("— ANTARAAL —", 100, 68, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(75, 70, 65);
+  doc.text(`Project Site: ${clientAddress}`, 50, 78);
+  if (clientPhone) {
+    doc.text(`Phone: (+91) ${clientPhone}  |  Date: ${formattedDate}`, 50, 90);
+    doc.text(`Invoice No: ${invNum}  |  PID: ${projNumber}`, 50, 102);
+  } else {
+    doc.text(`Date: ${formattedDate}  |  Invoice No: ${invNum}`, 50, 90);
+    doc.text(`Project Ref (PID): ${projNumber}  |  Due: ${dueDate}`, 50, 102);
+  }
 
-  // Company Details (Left below logo)
+  // Header Right: Prepared By / Company (Matching BOQ Yellow Dossier Card)
+  doc.setFillColor(250, 246, 237);
+  doc.roundedRect(305, 36, 250, 82, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1);
+  doc.roundedRect(305, 36, 250, 82, 4, 4, "S");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("VELORA ANTARAAL", 40, 100);
+  doc.setFontSize(8);
+  doc.setTextColor(158, 123, 29);
+  doc.text("PREPARED BY / COMPANY", 545, 50, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39); // Luxury Gold
+  doc.text("VELORA ANTARAAL LLP", 545, 65, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(120, 113, 108);
+  doc.text("INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION", 545, 76, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
-  doc.setTextColor(51, 65, 85);
-  const addrLines = doc.splitTextToSize("Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Wakad Chowk, Wakad, Pune - 411057, Maharashtra", 240);
-  doc.text(addrLines, 40, 112);
-  let compY = 112 + (addrLines.length * 9);
-  doc.text("Phone: +91 86055 26603 / 80555 26603", 40, compY);
-  doc.text("Email: info@velora.family | https://velora.family", 40, compY + 10);
-  doc.setFont("helvetica", "bold");
-  doc.text("GSTIN: 27CHCPS9945R1Z4  |  PAN: CHCPS9945R", 40, compY + 20);
+  doc.setTextColor(75, 70, 65);
+  doc.text("Shop No. 242/2/B1, Wakad, Pune - 411057", 545, 87, { align: "right" });
+  doc.text("Phone: +91 86055 26603 / 80555 26603", 545, 97, { align: "right" });
+  doc.text("GSTIN: 27CHCPS9945R1Z4  |  PAN: CHCPS9945R", 545, 107, { align: "right" });
 
-  // Large INVOICE Heading (Top Right)
+  // TAX INVOICE Title Divider
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  doc.setTextColor(...primaryBlue);
-  doc.text("TAX INVOICE", 555, 55, { align: "right" });
-
-  // Blue Total Value Box (Top Right)
-  doc.setFillColor(...primaryBlue);
-  doc.rect(290, 75, 265, 28, "F");
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(255, 255, 255);
-  doc.text("Total Value:", 300, 93);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, 545, 93, { align: "right" });
-
-  // Invoice Number, Date, Due Date, Project Info
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(71, 85, 105);
-  doc.text("Invoice Number:", 350, 116);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
-  doc.text(invNum, 545, 116, { align: "right" });
-
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text("Invoice Date:", 350, 128);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
-  doc.text(invoice?.formattedDate || invoice?.invoiceDate || new Date().toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" }), 545, 128, { align: "right" });
-
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text("Project Ref (PID):", 350, 140);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
-  doc.text(projNumber || "--", 545, 140, { align: "right" });
-
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text("Place of Supply:", 350, 152);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
-  doc.text("Maharashtra (27)", 545, 152, { align: "right" });
-
-  // BILL TO & SHIP TO Columns
-  // Single Clean Client Details Card (Added Only Once)
-  const billShipY = 175;
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(40, billShipY, 515, 48, 4, 4, "F");
-  doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(40, billShipY, 515, 48, 4, 4, "S");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text("CLIENT & PROJECT DETAILS", 50, billShipY + 13);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
-  doc.text(clientName, 50, billShipY + 25);
+  doc.setFontSize(14);
+  doc.setTextColor(28, 25, 23);
+  doc.text("TAX INVOICE", 40, 134);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  let contactStr = "";
-  if (clientPhone) contactStr += `Phone: (+91) ${clientPhone}   |   `;
-  if (clientEmail) contactStr += `Email: ${clientEmail}   |   `;
-  contactStr += `Project Site / Address: ${clientAddress}`;
-  const contactLines = doc.splitTextToSize(contactStr, 495);
-  doc.text(contactLines, 50, billShipY + 36);
+  doc.setTextColor(120, 113, 108);
+  doc.text("ORIGINAL FOR RECIPIENT", 555, 134, { align: "right" });
+
+  doc.setDrawColor(28, 25, 23);
+  doc.setLineWidth(1);
+  doc.line(40, 139, 555, 139);
 
   // Line Items Table
   const rawItems = (invoice?.items && invoice.items.length > 0)
@@ -1741,7 +1712,7 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
     it.serviceDescription || it.productName || it.name || "Interior Execution Item",
     it.hsnSac || "9954",
     String(it.quantity || 1),
-    String(it.unit || it.uom || "1"),
+    String(it.unit || it.uom || "Nos"),
     `Rs. ${(Number(it.rate) || 0).toLocaleString("en-IN")}`,
     `${it.gstPercent || 0}%`,
     `Rs. ${(Number(it.gstAmount) || 0).toLocaleString("en-IN")}`,
@@ -1749,13 +1720,13 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   ]);
 
   autoTable(doc, {
-    startY: billShipY + 56,
+    startY: 147,
     margin: { left: 40, right: 40 },
-    head: [["SN", "Service / Goods Description", "HSN/SAC", "Qty", "Unit", "Rate", "GST %", "GST (Rs)", "Total Amount"]],
+    head: [["SN", "Service Description", "HSN/SAC", "Qty", "Unit", "Rate", "GST %", "GST (Rs)", "Total Amount"]],
     body: tableBody,
     theme: "grid",
     headStyles: {
-      fillColor: primaryBlue,
+      fillColor: [28, 25, 23], // Neutral Charcoal / Stone 900 (No Blue)
       textColor: [255, 255, 255],
       fontSize: 8,
       fontStyle: "bold",
@@ -1763,43 +1734,46 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
     },
     bodyStyles: {
       fontSize: 8,
-      textColor: [30, 41, 59],
+      textColor: [28, 25, 23],
       cellPadding: 5
     },
     columnStyles: {
-      0: { cellWidth: 22, halign: "center", fontStyle: "bold" },
+      0: { cellWidth: 24, halign: "center", fontStyle: "bold" },
       1: { cellWidth: 155, fontStyle: "bold" },
       2: { cellWidth: 48, halign: "center" },
       3: { cellWidth: 30, halign: "center" },
       4: { cellWidth: 35, halign: "center" },
       5: { cellWidth: 60, halign: "right" },
-      6: { cellWidth: 40, halign: "center" },
+      6: { cellWidth: 38, halign: "center" },
       7: { cellWidth: 55, halign: "right" },
       8: { cellWidth: 70, halign: "right", fontStyle: "bold" }
     }
   });
 
-  let finalY = (doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 12 : 380);
+  let finalY = (doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 12 : 360);
 
   // Commercial Totals Section (Right Aligned)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(71, 85, 105);
+  doc.setTextColor(75, 70, 65);
   doc.text("Sub Total (Taxable)", 390, finalY);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(28, 25, 23);
   doc.text(`Rs. ${subtotal.toLocaleString("en-IN")}`, 555, finalY, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
+  doc.setFontSize(8.5);
+  doc.setTextColor(75, 70, 65);
   doc.text("Tax Amount (GST)", 390, finalY + 14);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(28, 25, 23);
   doc.text(`Rs. ${gstTotal.toLocaleString("en-IN")}`, 555, finalY + 14, { align: "right" });
 
+  // Warm Amber Total Value Box (Exact match to User Image)
   doc.setFillColor(250, 246, 237);
   doc.rect(380, finalY + 22, 175, 26, "F");
   doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(1);
   doc.rect(380, finalY + 22, 175, 26, "S");
 
   doc.setFont("helvetica", "bold");
@@ -1811,9 +1785,9 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
 
   // Amount in Words
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Amount in Words: ${numberToWordsIN(grandTotal)}`, 40, finalY + 40);
+  doc.setFontSize(8);
+  doc.setTextColor(28, 25, 23);
+  doc.text(`Amount in Words: ${numberToWordsIN(grandTotal)}`, 40, finalY + 38);
 
   // Bank Details & Scan to Pay (Left Column)
   let bankY = finalY + 58;
@@ -1822,59 +1796,66 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
     bankY = 40;
   }
 
-  doc.setDrawColor(...primaryBlue);
-  doc.setLineWidth(2);
-  doc.line(40, bankY, 40, bankY + 68);
+  doc.setFillColor(250, 246, 237);
+  doc.roundedRect(40, bankY, 410, 68, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1);
+  doc.roundedRect(40, bankY, 410, 68, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(...primaryBlue);
-  doc.text("Bank Details & Official Payment Instructions", 48, bankY + 10);
+  doc.setFontSize(8.5);
+  doc.setTextColor(158, 123, 29);
+  doc.text("BANK DETAILS & PAYMENT INSTRUCTIONS", 50, bankY + 14);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(51, 65, 85);
-  doc.text("Account Holder: VELORA ANTARAAL", 48, bankY + 22);
-  doc.text("Account Number: 50200073374185", 48, bankY + 33);
-  doc.text("IFSC Code: HDFC0000282    |    Branch: WAKAD, PUNE", 48, bankY + 44);
-  doc.text("Bank Name: HDFC Bank      |    Account Type: Current Account", 48, bankY + 55);
+  doc.text("Account Holder: VELORA ANTARAAL", 50, bankY + 27);
+  doc.text("Account Number: 50200073374185", 50, bankY + 38);
+  doc.text("IFSC Code: HDFC0000282    |    Branch: WAKAD, PUNE", 50, bankY + 49);
+  doc.text("Bank Name: HDFC Bank      |    Account Type: Current Account", 50, bankY + 60);
 
   // Scan to pay Box
-  let qrX = 475;
+  let qrX = 465;
   let qrY = bankY;
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(qrX, qrY, 90, 68, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.roundedRect(qrX, qrY, 90, 68, 4, 4, "S");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Scan to Pay (UPI)", qrX + 38, qrY + 10, { align: "center" });
+  doc.setFontSize(7.5);
+  doc.setTextColor(158, 123, 29);
+  doc.text("Scan to Pay (UPI)", qrX + 45, qrY + 12, { align: "center" });
 
   if (invoice?.paymentQrCode && invoice.paymentQrCode.startsWith("data:image")) {
     try {
-      doc.addImage(invoice.paymentQrCode, "JPEG", qrX, qrY + 14, 75, 75);
+      doc.addImage(invoice.paymentQrCode, "JPEG", qrX + 18, qrY + 16, 54, 48);
     } catch (e) {
-      doc.setDrawColor(203, 213, 225);
-      doc.rect(qrX, qrY + 14, 75, 55, "S");
       doc.setFontSize(7);
-      doc.text("PhonePe / UPI", qrX + 38, qrY + 44, { align: "center" });
+      doc.text("PhonePe / UPI", qrX + 45, qrY + 40, { align: "center" });
     }
   } else {
-    doc.setDrawColor(203, 213, 225);
-    doc.rect(qrX, qrY + 14, 75, 55, "S");
-    doc.setFontSize(7.5);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(180, 83, 9);
-    doc.text("PhonePe / UPI", qrX + 38, qrY + 38, { align: "center" });
+    doc.text("PhonePe / UPI", qrX + 45, qrY + 35, { align: "center" });
     doc.setFontSize(6.5);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(71, 85, 105);
-    doc.text("ACCEPTED HERE", qrX + 38, qrY + 48, { align: "center" });
+    doc.setTextColor(120, 113, 108);
+    doc.text("ACCEPTED HERE", qrX + 45, qrY + 47, { align: "center" });
   }
 
   // Notes Box
   let notesY = bankY + 76;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(28, 25, 23);
   doc.text("Notes / Declaration:", 40, notesY);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(75, 70, 65);
+  doc.text(invoice?.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.", 40, notesY + 11);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
@@ -2099,243 +2080,239 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       line-height: 1.45;
       background: #fff;
       -webkit-font-smoothing: antialiased;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .page-container {
       max-width: 900px;
       margin: 0 auto;
       padding: 18px;
       box-sizing: border-box;
-      border: 1.5px solid #000000;
+      border: 2px solid #000000;
       position: relative;
     }
-    .header-row {
+    .header-dossier-wrap {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 14px;
-      padding-bottom: 12px;
-      border-bottom: 1.5px solid #000000;
-    }
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      background: #0f172a;
-      border-radius: 6px;
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 14px;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-    }
-    .brand-subtitle {
-      font-size: 10.5px;
-      font-weight: 800;
-      color: #334155;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-    .company-info {
-      font-size: 11.5px;
-      color: #000000;
-      line-height: 1.45;
-      max-width: 420px;
-      font-weight: 500;
-    }
-    .invoice-title-box {
-      text-align: right;
-    }
-    .invoice-title {
-      font-size: 26px;
-      font-weight: 900;
-      color: #000000;
-      letter-spacing: 1px;
-      margin: 0 0 6px 0;
-    }
-    .total-value-banner {
-      background: #0f172a;
-      color: #fff;
-      padding: 9px 16px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       gap: 16px;
-      margin-top: 6px;
+      margin-bottom: 14px;
     }
-    .total-value-banner .val {
-      font-size: 19px;
-      font-weight: 900;
-      font-family: monospace;
-    }
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 4px 14px;
-      font-size: 12px;
-      color: #000000;
-      margin-top: 8px;
-      text-align: right;
-    }
-    .meta-grid strong {
-      color: #000000;
-      font-weight: 800;
-    }
-    .client-details-card {
-      background: #f8fafc;
-      border: 1.5px solid #cbd5e1;
+    .dossier-card {
+      background: #faf6ed;
+      border: 1.5px solid #d4af37;
       border-radius: 8px;
       padding: 12px 16px;
-      margin-bottom: 16px;
+      flex: 1;
+      min-width: 0;
     }
-    .client-card-title {
+    .dossier-card.right {
+      text-align: right;
+    }
+    .dossier-badge {
+      font-size: 9px;
       font-weight: 900;
-      font-size: 11px;
-      color: #0f172a;
+      color: #9e7b1d;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 4px;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+      display: block;
     }
-    .client-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px 20px;
-      font-size: 12.5px;
-      color: #000000;
+    .dossier-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #1c1917;
+      margin: 0 0 4px 0;
+      line-height: 1.2;
     }
-    .client-grid .label {
-      color: #475569;
-      font-weight: 600;
-      margin-right: 6px;
+    .dossier-title.gold {
+      color: #c9a227;
     }
-    .client-grid .val {
-      color: #000000;
+    .dossier-subtitle {
+      font-size: 9.5px;
       font-weight: 800;
+      color: #78716c;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .dossier-body {
+      font-size: 11px;
+      color: #44403c;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+    .dossier-body strong {
+      color: #1c1917;
+      font-weight: 800;
+    }
+    .invoice-title-divider {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0 10px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #1c1917;
+    }
+    .invoice-main-heading {
+      font-size: 18px;
+      font-weight: 900;
+      color: #1c1917;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+    .invoice-sub-heading {
+      font-size: 11px;
+      font-weight: 800;
+      color: #78716c;
+      text-transform: uppercase;
     }
     table.invoice-table {
       width: 100%;
       border-collapse: collapse;
-      border: 1.5px solid #000000;
-      margin-bottom: 14px;
+      border: 1.5px solid #1c1917;
+      margin-bottom: 12px;
       font-size: 12px;
     }
     table.invoice-table th {
-      background: #0f172a;
+      background: #1c1917;
       color: #ffffff;
       padding: 8px 10px;
-      font-weight: 800;
-      border: 1px solid #334155;
+      font-weight: 900;
+      border: 1px solid #292524;
       font-size: 11.5px;
+      letter-spacing: 0.3px;
     }
     table.invoice-table td {
       border: 1px solid #cbd5e1;
       padding: 8px 10px;
-      color: #000000;
+      color: #1c1917;
       vertical-align: middle;
-      font-weight: 500;
+      font-weight: 600;
     }
     table.invoice-table tr:nth-child(even) {
-      background: #f8fafc;
+      background: #fafaf9;
     }
     .totals-wrap {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-top: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       gap: 20px;
     }
     .words-box {
-      font-size: 11.5px;
-      color: #475569;
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 6px;
-      padding: 8px 12px;
+      font-size: 12px;
+      color: #1c1917;
+      background: #ffffff;
+      padding: 4px 0;
       flex: 1;
+      font-weight: 600;
     }
     .words-box strong {
-      color: #0f172a;
+      color: #1c1917;
+      font-weight: 900;
     }
     .summary-card {
-      width: 320px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #ffffff;
+      width: 300px;
     }
     .summary-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 14px;
-      border-bottom: 1px solid #f1f5f9;
+      padding: 4px 0;
       font-size: 12.5px;
-      font-weight: 600;
+      font-weight: 700;
+      color: #44403c;
     }
-    .summary-row.grand {
-      background: #fef3c7;
-      border-top: 1.5px solid #d97706;
-      border-bottom: none;
+    .summary-row .val {
+      font-weight: 900;
+      color: #1c1917;
+      font-family: monospace;
+    }
+    .total-value-box {
+      border: 1.5px solid #d97706;
+      background: #faf6ed;
+      border-radius: 4px;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .total-value-box .label {
+      font-size: 14px;
+      font-weight: 900;
       color: #b45309;
+    }
+    .total-value-box .amt {
       font-size: 16px;
       font-weight: 900;
-      padding: 10px 14px;
+      color: #b45309;
+      font-family: monospace;
     }
     .bottom-info-grid {
       display: grid;
       grid-template-columns: 1.6fr 1fr;
       gap: 14px;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1.5px solid #e2e8f0;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1.5px solid #d4af37;
     }
     .bank-card {
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #1d4ed8;
-      background: #f8fafc;
+      border: 1.5px solid #d4af37;
+      background: #faf6ed;
       padding: 10px 14px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11.5px;
+      color: #1c1917;
     }
     .bank-card h4 {
       margin: 0 0 6px 0;
-      font-size: 13px;
-      color: #1d4ed8;
+      font-size: 11.5px;
+      color: #9e7b1d;
       font-weight: 900;
+      text-transform: uppercase;
+    }
+    .bank-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      font-size: 11px;
+      color: #44403c;
+      font-weight: 600;
+    }
+    .bank-grid strong {
+      color: #1c1917;
+      font-weight: 800;
     }
     .qr-card {
-      border: 1px solid #e2e8f0;
+      border: 1.5px solid #d4af37;
       border-radius: 8px;
       padding: 8px;
       text-align: center;
-      background: #ffffff;
+      background: #faf6ed;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
     .qr-card img {
-      width: 90px;
-      height: 90px;
+      width: 75px;
+      height: 75px;
       object-fit: contain;
       border-radius: 6px;
     }
     .qr-card .qr-fallback {
-      width: 90px;
-      height: 90px;
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
+      width: 75px;
+      height: 75px;
+      background: #ffffff;
+      border: 1px dashed #d4af37;
       border-radius: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
-      color: #1d4ed8;
+      color: #b45309;
     }
     .tc-page-container {
       page-break-before: always;
@@ -2345,10 +2322,10 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       border-top: 2px dashed #cbd5e1;
     }
     .tc-header {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
       color: #b45309;
-      background: #fef3c7;
+      background: #faf6ed;
       padding: 8px 14px;
       border-radius: 6px;
       border: 1px solid #d97706;
@@ -2407,82 +2384,76 @@ export const printInvoice = (invoiceOrId, options = {}) => {
   </style>
 </head>
 <body>
-  <div class="no-print" style="background: #0f172a; color: #fff; padding: 10px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+  <div class="no-print" style="background: #1c1917; color: #fff; padding: 10px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
     <div style="display: flex; align-items: center; gap: 12px;">
-      <span style="font-weight: 900; font-size: 13.5px; color: #f59e0b; letter-spacing: 0.5px;">VELORA LUXURY TAX INVOICE (${invNum})</span>
-      <span style="color: #94a3b8; font-size: 11.5px;">| Print or Select "Save as PDF"</span>
+      <span style="font-weight: 900; font-size: 13.5px; color: #f59e0b; letter-spacing: 0.5px;">VELORA TAX INVOICE (${invNum})</span>
+      <span style="color: #a8a29e; font-size: 11.5px;">| Print or Select "Save as PDF"</span>
     </div>
 
     <!-- Live In-Preview T&C Toggle Switch -->
     <div style="display: flex; align-items: center; gap: 14px;">
-      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; user-select: none;">
+      <label style="display: inline-flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer; background: #292524; padding: 6px 12px; border-radius: 8px; border: 1px solid #44403c; user-select: none;">
         <input type="checkbox" id="tcToggle" ${includeTerms ? "checked" : ""} onchange="window.toggleTerms(this.checked)" style="width: 15px; height: 15px; accent-color: #f59e0b; cursor: pointer;" />
         <span>Include Terms & Conditions (T&C)</span>
       </label>
 
-      <button onclick="window.print()" style="background: #1d4ed8; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12px; cursor: pointer; transition: background 0.2s;">
+      <button onclick="window.print()" style="background: #d97706; color: #fff; border: none; padding: 7px 18px; border-radius: 8px; font-weight: 900; font-size: 12px; cursor: pointer; transition: background 0.2s;">
         Print / Save PDF
       </button>
-      <button onclick="window.close()" style="background: #334155; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">
+      <button onclick="window.close()" style="background: #44403c; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">
         Close
       </button>
     </div>
   </div>
 
   <div class="page-container">
-    <!-- Brand Header -->
-    <div class="header-row">
-      <div>
-        <div class="brand-badge">
-          <span>VELORA ANTARAAL</span>
-        </div>
-        <div class="brand-subtitle">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</div>
-        <div class="company-info">
-          <div>Shop No. 242/2/B1, Bafna Niwas, Aundh Hinjewadi Wakad Chowk, Wakad, Pune - 411057, Maharashtra</div>
-          <div>Phone: +91 86055 26603 / 80555 26603  |  Email: info@velora.family</div>
-          <div><strong>GSTIN:</strong> 27CHCPS9945R1Z4  |  <strong>PAN:</strong> CHCPS9945R  |  <strong>State:</strong> Maharashtra (27)</div>
-        </div>
-      </div>
-
-      <div class="invoice-title-box">
-        <h1 class="invoice-title">TAX INVOICE</h1>
-        <div class="total-value-banner">
-          <span style="font-size: 12px; font-weight: 600;">Total Value:</span>
-          <span class="val">₹ ${(grandTotal).toLocaleString("en-IN")}</span>
-        </div>
-
-        <div class="meta-grid">
-          <div><span>Invoice No:</span> <strong>${invNum}</strong></div>
-          <div><span>Date:</span> <strong>${formattedDate}</strong></div>
-          <div><span>Project PID:</span> <strong>${projNumber}</strong></div>
-          <div><span>Due Date:</span> <strong>${dueDate}</strong></div>
+    <!-- Header Row with Exact Yellow BOQ Dossier Cards -->
+    <div class="header-dossier-wrap">
+      <!-- Left Dossier Card: Prepared Exclusively For -->
+      <div class="dossier-card">
+        <span class="dossier-badge">PREPARED EXCLUSIVELY FOR</span>
+        <h2 class="dossier-title">${clientName.toUpperCase()}</h2>
+        <div class="dossier-body">
+          <div><strong>Project Site:</strong> ${clientAddress}</div>
+          ${clientPhone ? `<div><strong>Phone:</strong> (+91) ${clientPhone}</div>` : ''}
+          ${clientEmail ? `<div><strong>Email:</strong> ${clientEmail}</div>` : ''}
+          <div><strong>Date:</strong> ${formattedDate} &nbsp;|&nbsp; <strong>Due Date:</strong> ${dueDate}</div>
+          <div><strong>Invoice No:</strong> ${invNum} &nbsp;|&nbsp; <strong>Project PID:</strong> ${projNumber}</div>
         </div>
       </div>
-    </div>
 
-    <!-- Single Client & Site Details Box (Added Only Once) -->
-    <div class="client-details-card">
-      <div class="client-card-title">CLIENT & PROJECT DETAILS</div>
-      <div class="client-grid">
-        <div><span class="label">Client Name:</span> <strong class="val">${clientName}</strong></div>
-        <div><span class="label">Phone:</span> <strong class="val">${clientPhone ? `(+91) ${clientPhone}` : '--'}</strong></div>
-        <div><span class="label">Email:</span> <strong class="val">${clientEmail || '--'}</strong></div>
-        <div><span class="label">Project Site / Address:</span> <strong class="val">${clientAddress}</strong></div>
+      <!-- Right Dossier Card: Prepared By / Company -->
+      <div class="dossier-card right">
+        <span class="dossier-badge">PREPARED BY / COMPANY</span>
+        <h2 class="dossier-title gold">VELORA ANTARAAL LLP</h2>
+        <div class="dossier-subtitle">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</div>
+        <div class="dossier-body">
+          <div>Shop No. 242/2/B1, Bafna Niwas, Aundh Wakad Rd, Pune - 411057</div>
+          <div><strong>Phone:</strong> +91 86055 26603 / 80555 26603</div>
+          <div><strong>Email:</strong> info@velora.family &nbsp;|&nbsp; <strong>Web:</strong> https://velora.family</div>
+          <div><strong>GSTIN:</strong> 27CHCPS9945R1Z4 &nbsp;|&nbsp; <strong>PAN:</strong> CHCPS9945R</div>
+        </div>
       </div>
     </div>
 
-    <!-- Line Items Table -->
+    <!-- Title Divider -->
+    <div class="invoice-title-divider">
+      <h1 class="invoice-main-heading">TAX INVOICE</h1>
+      <span class="invoice-sub-heading">ORIGINAL FOR RECIPIENT</span>
+    </div>
+
+    <!-- Line Items Table (Exact Columns as User Screenshot, Clean Dark/Stone Style without Blue) -->
     <table class="invoice-table">
       <thead>
         <tr>
           <th style="width: 32px; text-align: center;">SN</th>
-          <th style="text-align: left;">Service / Goods Description</th>
+          <th style="text-align: left;">Service Description</th>
           <th style="width: 70px; text-align: center;">HSN/SAC</th>
           <th style="width: 45px; text-align: center;">Qty</th>
           <th style="width: 50px; text-align: center;">Unit</th>
-          <th style="width: 85px; text-align: right;">Unit Rate</th>
+          <th style="width: 85px; text-align: right;">Rate</th>
           <th style="width: 55px; text-align: center;">GST %</th>
-          <th style="width: 80px; text-align: right;">GST (₹)</th>
+          <th style="width: 80px; text-align: right;">GST (Rs)</th>
           <th style="width: 95px; text-align: right;">Total Amount</th>
         </tr>
       </thead>
@@ -2496,30 +2467,29 @@ export const printInvoice = (invoiceOrId, options = {}) => {
 
     return `
             <tr>
-              <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
+              <td style="text-align: center; font-weight: 800;">${idx + 1}</td>
               <td>
-                <div style="font-weight: 800; color: #0f172a;">${it.serviceDescription || it.productName || it.name || "Interior Scope"}</div>
-                ${it.description ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">${it.description}</div>` : ""}
+                <div style="font-weight: 800; color: #1c1917;">${it.serviceDescription || it.productName || it.name || "Interior Scope"}</div>
+                ${it.description ? `<div style="font-size: 10.5px; color: #78716c; margin-top: 2px;">${it.description}</div>` : ""}
               </td>
-              <td style="text-align: center; font-family: monospace; color: #64748b;">${it.hsnSac || "9954"}</td>
-              <td style="text-align: center; font-weight: 700;">${qty}</td>
-              <td style="text-align: center; color: #64748b;">${it.unit || it.uom || "1"}</td>
-              <td style="text-align: right; font-weight: 700;">₹ ${(rate).toLocaleString("en-IN")}</td>
-              <td style="text-align: center; font-weight: 600;">${gstP}%</td>
-              <td style="text-align: right; color: #64748b;">₹ ${(gstA).toLocaleString("en-IN")}</td>
-              <td style="text-align: right; font-weight: 900; color: #0f172a;">₹ ${(tot).toLocaleString("en-IN")}</td>
+              <td style="text-align: center; font-family: monospace; color: #57534e;">${it.hsnSac || "9954"}</td>
+              <td style="text-align: center; font-weight: 800;">${qty}</td>
+              <td style="text-align: center; color: #57534e;">${it.unit || it.uom || "Nos"}</td>
+              <td style="text-align: right; font-weight: 700;">Rs. ${(rate).toLocaleString("en-IN")}</td>
+              <td style="text-align: center; font-weight: 700;">${gstP}%</td>
+              <td style="text-align: right; color: #57534e;">Rs. ${(gstA).toLocaleString("en-IN")}</td>
+              <td style="text-align: right; font-weight: 900; color: #1c1917;">Rs. ${(tot).toLocaleString("en-IN")}</td>
             </tr>
           `;
   }).join("")}
       </tbody>
     </table>
 
-    <!-- Commercial Totals & Amount in Words -->
+    <!-- Commercial Totals & Amount in Words (Exact Match to User Screenshot) -->
     <div class="totals-wrap">
       <div class="words-box">
-        <div><strong>Amount in Words:</strong></div>
-        <div style="margin-top: 3px; font-weight: 600; color: #0f172a;">${numberToWordsIN(grandTotal)}</div>
-        <div style="margin-top: 8px; font-size: 11px; color: #64748b;">
+        <div><strong>Amount in Words:</strong> ${numberToWordsIN(grandTotal)}</div>
+        <div style="margin-top: 6px; font-size: 11px; color: #78716c;">
           <strong>Notes:</strong> ${invoice.notes || "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies."}
         </div>
       </div>
@@ -2527,26 +2497,24 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       <div class="summary-card">
         <div class="summary-row">
           <span>Sub Total (Taxable)</span>
-          <span>₹ ${(subtotal).toLocaleString("en-IN")}</span>
+          <span class="val">Rs. ${(subtotal).toLocaleString("en-IN")}</span>
         </div>
-        ${gstTotal > 0 ? `
-          <div class="summary-row">
-            <span>Tax Amount (GST ${taxPercent}%)</span>
-            <span>₹ ${(gstTotal).toLocaleString("en-IN")}</span>
-          </div>
-        ` : ""}
-        <div class="summary-row grand">
-          <span>Grand Total</span>
-          <span>₹ ${(grandTotal).toLocaleString("en-IN")}</span>
+        <div class="summary-row">
+          <span>Tax Amount (GST)</span>
+          <span class="val">Rs. ${(gstTotal).toLocaleString("en-IN")}</span>
+        </div>
+        <div class="total-value-box">
+          <span class="label">Total Value</span>
+          <span class="amt">Rs. ${(grandTotal).toLocaleString("en-IN")}</span>
         </div>
       </div>
     </div>
 
-    <!-- Bank Details & Payment Instructions + QR Code -->
+    <!-- Bank Details & Payment Instructions + QR Code (No Blue) -->
     <div class="bottom-info-grid">
       <div class="bank-card">
         <h4>Bank Details & Payment Instructions</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 11.5px; color: #334155;">
+        <div class="bank-grid">
           <div>Account Holder: <strong>VELORA ANTARAAL</strong></div>
           <div>Account Number: <strong>50200073374185</strong></div>
           <div>IFSC Code: <strong>HDFC0000282</strong></div>
@@ -2557,14 +2525,14 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       </div>
 
       <div class="qr-card">
-        <div style="font-size: 11px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Scan to Pay (UPI)</div>
+        <div style="font-size: 10.5px; font-weight: 900; color: #9e7b1d; margin-bottom: 3px; text-transform: uppercase;">Scan to Pay (UPI)</div>
         ${paymentQrCode ? `
           <img src="${paymentQrCode}" alt="PhonePe QR Code" onerror="this.style.display='none'" />
         ` : `
           <div class="qr-fallback">
-            <span style="font-size: 14px;">📱</span>
+            <span style="font-size: 13px;">📱</span>
             <span>PhonePe / UPI</span>
-            <span style="font-size: 8px; color: #64748b;">ACCEPTED HERE</span>
+            <span style="font-size: 7.5px; color: #78716c;">ACCEPTED HERE</span>
           </div>
         `}
       </div>

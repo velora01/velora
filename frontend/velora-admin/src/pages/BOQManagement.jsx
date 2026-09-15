@@ -3633,11 +3633,11 @@ export default function BOQManagement() {
             {/* Modal Body */}
             {quotationModalTab === "preview" ? (
               <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
-                {/* Header Row with Matching Styled Client & Company Dossier Cards */}
+                {/* Header Row with Matching Yellow/Gold Styled Client & Company Dossier Cards */}
                 <div className="flex flex-wrap items-stretch justify-between gap-6 pb-4 border-b border-stone-200">
                   {/* Left: Prepared For Dossier Card */}
-                  <div className="bg-gradient-to-br from-amber-50/50 to-stone-50 border border-amber-200 border-l-4 border-l-amber-500 rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px]">
-                    <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
+                  <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4.5 space-y-1.5 flex-1 min-w-[280px] shadow-2xs">
+                    <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
                     <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
                     <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-600 font-medium pt-1">
                       <p><strong>Project Site:</strong> {quotationBOQ.siteLocation || quotationBOQ.siteAddress || "Wakad, Pune"}</p>
@@ -3651,10 +3651,10 @@ export default function BOQManagement() {
                     </div>
                   </div>
 
-                  {/* Right: Company Dossier Card with same matching background */}
-                  <div className="bg-gradient-to-br from-amber-50/50 to-stone-50 border border-amber-200 border-r-4 border-r-amber-500 rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] text-right">
-                    <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">PREPARED BY / COMPANY</span>
-                    <h2 className="text-xl font-black text-amber-600 tracking-tight">VELORA ANTARAAL LLP</h2>
+                  {/* Right: Company Dossier Card with same matching yellow background & gold border */}
+                  <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4.5 space-y-1.5 flex-1 min-w-[280px] text-right shadow-2xs">
+                    <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED BY / COMPANY</span>
+                    <h2 className="text-xl font-black text-[#c9a227] tracking-tight">VELORA ANTARAAL LLP</h2>
                     <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-600 font-medium pt-1">
                       <p className="font-bold text-stone-700">INTERIOR DESIGN | DÉCOR | RETAIL</p>
                       <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Rd, Pune - 411033</p>

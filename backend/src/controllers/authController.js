@@ -122,7 +122,21 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    const cleanEmail = email.trim();
+    const user = await User.findOne({
+      $or: [
+        { email: cleanEmail.toLowerCase() },
+        { email: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }
+      ]
+    });
+
     if (!user) {
       return res.status(401).json({
         success: false,

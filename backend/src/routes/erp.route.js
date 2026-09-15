@@ -129,8 +129,8 @@ router.put("/site-visits/:id", updateSiteVisit);
 router.get("/calendar", getEvents);
 router.post("/calendar", createEvent);
 
-// Users & Roles (Admin & Super Admin only)
-router.get("/users", checkRole(["Admin", "Super Admin"]), getUsers);
+// Users & Roles (Staff directory readable by authenticated users; management restricted to Admin)
+router.get("/users", getUsers);
 router.post("/users", checkRole(["Admin", "Super Admin"]), createUser);
 router.put("/users/:id", checkRole(["Admin", "Super Admin"]), updateUser);
 router.put("/users/:id/role", checkRole(["Admin", "Super Admin"]), updateUserRole);

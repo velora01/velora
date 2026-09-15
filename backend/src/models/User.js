@@ -59,8 +59,21 @@ userSchema.pre("save", async function () {
   }
 });
 
-// Helper method to compare passwords
+// Helper method to compare passwords (supports bcrypt hashes with plain text migration safeguard)
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password || !candidatePassword) return false;
+  
+  // If stored password is plain text (not a bcrypt hash)
+  if (!this.password.startsWith("$2a$") && !this.password.startsWith("$2b$") && !this.password.startsWith("$2y$")) {
+    if (this.password === candidatePassword) {
+      // Re-hash to bcrypt and persist
+      this.password = candidatePassword;
+      await this.save();
+      return true;
+    }
+    return false;
+  }
+  
   return bcrypt.compare(candidatePassword, this.password);
 };
 

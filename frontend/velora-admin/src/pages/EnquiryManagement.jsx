@@ -75,6 +75,7 @@ export default function EnquiryManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToast, setSuccessToast] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [staffUsers, setStaffUsers] = useState([]);
 
   // Form State
   const initialFormData = {
@@ -232,9 +233,22 @@ export default function EnquiryManagement() {
     }
   }, [search, pagination.page, pagination.limit, filterStatus, filterProjectType, filterSource]);
 
+  // Fetch real staff accounts created in the system for Handled By & Designed By dropdowns
+  const fetchStaffUsers = useCallback(async () => {
+    try {
+      const res = await erpApi.getUsers();
+      if (res?.data && Array.isArray(res.data)) {
+        setStaffUsers(res.data);
+      }
+    } catch (err) {
+      console.warn("Could not load staff accounts:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchEnquiries();
-  }, [fetchEnquiries]);
+    fetchStaffUsers();
+  }, [fetchEnquiries, fetchStaffUsers]);
 
   // Form field change handler
   const handleInputChange = (field, value) => {
@@ -574,7 +588,7 @@ export default function EnquiryManagement() {
                     wizardStep === 3 ? "text-blue-600" : "text-slate-600"
                   }`}
                 >
-                  Additional Detail
+                  Scope of Work
                 </span>
               </div>
             </div>
@@ -1037,12 +1051,19 @@ export default function EnquiryManagement() {
                     <select
                       value={formData.handledBy}
                       onChange={(e) => handleInputChange("handledBy", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition font-medium"
                     >
-                      <option value="Admin">Admin</option>
-                      <option value="Sales Manager Rahul">Sales Manager Rahul</option>
-                      <option value="Relationship Lead Sneha">Relationship Lead Sneha</option>
-                      <option value="Sr. Consultant Amit">Sr. Consultant Amit</option>
+                      <option value="Admin">Admin (Super Admin)</option>
+                      {staffUsers.map((u) => (
+                        <option key={u._id || u.email} value={u.name}>
+                          {u.name} ({u.role || "Staff"})
+                        </option>
+                      ))}
+                      {formData.handledBy &&
+                        formData.handledBy !== "Admin" &&
+                        !staffUsers.some((u) => u.name === formData.handledBy) && (
+                          <option value={formData.handledBy}>{formData.handledBy}</option>
+                        )}
                     </select>
                   </div>
 
@@ -1054,12 +1075,19 @@ export default function EnquiryManagement() {
                     <select
                       value={formData.designedBy}
                       onChange={(e) => handleInputChange("designedBy", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition font-medium"
                     >
-                      <option value="Lead Designer">Lead Designer</option>
-                      <option value="Architect Rohit">Architect Rohit</option>
-                      <option value="Designer Priya">Designer Priya</option>
-                      <option value="3D Visualizer Karan">3D Visualizer Karan</option>
+                      <option value="Admin">Admin</option>
+                      {staffUsers.map((u) => (
+                        <option key={u._id || u.email} value={u.name}>
+                          {u.name} ({u.role || "Staff"})
+                        </option>
+                      ))}
+                      {formData.designedBy &&
+                        formData.designedBy !== "Admin" &&
+                        !staffUsers.some((u) => u.name === formData.designedBy) && (
+                          <option value={formData.designedBy}>{formData.designedBy}</option>
+                        )}
                     </select>
                   </div>
 
@@ -1297,21 +1325,23 @@ export default function EnquiryManagement() {
           )}
 
           {/* ============================================================= */}
-          {/* STEP 3: ADDITIONAL DETAIL */}
+          {/* STEP 3: SCOPE OF WORK (ONLY Scope of Work) */}
           {/* ============================================================= */}
           {wizardStep === 3 && (
             <div className="space-y-8 animate-in fade-in duration-150">
               <div className="space-y-6">
-                <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
-                  Additional Detail & Scope of Work
-                </h2>
+                <div className="border-b border-slate-100 pb-3">
+                  <h2 className="text-sm font-extrabold text-blue-700 tracking-wide">
+                    Scope of Work
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select all applicable work scopes and components required for this project.
+                  </p>
+                </div>
 
                 {/* Scope of Work Multi-select Badges */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-2">
-                    Scope of Work
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {scopeOptions.map((item) => {
                       const isSelected = formData.scopeOfWork.includes(item);
                       return (
@@ -1319,66 +1349,18 @@ export default function EnquiryManagement() {
                           key={item}
                           type="button"
                           onClick={() => handleScopeToggle(item)}
-                          className={`p-3 rounded-xl border text-left text-xs font-medium transition flex items-center justify-between cursor-pointer ${
+                          className={`p-3.5 rounded-xl border text-left text-xs font-medium transition flex items-center justify-between cursor-pointer ${
                             isSelected
-                              ? "bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-xs"
-                              : "bg-white border-slate-200 text-slate-700 hover:bg-blue-50/30"
+                              ? "bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-xs ring-1 ring-blue-500/20"
+                              : "bg-white border-slate-200 text-slate-700 hover:bg-blue-50/30 hover:border-slate-300"
                           }`}
                         >
                           <span>{item}</span>
-                          {isSelected && <Check size={14} className="text-blue-600" />}
+                          {isSelected && <Check size={15} className="text-blue-600 shrink-0" />}
                         </button>
                       );
                     })}
                   </div>
-                </div>
-
-                {/* Style Preference & Estimated Budget */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Design Style Preference
-                    </label>
-                    <select
-                      value={formData.stylePreference}
-                      onChange={(e) => handleInputChange("stylePreference", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition"
-                    >
-                      <option value="Modern">Modern Minimalist</option>
-                      <option value="Luxury Contemporary">Luxury Contemporary</option>
-                      <option value="Scandinavian">Scandinavian Clean</option>
-                      <option value="Traditional">Traditional Royal</option>
-                      <option value="Industrial">Industrial Loft</option>
-                      <option value="Bohemian">Bohemian Chic</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Initial Estimated Value (₹)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2500000"
-                      value={formData.estimatedValue}
-                      onChange={(e) => handleInputChange("estimatedValue", e.target.value)}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Special Notes / Floor Plan Info */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Client Special Notes & Requirements
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="Enter special requirements, timeline urgency, or architectural notes..."
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
-                  />
                 </div>
               </div>
 

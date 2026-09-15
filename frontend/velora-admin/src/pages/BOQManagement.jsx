@@ -245,7 +245,7 @@ export default function BOQManagement() {
           (!boqToDelete.boqNumber || b.boqNumber !== boqToDelete.boqNumber)
       );
       localStorage.setItem("velora_custom_boqs", JSON.stringify(updatedLocal));
-    } catch (e) {}
+    } catch (e) { }
 
     // Remove from persistent used enquiry tracker so it becomes available for New BOQ again
     try {
@@ -259,7 +259,7 @@ export default function BOQManagement() {
           u.toLowerCase() !== (boqToDelete.clientName || "").toLowerCase()
       );
       localStorage.setItem("velora_used_enquiry_nos", JSON.stringify(updatedUsed));
-    } catch (e) {}
+    } catch (e) { }
 
     setBoqList((prev) =>
       prev.filter(
@@ -313,7 +313,7 @@ export default function BOQManagement() {
         }));
         try {
           localStorage.setItem("velora_custom_boqs", JSON.stringify(merged));
-        } catch (e) {}
+        } catch (e) { }
       } else {
         const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
         setBoqList(localBOQs);
@@ -336,7 +336,7 @@ export default function BOQManagement() {
         setEnquiryList(res.data);
         try {
           localStorage.setItem("velora_custom_enquiries", JSON.stringify(res.data));
-        } catch (e) {}
+        } catch (e) { }
       } else {
         const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
         setEnquiryList(localSaved);
@@ -415,7 +415,7 @@ export default function BOQManagement() {
       const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
       const filteredLocal = existingLocal.filter((b) => b._id !== newBOQ._id && (!newBOQ.enquiryNo || b.enquiryNo !== newBOQ.enquiryNo));
       localStorage.setItem("velora_custom_boqs", JSON.stringify([newBOQ, ...filteredLocal]));
-    } catch (e) {}
+    } catch (e) { }
 
     // 3. Immediately send to backend MongoDB (non-blocking)
     if (newBOQ._id && !String(newBOQ._id).startsWith("temp_") && !String(newBOQ._id).startsWith("boq_")) {
@@ -438,7 +438,7 @@ export default function BOQManagement() {
             const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
             const filteredLocal = existingLocal.filter((b) => b._id !== syncedBOQ._id && (!syncedBOQ.enquiryNo || b.enquiryNo !== syncedBOQ.enquiryNo));
             localStorage.setItem("velora_custom_boqs", JSON.stringify([syncedBOQ, ...filteredLocal]));
-          } catch (e) {}
+          } catch (e) { }
         }
       }).catch((err) => console.warn("Auto-save createBOQ error:", err));
     }
@@ -480,7 +480,7 @@ export default function BOQManagement() {
       if (foundLocal && foundLocal.spaces && foundLocal.spaces.some((s) => s.items?.length > 0)) {
         target = foundLocal;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     setActiveBOQ({
       ...target,
@@ -524,7 +524,7 @@ export default function BOQManagement() {
       const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
       const filteredLocal = existingLocal.filter((b) => b._id !== activeBOQ._id && b.enquiryNo !== activeBOQ.enquiryNo);
       localStorage.setItem("velora_custom_boqs", JSON.stringify([activeBOQ, ...filteredLocal]));
-    } catch (e) {}
+    } catch (e) { }
 
     // 2. Debounced sync to backend MongoDB
     const timer = setTimeout(async () => {
@@ -549,7 +549,7 @@ export default function BOQManagement() {
   const handleSelectEnquiryToCreateBOQ = async (enquiry) => {
     setIsSelectClientModalOpen(false);
     const targetEnquiry = enquiry || { name: "Client", enquiryNo: "" };
-    
+
     // Check if this enquiry already has an existing saved BOQ in boqList
     const existing = boqList.find((b) => {
       const eNo = (targetEnquiry.enquiryNo || "").trim().toLowerCase();
@@ -612,7 +612,7 @@ export default function BOQManagement() {
       const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
       const filteredLocal = existingLocal.filter((b) => b._id !== initialBOQ._id && b.enquiryNo !== initialBOQ.enquiryNo);
       localStorage.setItem("velora_custom_boqs", JSON.stringify([initialBOQ, ...filteredLocal]));
-    } catch (e) {}
+    } catch (e) { }
 
     setActiveBOQ(initialBOQ);
     setActiveSpaceIdx(0);
@@ -902,7 +902,7 @@ export default function BOQManagement() {
     if (!activeBOQ) return;
 
     const updated = JSON.parse(JSON.stringify(activeBOQ));
-    
+
     const updateSpaceItems = (sp) => {
       sp.items = sp.items.map((item) => {
         const matchedComp = libraryComponents.find(
@@ -979,11 +979,11 @@ export default function BOQManagement() {
     // Gather all candidate images
     const candidatePhotos = targetComp.elite
       ? [
-          ...(targetComp.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
-          ...(targetComp.premium?.images || []).map((i) => ({ ...i, variant: "Premium" })),
-          ...(targetComp.standard?.images || []).map((i) => ({ ...i, variant: "Standard" })),
-          ...(targetComp.images || []).map((i) => ({ ...i, variant: "General" }))
-        ]
+        ...(targetComp.elite?.images || []).map((i) => ({ ...i, variant: "Elite" })),
+        ...(targetComp.premium?.images || []).map((i) => ({ ...i, variant: "Premium" })),
+        ...(targetComp.standard?.images || []).map((i) => ({ ...i, variant: "Standard" })),
+        ...(targetComp.images || []).map((i) => ({ ...i, variant: "General" }))
+      ]
       : [];
 
     setCustomMixState({
@@ -2654,11 +2654,10 @@ export default function BOQManagement() {
                       onClick={() => {
                         setNewSpaceName(spaceName);
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer border ${
-                        newSpaceName === spaceName
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer border ${newSpaceName === spaceName
                           ? "bg-blue-600 text-white border-blue-600 font-bold shadow-2xs"
                           : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-blue-50 hover:border-blue-300"
-                      }`}
+                        }`}
                     >
                       + {spaceName}
                     </button>

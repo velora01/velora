@@ -118,7 +118,7 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   const discountValue = Number(boq?.discountValue || 0);
   const discountAmount = Number(boq?.discountAmount) || (discountType === "percent" ? Math.round(spacesSubtotal * (discountValue / 100)) : Math.min(spacesSubtotal, Math.round(discountValue)));
   const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
-  const gstPercent = boq?.gstPercent !== undefined ? Number(boq.gstPercent) : 18;
+  const gstPercent = boq?.gstPercent !== undefined ? Number(boq.gstPercent) : 0;
   const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const gstTotal = cgstAmount + sgstAmount;
@@ -758,7 +758,7 @@ export const printBOQQuotation = (boq, options = {}) => {
   const discountValue = Number(boq.discountValue || 0);
   const discountAmount = Number(boq.discountAmount) || (discountType === "percent" ? Math.round(spacesSubtotal * (discountValue / 100)) : Math.min(spacesSubtotal, Math.round(discountValue)));
   const taxableAmount = Math.max(0, spacesSubtotal - discountAmount);
-  const gstPercent = boq.gstPercent !== undefined ? Number(boq.gstPercent) : 18;
+  const gstPercent = boq.gstPercent !== undefined ? Number(boq.gstPercent) : 0;
   const cgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const sgstAmount = Math.round(taxableAmount * (gstPercent / 200));
   const gstTotal = cgstAmount + sgstAmount;

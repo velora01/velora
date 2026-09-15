@@ -142,24 +142,19 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.roundedRect(40, 36, 255, 78, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(158, 123, 29);
-  doc.text("PREPARED EXCLUSIVELY FOR", 50, 50);
-
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(28, 25, 23);
-  doc.text(String(clientName).toUpperCase(), 50, 66);
+  doc.text(String(clientName).toUpperCase(), 50, 58);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(75, 70, 65);
-  doc.text(`Project Site: ${siteLocation}`, 50, 80);
+  doc.text(`Project Site: ${siteLocation}`, 50, 74);
   if (clientPhone) {
-    doc.text(`Phone: ${clientPhone}  |  Date: ${formattedDate}`, 50, 93);
-    doc.text(`Quotation Ref: ${boqNum}`, 50, 105);
+    doc.text(`Phone: ${clientPhone}  |  Date: ${formattedDate}`, 50, 88);
+    doc.text(`Quotation Ref: ${boqNum}`, 50, 101);
   } else {
-    doc.text(`Date: ${formattedDate}  |  Quotation Ref: ${boqNum}`, 50, 93);
+    doc.text(`Date: ${formattedDate}  |  Quotation Ref: ${boqNum}`, 50, 88);
   }
 
   // Header Right: Company Dossier Card with matching background and border
@@ -170,19 +165,14 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
   doc.roundedRect(305, 36, 250, 78, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(158, 123, 29);
-  doc.text("PREPARED BY / COMPANY", 545, 50, { align: "right" });
-
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(201, 162, 39); // Luxury Gold
-  doc.text("VELORA ANTARAAL LLP", 545, 66, { align: "right" });
+  doc.text("VELORA ANTARAAL LLP", 545, 58, { align: "right" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(120, 113, 108);
-  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 545, 78, { align: "right" });
+  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 545, 72, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
@@ -1314,7 +1304,6 @@ export const printBOQQuotation = (boq, options = {}) => {
     <!-- Brand Header -->
     <div class="header-row">
       <div class="client-box">
-        <span class="prep-badge">PREPARED EXCLUSIVELY FOR</span>
         <h2>${clientName}</h2>
         <div class="client-meta-grid">
           <div><strong>Project Site:</strong> ${siteLocation}</div>
@@ -1326,7 +1315,6 @@ export const printBOQQuotation = (boq, options = {}) => {
       </div>
 
       <div class="brand-box">
-        <span class="prep-badge">PREPARED BY / COMPANY</span>
         <h1>VELORA ANTARAAL LLP</h1>
         <div class="brand-meta-grid">
           <div><strong>INTERIOR DESIGN | DÉCOR | RETAIL</strong></div>
@@ -1487,9 +1475,10 @@ export const printBOQQuotation = (boq, options = {}) => {
       <!-- 3. Terms and Conditions (16 Clauses) -->
       <div class="accent-bar-title">Terms and Conditions</div>
       <ol class="tc-list">
-        ${(companySettings.termsAndConditions?.termsList || tcTemplate.termsList).map((item) => `
-          <li><strong>${item.title ? `${item.title}: ` : ""}</strong>${item.text}</li>
-        `).join("")}
+        ${(companySettings.termsAndConditions?.termsList || tcTemplate.termsList).map((item) => {
+    const cleanTitle = (item.title || "").replace(/^\d+[\.\)]\s*/, "").trim();
+    return `<li>${cleanTitle ? `<strong>${cleanTitle}: </strong>` : ""}${item.text}</li>`;
+  }).join("")}
       </ol>
 
       <div class="tc-note-box">
@@ -1499,9 +1488,10 @@ export const printBOQQuotation = (boq, options = {}) => {
       <!-- 4. Material Details -->
       <div class="accent-bar-title" style="margin-top: 24px;">Material Details:</div>
       <ol class="tc-list">
-        ${(companySettings.termsAndConditions?.materialDetails || tcTemplate.materialDetails).map((mat) => `
-          <li><strong>${mat.title}: </strong>${mat.text}</li>
-        `).join("")}
+        ${(companySettings.termsAndConditions?.materialDetails || tcTemplate.materialDetails).map((mat) => {
+    const cleanTitle = (mat.title || "").replace(/^\d+[\.\)]\s*/, "").trim();
+    return `<li>${cleanTitle ? `<strong>${cleanTitle}: </strong>` : ""}${mat.text}</li>`;
+  }).join("")}
       </ol>
 
       <!-- 5. Warranty Details -->
@@ -1627,7 +1617,7 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   const formattedDate = invoice?.formattedDate || invoice?.invoiceDate || new Date(issueDate).toLocaleDateString("en-IN", { month: "short", day: "2-digit", year: "numeric" });
   const dueDate = invoice?.dueDate || "--";
 
-  // Header Left: Prepared Exclusively For (Matching BOQ Yellow Dossier Card)
+  // Header Left: Client Details (Matching BOQ Yellow Dossier Card)
   doc.setFillColor(250, 246, 237);
   doc.roundedRect(40, 36, 255, 82, 4, 4, "F");
   doc.setDrawColor(212, 175, 55);
@@ -1635,55 +1625,45 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   doc.roundedRect(40, 36, 255, 82, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(158, 123, 29);
-  doc.text("PREPARED EXCLUSIVELY FOR", 50, 50);
-
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(28, 25, 23);
-  doc.text(String(clientName).toUpperCase(), 50, 65);
+  doc.text(String(clientName).toUpperCase(), 50, 58);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(75, 70, 65);
-  doc.text(`Project Site: ${clientAddress}`, 50, 78);
+  doc.text(`Project Site: ${clientAddress}`, 50, 72);
   if (clientPhone) {
-    doc.text(`Phone: (+91) ${clientPhone}  |  Date: ${formattedDate}`, 50, 90);
-    doc.text(`Invoice No: ${invNum}  |  PID: ${projNumber}`, 50, 102);
+    doc.text(`Phone: (+91) ${clientPhone}  |  Date: ${formattedDate}`, 50, 85);
+    doc.text(`Invoice No: ${invNum}  |  PID: ${projNumber}`, 50, 98);
   } else {
-    doc.text(`Date: ${formattedDate}  |  Invoice No: ${invNum}`, 50, 90);
-    doc.text(`Project Ref (PID): ${projNumber}  |  Due: ${dueDate}`, 50, 102);
+    doc.text(`Date: ${formattedDate}  |  Invoice No: ${invNum}`, 50, 85);
+    doc.text(`Project Ref (PID): ${projNumber}  |  Due: ${dueDate}`, 50, 98);
   }
 
-  // Header Right: Prepared By / Company (Matching BOQ Yellow Dossier Card)
+  // Header Right: Company Details (Matching BOQ Yellow Dossier Card)
   doc.setFillColor(250, 246, 237);
   doc.roundedRect(305, 36, 250, 82, 4, 4, "F");
   doc.setDrawColor(212, 175, 55);
   doc.setLineWidth(1);
-  doc.roundedRect(305, 36, 250, 82, 4, 4, "S");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(158, 123, 29);
-  doc.text("PREPARED BY / COMPANY", 545, 50, { align: "right" });
+  doc.roundedRect(305, 36, 250, 78, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(201, 162, 39); // Luxury Gold
-  doc.text("VELORA ANTARAAL LLP", 545, 65, { align: "right" });
+  doc.text("VELORA ANTARAAL LLP", 545, 58, { align: "right" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(120, 113, 108);
-  doc.text("INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION", 545, 76, { align: "right" });
+  doc.text("INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION", 545, 71, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(75, 70, 65);
-  doc.text("Shop No. 242/2/B1, Wakad, Pune - 411057", 545, 87, { align: "right" });
-  doc.text("Phone: +91 86055 26603 / 80555 26603", 545, 97, { align: "right" });
-  doc.text("GSTIN: 27CHCPS9945R1Z4  |  PAN: CHCPS9945R", 545, 107, { align: "right" });
+  doc.text("Shop No. 242/2/B1, Wakad, Pune - 411057", 545, 83, { align: "right" });
+  doc.text("Phone: +91 86055 26603 / 80555 26603", 545, 93, { align: "right" });
+  doc.text("GSTIN: 27CHCPS9945R1Z4  |  PAN: CHCPS9945R", 545, 103, { align: "right" });
 
   // TAX INVOICE Title Divider
   doc.setFont("helvetica", "bold");
@@ -2317,34 +2297,93 @@ export const printInvoice = (invoiceOrId, options = {}) => {
     .tc-page-container {
       page-break-before: always;
       break-before: page;
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 2px dashed #cbd5e1;
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1.5px dashed #d6d3d1;
     }
-    .tc-header {
-      font-size: 15px;
-      font-weight: 900;
-      color: #b45309;
+    .tc-header-clean {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #faf6ed;
-      padding: 8px 14px;
+      border: 1px solid #e7d8a7;
+      border-left: 4px solid #c9a227;
+      padding: 10px 16px;
       border-radius: 6px;
-      border: 1px solid #d97706;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
-    .tc-list {
+    .tc-header-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: #1c1917;
+      text-transform: uppercase;
+    }
+    .tc-header-sub {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #9e7b1d;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .tc-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tc-card {
+      background: #ffffff;
+      border: 1px solid #e7e5e4;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    .tc-clause-heading {
       font-size: 11.5px;
-      line-height: 1.55;
-      color: #334155;
-      padding-left: 18px;
-      margin: 0 0 16px 0;
+      font-weight: 700;
+      color: #1c1917;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .tc-list li {
-      margin-bottom: 8px;
+    .tc-clause-num {
+      background: #f3efe6;
+      color: #854d0e;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .tc-clause-text {
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: #475569;
+    }
+    .tc-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .tc-pill {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 10px;
+      color: #292524;
+      font-weight: 500;
+    }
+    .tc-pill strong {
+      color: #854d0e;
+      font-weight: 700;
     }
     .signatures-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 36px;
+      margin-top: 32px;
       padding-top: 12px;
       font-size: 12px;
       break-inside: avoid;
@@ -2352,7 +2391,7 @@ export const printInvoice = (invoiceOrId, options = {}) => {
     .footer-bar {
       margin-top: 24px;
       padding-top: 10px;
-      border-top: 1.5px solid #d97706;
+      border-top: 1.5px solid #d4af37;
       text-align: center;
       font-size: 10.5px;
       color: #78716c;
@@ -2409,9 +2448,8 @@ export const printInvoice = (invoiceOrId, options = {}) => {
   <div class="page-container">
     <!-- Header Row with Exact Yellow BOQ Dossier Cards -->
     <div class="header-dossier-wrap">
-      <!-- Left Dossier Card: Prepared Exclusively For -->
+      <!-- Left Dossier Card: Client Details -->
       <div class="dossier-card">
-        <span class="dossier-badge">PREPARED EXCLUSIVELY FOR</span>
         <h2 class="dossier-title">${clientName.toUpperCase()}</h2>
         <div class="dossier-body">
           <div><strong>Project Site:</strong> ${clientAddress}</div>
@@ -2422,9 +2460,8 @@ export const printInvoice = (invoiceOrId, options = {}) => {
         </div>
       </div>
 
-      <!-- Right Dossier Card: Prepared By / Company -->
+      <!-- Right Dossier Card: Company Details -->
       <div class="dossier-card right">
-        <span class="dossier-badge">PREPARED BY / COMPANY</span>
         <h2 class="dossier-title gold">VELORA ANTARAAL LLP</h2>
         <div class="dossier-subtitle">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</div>
         <div class="dossier-body">
@@ -2540,17 +2577,103 @@ export const printInvoice = (invoiceOrId, options = {}) => {
 
     <!-- DEDICATED TERMS & CONDITIONS SECTION -->
     <div id="tc-page-section" class="tc-page-container" style="${includeTerms ? '' : 'display: none;'}">
-      <div class="tc-header">TERMS & CONDITIONS — VELORA ANTARAAL</div>
-      <ol class="tc-list">
-        <li><strong>1. Scope of Work: </strong>The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, modular furniture design, civil execution, electrical work, false ceiling, and turnkey execution as agreed in the final quotation/work order. Any work outside the approved quotation shall be treated as additional work and billed separately.</li>
-        <li><strong>2. Design & Execution Process: </strong>1. Initial consultation & site survey | 2. Concept design and layout planning | 3. 3D Visualization & material selection | 4. Execution signoff and project handover.</li>
-        <li><strong>3. Quotation & Pricing: </strong>All quotations are valid for 15 days from the date of issue. Prices are based on current market rates of materials and labour. Customizations requested after final approval will be charged additionally.</li>
-        <li><strong>4. Payment Terms: </strong>10% Advance (Booking & Design Initiation) | 40% (Before Factory Production / Execution) | 40% (During Site Execution Stage) | 10% (Before Final Handover). All payments must be made as per agreed timelines.</li>
-        <li><strong>5. Project Timeline: </strong>Timelines are estimated based on project scope and site conditions. Delays caused due to civil issues, client-side approvals, vendor delays, or force majeure events shall not be company liability.</li>
-        <li><strong>6. Modular Furniture Warranty: </strong>5-Year warranty for modular furniture manufacturing defects. Hardware warranty shall be as per respective brand manufacturer policy (Ebco, Hettich, etc.). Moisture damage or unauthorized modifications are not covered.</li>
-        <li><strong>7. Ownership & Intellectual Property: </strong>All drawings, 3D renders, and designs remain intellectual property of VELORA ANTARAAL unless agreed otherwise in writing.</li>
-        <li><strong>8. Dispute Resolution: </strong>Any disputes arising shall be subject to the jurisdiction of Pune, Maharashtra courts only.</li>
-      </ol>
+      <div class="tc-header-clean">
+        <span class="tc-header-title">Terms & Conditions</span>
+        <span class="tc-header-sub">VELORA ANTARAAL LLP</span>
+      </div>
+
+      <div class="tc-grid">
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">01</span>
+            <span>Scope of Work</span>
+          </div>
+          <div class="tc-clause-text">
+            The scope of work includes interior design consultancy, space planning, material selection, 2D/3D drawings, modular furniture design, civil execution, electrical work, false ceiling, and turnkey execution as agreed in the final quotation/work order. Any work outside the approved quotation shall be treated as additional work and billed separately.
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">02</span>
+            <span>Design & Execution Process</span>
+          </div>
+          <div class="tc-clause-text">
+            <div class="tc-pill-row">
+              <span class="tc-pill"><strong>1.</strong> Initial consultation & site survey</span>
+              <span class="tc-pill"><strong>2.</strong> Concept design & layout planning</span>
+              <span class="tc-pill"><strong>3.</strong> 3D Visualization & material selection</span>
+              <span class="tc-pill"><strong>4.</strong> Execution signoff & handover</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">03</span>
+            <span>Quotation & Pricing</span>
+          </div>
+          <div class="tc-clause-text">
+            All quotations are valid for 15 days from the date of issue. Prices are based on current market rates of materials and labour. Customizations requested after final approval will be charged additionally.
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">04</span>
+            <span>Payment Terms</span>
+          </div>
+          <div class="tc-clause-text">
+            <div class="tc-pill-row">
+              <span class="tc-pill"><strong>10%</strong> Advance (Booking & Design Initiation)</span>
+              <span class="tc-pill"><strong>40%</strong> Before Factory Production / Execution</span>
+              <span class="tc-pill"><strong>40%</strong> During Site Execution Stage</span>
+              <span class="tc-pill"><strong>10%</strong> Before Final Handover</span>
+            </div>
+            <div style="font-size: 10px; color: #78716c; margin-top: 4px;">All payments must be made strictly as per agreed project milestone timelines.</div>
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">05</span>
+            <span>Project Timeline</span>
+          </div>
+          <div class="tc-clause-text">
+            Timelines are estimated based on project scope and site conditions. Delays caused due to civil issues, client-side approvals, vendor delays, or force majeure events shall not be company liability.
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">06</span>
+            <span>Modular Furniture Warranty</span>
+          </div>
+          <div class="tc-clause-text">
+            5-Year warranty for modular furniture manufacturing defects. Hardware warranty shall be as per respective brand manufacturer policy (Ebco, Hettich, etc.). Moisture damage or unauthorized modifications are not covered.
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">07</span>
+            <span>Ownership & Intellectual Property</span>
+          </div>
+          <div class="tc-clause-text">
+            All drawings, 3D renders, and designs remain intellectual property of VELORA ANTARAAL unless agreed otherwise in writing.
+          </div>
+        </div>
+
+        <div class="tc-card">
+          <div class="tc-clause-heading">
+            <span class="tc-clause-num">08</span>
+            <span>Dispute Resolution & Jurisdiction</span>
+          </div>
+          <div class="tc-clause-text">
+            Any disputes arising shall be subject to the exclusive jurisdiction of Pune, Maharashtra courts only.
+          </div>
+        </div>
+      </div>
 
       <div class="signatures-row">
         <div>

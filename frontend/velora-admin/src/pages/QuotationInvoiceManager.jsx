@@ -1807,9 +1807,8 @@ export default function QuotationInvoiceManager() {
                     <div className="space-y-6 animate-in fade-in">
                       {/* Header Row with Exact Yellow BOQ Dossier Cards */}
                       <div className="flex flex-wrap items-stretch justify-between gap-4">
-                        {/* Left: Prepared Exclusively For */}
+                        {/* Left: Client Dossier Card */}
                         <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] shadow-2xs">
-                          <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
                           <h2 className="text-base font-black text-stone-950 tracking-tight">
                             {(previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName || "Valued Client").toUpperCase()}
                           </h2>
@@ -1836,7 +1835,6 @@ export default function QuotationInvoiceManager() {
 
                         {/* Right: Company Dossier Card with same matching yellow background & gold border */}
                         <div className="bg-[#faf6ed] border border-[#d4af37] rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] text-right shadow-2xs">
-                          <span className="text-[9px] font-black text-[#9e7b1d] uppercase tracking-widest block">PREPARED BY / COMPANY</span>
                           <h2 className="text-base font-black text-[#c9a227] tracking-tight">VELORA ANTARAAL LLP</h2>
                           <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-700 font-medium pt-1">
                             <p className="font-bold text-stone-600 text-[10px] uppercase">INTERIOR DESIGN | DÉCOR | TURNKEY EXECUTION</p>

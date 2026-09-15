@@ -1,6 +1,6 @@
 import axios from "axios";
 
-let API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+let API_BASE_URL = import.meta.env.VITE_API_URL || "https://velora-backend-usq1.onrender.com/api";
 if (!API_BASE_URL.endsWith("/api") && !API_BASE_URL.endsWith("/api/")) {
   API_BASE_URL = `${API_BASE_URL.replace(/\/$/, "")}/api`;
 }
@@ -11,7 +11,7 @@ const api = axios.create({
 
 // Interceptor to attach JWT token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("velora_admin_token");
+  const token = localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

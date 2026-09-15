@@ -4,17 +4,17 @@ import { sendOtpEmail } from "../services/email.service.js";
 
 const generateAccessToken = (customer) => {
   return jwt.sign(
-    { id: customer._id, role: "Customer", type: "Customer" },
+    { id: customer._id, email: customer.email, role: "Customer", type: "Customer" },
     process.env.JWT_SECRET || "supersecretjwtkey123",
-    { expiresIn: "1h" }
+    { expiresIn: "365d" }
   );
 };
 
 const generateRefreshToken = (customer) => {
   return jwt.sign(
-    { id: customer._id, role: "Customer", type: "Customer" },
+    { id: customer._id, email: customer.email, role: "Customer", type: "Customer" },
     process.env.JWT_REFRESH_SECRET || "supersecretjwtrefreshkey123",
-    { expiresIn: "7d" }
+    { expiresIn: "365d" }
   );
 };
 

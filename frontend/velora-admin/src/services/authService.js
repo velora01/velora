@@ -1,9 +1,13 @@
 const getBaseUrl = () => {
-  return "https://velora-backend-usq1.onrender.com/api";
+  let url = import.meta.env?.VITE_API_URL || "https://velora-backend-usq1.onrender.com/api";
+  if (!url.endsWith("/api") && !url.endsWith("/api/")) {
+    url = `${url.replace(/\/$/, "")}/api`;
+  }
+  return url;
 };
 
 export const getAuthHeaders = () => {
-  const token = localStorage.getItem("velora_admin_token");
+  const token = localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token");
   return token ? { "Authorization": `Bearer ${token}` } : {};
 };
 
@@ -23,6 +27,10 @@ export const login = async (email, password) => {
 
   if (result.success && result.data?.accessToken) {
     localStorage.setItem("velora_admin_token", result.data.accessToken);
+    localStorage.setItem("velora_token", result.data.accessToken);
+    if (result.data.refreshToken) {
+      localStorage.setItem("velora_admin_refresh_token", result.data.refreshToken);
+    }
     localStorage.setItem("velora_admin_user", JSON.stringify(result.data.user));
     return result.data;
   }
@@ -48,6 +56,8 @@ export const registerAdmin = async (name, email, password) => {
 
 export const logout = () => {
   localStorage.removeItem("velora_admin_token");
+  localStorage.removeItem("velora_token");
+  localStorage.removeItem("velora_admin_refresh_token");
   localStorage.removeItem("velora_admin_user");
 };
 
@@ -62,7 +72,7 @@ export const getCurrentUser = () => {
 };
 
 export const isAuthenticated = () => {
-  return !!localStorage.getItem("velora_admin_token");
+  return !!(localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token"));
 };
 
 export const updateCurrentUser = (user) => {

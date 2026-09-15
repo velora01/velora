@@ -7,26 +7,28 @@ import { sendPasswordResetEmail } from "../services/email.service.js";
 const generateAccessToken = (entity, type) => {
   const payload = {
     id: entity._id,
+    email: entity.email,
     role: type === "Customer" ? "Customer" : entity.role,
     type,
   };
   return jwt.sign(
     payload,
     process.env.JWT_SECRET || "supersecretjwtkey123",
-    { expiresIn: "1h" }
+    { expiresIn: "365d" }
   );
 };
 
 const generateRefreshToken = (entity, type) => {
   const payload = {
     id: entity._id,
+    email: entity.email,
     role: type === "Customer" ? "Customer" : entity.role,
     type,
   };
   return jwt.sign(
     payload,
     process.env.JWT_REFRESH_SECRET || "supersecretjwtrefreshkey123",
-    { expiresIn: "7d" }
+    { expiresIn: "365d" }
   );
 };
 

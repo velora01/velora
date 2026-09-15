@@ -91,9 +91,9 @@ export default function QuotationInvoiceManager() {
   // Invoice Form State
   const initialInvoiceForm = {
     _id: null,
-    invoiceNumber: "NCI007",
+    invoiceNumber: "",
     projectName: "",
-    projectNumber: "PRJ-2026-013",
+    projectNumber: "",
     invoiceType: "Service",
     invoiceDate: new Date().toISOString().split("T")[0],
     dueDate: "",
@@ -114,14 +114,14 @@ export default function QuotationInvoiceManager() {
     sameAsBillTo: true,
     items: [
       {
-        serviceDescription: "sofa",
-        hsnSac: "HSN/SAC",
+        serviceDescription: "",
+        hsnSac: "",
         quantity: 1,
-        unit: "1",
-        rate: 65000,
+        unit: "Nos",
+        rate: 0,
         gstPercent: 0,
         gstAmount: 0,
-        total: 65000
+        total: 0
       }
     ],
     notes: "Registered under Composition Taxable scheme. Not eligible to collect tax on supplies.",
@@ -158,9 +158,9 @@ export default function QuotationInvoiceManager() {
             ...inv,
             _id: inv._id || key,
             invoiceNumber: inv.invoiceNumber || key,
-            formattedDate: inv.formattedDate || (inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Sep 2, 2026"),
+            formattedDate: inv.formattedDate || (inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })),
             billedTo: inv.billTo?.name || inv.clientName || inv.projectName || "Client",
-            dueAmount: inv.dueAmount !== undefined ? inv.dueAmount : (inv.totalAmount || inv.grandTotal || 65000),
+            dueAmount: inv.dueAmount !== undefined ? inv.dueAmount : (inv.totalAmount || inv.grandTotal || 0),
             taxPercent: inv.taxPercent !== undefined ? inv.taxPercent : 0
           });
         }

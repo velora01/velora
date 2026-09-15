@@ -1081,7 +1081,7 @@ export default function Clients() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold font-mono text-xs text-slate-900 block">
-                          {selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
+                          {selectedClient.invoiceNumber || `VLA-INV-${selectedClient.clientCode || "001"}`}
                         </span>
                         <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
                           Issued
@@ -1096,7 +1096,7 @@ export default function Clients() {
                       <div className="text-right mr-2">
                         <span className="text-[10px] text-slate-400 font-medium block">Grand Total</span>
                         <span className="font-mono font-bold text-sm text-slate-900">
-                          ₹{(selectedClient.name?.includes("PREM") ? 468800 : 525000).toLocaleString("en-IN")}
+                          ₹{(selectedClient.commercialSummary?.grandTotal || 0).toLocaleString("en-IN")}
                         </span>
                       </div>
 
@@ -1104,7 +1104,7 @@ export default function Clients() {
                         onClick={() => {
                           navigate("/invoices", {
                             state: {
-                              openInvoice: selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"
+                              openInvoice: selectedClient.invoiceNumber || `VLA-INV-${selectedClient.clientCode || "001"}`
                             }
                           });
                         }}
@@ -1117,15 +1117,15 @@ export default function Clients() {
 
                       <button
                         onClick={() => {
-                          const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
-                          const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                          const invNum = selectedClient.invoiceNumber || `VLA-INV-${selectedClient.clientCode || "001"}`;
+                          const totalAmt = selectedClient.commercialSummary?.grandTotal || 0;
                           printInvoice({
                             invoiceNumber: invNum,
                             clientName: selectedClient.name,
                             clientPhone: selectedClient.phone,
                             clientEmail: selectedClient.email,
                             clientAddress: selectedClient.address,
-                            projectName: `${selectedClient.name} Residence`,
+                            projectName: `${selectedClient.name} Project`,
                             grandTotal: totalAmt,
                             subtotal: totalAmt
                           });
@@ -1139,15 +1139,15 @@ export default function Clients() {
 
                       <button
                         onClick={() => {
-                          const invNum = selectedClient.name?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001";
-                          const totalAmt = selectedClient.name?.includes("PREM") ? 468800 : 525000;
+                          const invNum = selectedClient.invoiceNumber || `VLA-INV-${selectedClient.clientCode || "001"}`;
+                          const totalAmt = selectedClient.commercialSummary?.grandTotal || 0;
                           downloadInvoicePdf({
                             invoiceNumber: invNum,
                             clientName: selectedClient.name,
                             clientPhone: selectedClient.phone,
                             clientEmail: selectedClient.email,
                             clientAddress: selectedClient.address,
-                            projectName: `${selectedClient.name} Residence`,
+                            projectName: `${selectedClient.name} Project`,
                             grandTotal: totalAmt,
                             subtotal: totalAmt
                           });

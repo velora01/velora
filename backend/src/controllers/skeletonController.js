@@ -10,7 +10,7 @@ import Customer from "../models/Customer.js";
 import User from "../models/User.js";
 import StoreProduct from "../models/StoreProduct.js";
 
-// Helper to determine customer context and handle fallback/dummy generation
+// Helper to determine customer context
 const getCustomerContext = async (req) => {
   if (req.userType === "Customer") {
     return req.user._id;
@@ -27,23 +27,7 @@ const getCustomerContext = async (req) => {
     return firstCustomer._id;
   }
 
-  // Fallback: Check if dummy customer exists
-  const dummyCustomer = await Customer.findOne({ email: "test.customer@velora.com" });
-  if (dummyCustomer) {
-    return dummyCustomer._id;
-  }
-
-  // Auto-generate test customer if DB is empty
-  const newDummy = await Customer.create({
-    clientCode: "VEL9999",
-    name: "Test Customer (Auto Generated)",
-    phone: "+91 99999 99999",
-    email: "test.customer@velora.com",
-    uniqueLoginId: "testcustomer",
-    password: "password123",
-    status: "Active",
-  });
-  return newDummy._id;
+  return null;
 };
 
 // ==========================================
@@ -52,17 +36,15 @@ const getCustomerContext = async (req) => {
 export const getTimeline = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let milestones = await TimelineMilestone.find({ customerId });
-    if (milestones.length === 0) {
-      milestones = await TimelineMilestone.create([
-        { customerId, title: "Civil Work", status: "Completed", date: new Date("2026-07-01"), comments: "Completed on schedule" },
-        { customerId, title: "Electrical Wiring", status: "Completed", date: new Date("2026-07-10"), comments: "Conduit wiring and socket boxes completed" },
-        { customerId, title: "Modular Installation", status: "In Progress", date: new Date("2026-07-25"), comments: "Carcass assembly ongoing in kitchen" },
-        { customerId, title: "Finishing & Handover", status: "Pending", date: new Date("2026-08-15"), comments: "Planned final cleaning and handover" }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Timeline milestones fetched successfully",
+        data: []
+      });
     }
+
+    const milestones = await TimelineMilestone.find({ customerId });
 
     return res.status(200).json({
       success: true,
@@ -107,15 +89,15 @@ export const createMilestone = async (req, res) => {
 export const getTasks = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let tasks = await PortalTask.find({ customerId });
-    if (tasks.length === 0) {
-      tasks = await PortalTask.create([
-        { customerId, title: "Finalize laminate color", priority: "High", done: false },
-        { customerId, title: "Approve kitchen layout drawing", priority: "Medium", done: true }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Tasks fetched successfully",
+        data: []
+      });
     }
+
+    const tasks = await PortalTask.find({ customerId });
 
     return res.status(200).json({
       success: true,
@@ -186,16 +168,20 @@ export const updateTaskStatus = async (req, res) => {
 export const getPayments = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let txs = await PaymentTransaction.find({ customerId });
-    if (txs.length === 0) {
-      txs = await PaymentTransaction.create([
-        { customerId, stage: "Booking Amount", amount: 500000, status: "Cleared", date: new Date("2026-06-15") },
-        { customerId, stage: "Material Procurement", amount: 700000, status: "Cleared", date: new Date("2026-07-05") },
-        { customerId, stage: "Fabrication Commencement", amount: 800000, status: "Pending", date: new Date("2026-08-01") }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment history fetched successfully",
+        data: {
+          totalBudget: "0 INR",
+          paidAmount: "0 INR",
+          pendingAmount: "0 INR",
+          transactions: []
+        }
+      });
     }
+
+    const txs = await PaymentTransaction.find({ customerId });
 
     // Calculate totals
     const totalBudget = txs.reduce((acc, t) => acc + t.amount, 0);
@@ -204,7 +190,7 @@ export const getPayments = async (req, res) => {
 
     const formattedTxs = txs.map((t) => ({
       id: t._id,
-      date: t.date.toISOString().split("T")[0],
+      date: t.date ? t.date.toISOString().split("T")[0] : "",
       amount: `${t.amount.toLocaleString("en-IN")} INR`,
       status: t.status,
       stage: t.stage
@@ -270,45 +256,7 @@ export const getProducts = async (req, res) => {
       ];
     }
 
-    // Auto-seed if empty (global showroom store catalog)
-    let products = await StoreProduct.find(filter);
-    if (products.length === 0 && !category && !search) {
-      products = await StoreProduct.create([
-        {
-          name: "Luxury Velvet L-Shape Sofa",
-          category: "Sofa",
-          description: "Premium velvet sectional sofa with high density foam cushions and teak wood understructure.",
-          price: 125000,
-          designs: ["Italian Modern", "Classic Imperial"],
-          materials: ["Teak Wood Frame", "Premium Velvet Fabric"],
-          dimensions: "9ft x 6ft",
-          images: ["https://cloudinary.com/velora/sofa1.jpg"],
-          isAvailable: true
-        },
-        {
-          name: "Marble Top 6-Seater Dining Table",
-          category: "Dining Table",
-          description: "Stunning Carrara marble dining table supported by a champagne gold electroplated stainless steel base.",
-          price: 185000,
-          designs: ["Minimalist Gold", "Bespoke Luxury"],
-          materials: ["Champagne Gold SS Base", "Carrara Marble Top"],
-          dimensions: "6ft x 3.5ft",
-          images: ["https://cloudinary.com/velora/dining1.jpg"],
-          isAvailable: true
-        },
-        {
-          name: "Bespoke Walk-in Wardrobe",
-          category: "Wardrobe",
-          description: "Floor-to-ceiling modern walk-in wardrobe with built-in LED lighting profile and tinted glass doors.",
-          price: 295000,
-          designs: ["Contemporary Glass", "Gold Trims"],
-          materials: ["High-Grade MDF", "Tinted Tempered Glass"],
-          dimensions: "8ft x 10ft",
-          images: ["https://cloudinary.com/velora/wardrobe1.jpg"],
-          isAvailable: true
-        }
-      ]);
-    }
+    const products = await StoreProduct.find(filter);
 
     return res.status(200).json({
       success: true,
@@ -393,15 +341,15 @@ export const deleteProduct = async (req, res) => {
 export const getDocuments = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let docs = await ProjectDocument.find({ customerId });
-    if (docs.length === 0) {
-      docs = await ProjectDocument.create([
-        { customerId, name: "Kitchen 2D Elevation.pdf", size: "1.4 MB", url: "https://cloudinary.com/velora/elev.pdf" },
-        { customerId, name: "Wardrobe Specification sheet.pdf", size: "850 KB", url: "https://cloudinary.com/velora/specs.pdf" }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Project files and drawings fetched successfully",
+        data: []
+      });
     }
+
+    const docs = await ProjectDocument.find({ customerId });
 
     return res.status(200).json({
       success: true,
@@ -448,14 +396,7 @@ export const getNotifications = async (req, res) => {
     const recipientId = req.user._id;
     const recipientType = req.userType;
 
-    // Auto-seed if empty for this user
-    let notifs = await Notification.find({ recipientId, recipientType });
-    if (notifs.length === 0) {
-      notifs = await Notification.create([
-        { recipientId, recipientType, type: "update", message: "Designer uploaded a new 3D render", read: false },
-        { recipientId, recipientType, type: "alert", message: "Payment milestone invoice INV-2026-003 generated", read: false }
-      ]);
-    }
+    const notifs = await Notification.find({ recipientId, recipientType });
 
     return res.status(200).json({
       success: true,
@@ -498,14 +439,15 @@ export const createNotification = async (req, res) => {
 export const getMeetings = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let meetings = await Meeting.find({ customerId });
-    if (meetings.length === 0) {
-      meetings = await Meeting.create([
-        { customerId, title: "Site Assessment & Measuring", date: new Date("2026-08-01"), time: "10:30 AM", status: "Scheduled" }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Meetings calendar fetched successfully",
+        data: []
+      });
     }
+
+    const meetings = await Meeting.find({ customerId });
 
     return res.status(200).json({
       success: true,
@@ -550,18 +492,19 @@ export const createMeeting = async (req, res) => {
 export const getInvoices = async (req, res) => {
   try {
     const customerId = await getCustomerContext(req);
-
-    // Auto-seed if empty for this customer
-    let invoices = await Invoice.find({ customerId });
-    if (invoices.length === 0) {
-      invoices = await Invoice.create([
-        { customerId, invoiceNumber: "INV-2026-004", amount: 700000, date: new Date("2026-07-05"), status: "Paid" }
-      ]);
+    if (!customerId) {
+      return res.status(200).json({
+        success: true,
+        message: "Tax invoices fetched successfully",
+        data: []
+      });
     }
+
+    const invoices = await Invoice.find({ customerId });
 
     const formattedInvoices = invoices.map((inv) => ({
       invoiceNumber: inv.invoiceNumber,
-      date: inv.date.toISOString().split("T")[0],
+      date: inv.date ? inv.date.toISOString().split("T")[0] : "",
       amount: `${inv.amount.toLocaleString("en-IN")} INR`,
       status: inv.status
     }));
@@ -615,7 +558,7 @@ export const submitTicket = async (req, res) => {
       return res.status(400).json({ success: false, message: "Ticket query details are required" });
     }
 
-    // Auto-generate ticket code: TK-<timestamp>
+    // Generate ticket code: TK-<timestamp>
     const ticketId = `TK-${Math.floor(10000 + Math.random() * 90000)}`;
 
     const ticket = await SupportTicket.create({
@@ -670,11 +613,10 @@ export const replyTicket = async (req, res) => {
 export const getAnalytics = async (req, res) => {
   try {
     // 1. Calculate lead conversion rate (leads converted to customer / total leads)
-    const totalLeads = await Customer.countDocuments() + await Customer.countDocuments({ status: "Inactive" }); // rough lead estimation
+    const totalLeads = await Customer.countDocuments() + await Customer.countDocuments({ status: "Inactive" });
     const convertedLeads = await Customer.countDocuments();
     
-    // Fallback if no data
-    let conversionRate = "24%";
+    let conversionRate = "0%";
     if (totalLeads > 0) {
       conversionRate = `${Math.round((convertedLeads / totalLeads) * 100)}%`;
     }
@@ -685,7 +627,7 @@ export const getAnalytics = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
     
-    const salesRevenueNum = revenueAggregate.length > 0 ? revenueAggregate[0].total : 4850000;
+    const salesRevenueNum = revenueAggregate.length > 0 ? revenueAggregate[0].total : 0;
     const totalSalesRevenue = `${salesRevenueNum.toLocaleString("en-IN")} INR`;
 
     // 3. Active Designer Workloads (group active customers by designer)
@@ -706,12 +648,6 @@ export const getAnalytics = async (req, res) => {
           });
         }
       }
-    } else {
-      // Default fallback
-      designerWorkload.push(
-        { designer: "Ar. Priya Sharma", projects: 3 },
-        { designer: "Ar. Amit Verma", projects: 2 }
-      );
     }
 
     return res.status(200).json({

@@ -417,27 +417,6 @@ export default function LeadManagement() {
     }
   };
 
-  const handleAutoFillDummy = () => {
-    const randPhone = "+91 9" + Math.floor(100000000 + Math.random() * 900000000);
-    setFormData({
-      name: "Aditya Verma",
-      phone: randPhone,
-      email: "aditya.verma@example.com",
-      city: "Pune",
-      propertyType: "3BHK Luxury Flat",
-      siteArea: 1450,
-      possessionStatus: "Possession Handed Over",
-      stylePreference: "Modern",
-      scopeOfWork: ["Modular Kitchen", "Wardrobes & Storage", "False Ceiling & Lighting"],
-      nextMeetingDate: new Date(Date.now() + 86400000 * 2).toISOString().substring(0, 16),
-      address: "Flat 804, Building C, Clover Highlands, Kondhwa, Pune",
-      budget: "₹35L - ₹50L",
-      status: "Booking",
-      source: "Website",
-      notes: "Client wants a premium contemporary theme. Interested in high-end modular kitchen finishes (BWP Plywood + Acrylic shutters) and false ceiling design with smart home automation compatibility.",
-      assignedTo: staffUsers[0]?._id || ""
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -511,14 +490,6 @@ export default function LeadManagement() {
                 <h3 className="font-extrabold text-base text-slate-900">Create New Client & Project Profile</h3>
                 <p className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider">Configure client scope, possession details, and style preference</p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleAutoFillDummy}
-                  className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-[10px] font-bold text-blue-700 rounded-lg transition cursor-pointer"
-                >
-                  ⚡ Auto-Fill Dummy
-                </button>
                 <button onClick={() => setIsCreateDrawerOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer">
                   <X size={18} />
                 </button>

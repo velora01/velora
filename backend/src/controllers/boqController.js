@@ -352,26 +352,33 @@ export const deleteBOQ = async (req, res) => {
     }
 
     if (!boq && param) {
+      const sanitized = param.replace(/[^a-zA-Z0-9_-]/g, "");
       boq = await BOQ.findOneAndDelete({
         $or: [
+          { _id: param },
           { boqNumber: param },
           { enquiryNo: param },
-          { boqNumber: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") },
-          { enquiryNo: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") }
+          { clientPhone: param },
+          { lead: param },
+          { boqNumber: new RegExp(sanitized, "i") },
+          { enquiryNo: new RegExp(sanitized, "i") },
+          { clientName: new RegExp(param.trim(), "i") }
         ]
       });
     }
 
-    if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
+    if (!boq) {
+      return res.json({ success: true, message: "BOQ already deleted or not found in database" });
+    }
 
     await logActivity({
       userName: req.user?.name || "Admin",
       action: "Deleted",
       module: "BOQ",
-      description: `Deleted BOQ ${boq.boqNumber || param}`
+      description: `Deleted BOQ ${boq.boqNumber || param} for ${boq.clientName || ""}`
     });
 
-    res.json({ success: true, message: "BOQ deleted successfully" });
+    res.json({ success: true, message: "BOQ deleted successfully from database" });
   } catch (err) {
     console.error("deleteBOQ error:", err);
     res.status(500).json({ success: false, message: err.message });

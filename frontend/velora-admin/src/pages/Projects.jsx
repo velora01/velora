@@ -1192,11 +1192,11 @@ export default function Projects() {
                           <tbody className="divide-y divide-stone-100 text-stone-700">
                             <tr className="hover:bg-stone-50/50">
                               <td className="py-3.5 px-4 font-mono font-bold text-stone-900">
-                                {(selectedProject.clientName || selectedProject.name)?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001"}
+                                {selectedProject.invoiceNumber || (selectedProject.code ? `VLA-INV-${selectedProject.code}` : `VLA-INV-${String(selectedProject._id || "").slice(-4)}`)}
                               </td>
                               <td className="py-3.5 px-4 text-stone-600">{new Date().toLocaleDateString("en-IN")}</td>
                               <td className="py-3.5 px-4 text-right font-mono font-bold text-stone-900">
-                                ₹{totalAmt.toLocaleString("en-IN")}
+                                ₹{(totalAmt || 0).toLocaleString("en-IN")}
                               </td>
                               <td className="py-3.5 px-4 text-center">
                                 <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold rounded-full">
@@ -1208,7 +1208,7 @@ export default function Projects() {
                                   <button
                                     onClick={() => {
                                       navigate("/invoices", {
-                                        state: { openInvoice: (selectedProject.clientName || selectedProject.name)?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001" }
+                                        state: { openInvoice: selectedProject.invoiceNumber || `VLA-INV-${selectedProject.code || "001"}` }
                                       });
                                     }}
                                     className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] rounded-lg border border-blue-200 transition cursor-pointer"
@@ -1218,12 +1218,12 @@ export default function Projects() {
                                   <button
                                     onClick={() => {
                                       downloadInvoicePdf({
-                                        invoiceNumber: (selectedProject.clientName || selectedProject.name)?.includes("PREM") ? "NCIA003" : "VLA-INV-2026-0001",
+                                        invoiceNumber: selectedProject.invoiceNumber || `VLA-INV-${selectedProject.code || "001"}`,
                                         clientName: selectedProject.clientName || selectedProject.name,
                                         clientPhone: selectedProject.clientPhone || selectedProject.phone,
                                         clientEmail: selectedProject.clientEmail || selectedProject.email,
                                         clientAddress: selectedProject.address || selectedProject.siteLocation,
-                                        projectName: `${selectedProject.clientName || selectedProject.name} Residence`,
+                                        projectName: `${selectedProject.clientName || selectedProject.name} Project`,
                                         grandTotal: totalAmt
                                       });
                                     }}

@@ -292,7 +292,7 @@ export default function BOQManagement() {
     window.dispatchEvent(new Event("storage"));
   };
 
-  // Fetch BOQ List
+  // Fetch BOQ List (Live MongoDB Data)
   const fetchBOQList = useCallback(async () => {
     setLoadingList(true);
 
@@ -303,8 +303,11 @@ export default function BOQManagement() {
         setPagination((p) => ({
           ...p,
           total: res.data.length,
-          pages: 1
+          pages: Math.max(1, Math.ceil(res.data.length / (p.limit || 10)))
         }));
+        try {
+          localStorage.setItem("velora_custom_boqs", JSON.stringify(res.data));
+        } catch (e) {}
       } else {
         const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
         setBoqList(localBOQs);
@@ -319,12 +322,15 @@ export default function BOQManagement() {
     }
   }, [search, pagination.page, pagination.limit]);
 
-  // Fetch Available Enquiries for the "Select Enquiry" Modal
+  // Fetch Available Enquiries for the "Select Enquiry" Modal (Live MongoDB Data)
   const fetchAvailableEnquiries = useCallback(async () => {
     try {
       const res = await erpApi.getLeads({ limit: 100 });
       if (res?.success && Array.isArray(res.data)) {
         setEnquiryList(res.data);
+        try {
+          localStorage.setItem("velora_custom_enquiries", JSON.stringify(res.data));
+        } catch (e) {}
       } else {
         const localSaved = JSON.parse(localStorage.getItem("velora_custom_enquiries") || "[]");
         setEnquiryList(localSaved);
@@ -428,10 +434,10 @@ export default function BOQManagement() {
   // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Directly Open Builder in Feet.inch
   const handleSelectEnquiryToCreateBOQ = (enquiry) => {
     setIsSelectClientModalOpen(false);
-    const targetEnquiry = enquiry || { name: "Client", enquiryNo: `ENQ-2026-019` };
+    const targetEnquiry = enquiry || { name: "Client", enquiryNo: "" };
     const randomSuffix = Math.floor(100 + Math.random() * 900);
     const boqNumber = `BOQ-2026-${randomSuffix}`;
-    const enquiryNo = targetEnquiry.enquiryNo || `ENQ-2026-${randomSuffix}`;
+    const enquiryNo = targetEnquiry.enquiryNo || (targetEnquiry._id ? `ENQ-${String(targetEnquiry._id).slice(-4)}` : boqNumber);
 
     // Create BOQ draft populated with standard spaces ready to customize (Feet & Inches by default)
     const newBOQ = {
@@ -1540,7 +1546,7 @@ export default function BOQManagement() {
                           onClick={() => handleOpenBuilder(row)}
                           className="hover:underline cursor-pointer font-mono"
                         >
-                          {row.enquiryNo || row.boqNumber || "ENQ-2026-001"}
+                          {row.enquiryNo || row.boqNumber || "-"}
                         </button>
                       </td>
 
@@ -1731,7 +1737,7 @@ export default function BOQManagement() {
                         {enquiry.name}
                       </h4>
                       <p className="text-[11px] text-slate-500 font-mono truncate">
-                        {enquiry.enquiryNo || "ENQ-2026-019"}
+                        {enquiry.enquiryNo || (enquiry._id ? `ENQ-${String(enquiry._id).slice(-4)}` : "-")}
                       </p>
                     </div>
 

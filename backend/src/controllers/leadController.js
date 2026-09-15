@@ -287,16 +287,22 @@ export const deleteLead = async (req, res) => {
     }
 
     if (!lead && param) {
+      const sanitized = param.replace(/[^a-zA-Z0-9_-]/g, "");
       lead = await Lead.findOneAndDelete({
         $or: [
+          { _id: param },
           { enquiryNo: param },
           { phone: param },
-          { enquiryNo: new RegExp(param.replace(/[^a-zA-Z0-9]/g, ""), "i") }
+          { name: param },
+          { enquiryNo: new RegExp(sanitized, "i") },
+          { name: new RegExp(param.trim(), "i") }
         ]
       });
     }
 
-    if (!lead) return res.status(404).json({ success: false, message: "Lead not found" });
+    if (!lead) {
+      return res.json({ success: true, message: "Lead already deleted or not found in database" });
+    }
 
     await logActivity({
       userName: req.user?.name || "Admin",
@@ -306,7 +312,7 @@ export const deleteLead = async (req, res) => {
       targetId: String(lead._id || param)
     });
 
-    res.json({ success: true, message: "Lead deleted successfully" });
+    res.json({ success: true, message: "Lead deleted successfully from database" });
   } catch (err) {
     console.error("deleteLead error:", err);
     res.status(500).json({ success: false, message: err.message });

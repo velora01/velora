@@ -169,7 +169,7 @@ export default function EnquiryManagement() {
     return `id_${item._id || Date.now()}`;
   };
 
-  // Fetch Enquiries from Backend API & Local Storage (Strictly Deduplicated)
+  // Fetch Enquiries from Backend API (Live MongoDB Data)
   const fetchEnquiries = useCallback(async () => {
     setLoading(true);
     try {
@@ -182,50 +182,42 @@ export default function EnquiryManagement() {
         source: filterSource || undefined
       };
 
-      // 1. Read API leads
-      let apiLeads = [];
+      // 1. Read API leads directly from live MongoDB database
+      let apiLeads = null;
       try {
         const res = await erpApi.getLeads(params);
-        if (res?.success && res.data) {
+        if (res?.success && Array.isArray(res.data)) {
           apiLeads = res.data;
         }
       } catch (e) {
         console.warn("Backend getLeads:", e);
       }
 
-      // 2. Read local storage leads
-      let localEnqs = [];
-      try {
-        const saved = localStorage.getItem("velora_custom_enquiries");
-        if (saved) localEnqs = JSON.parse(saved);
-      } catch (e) {}
-
-      // 3. Strictly deduplicate so each enquiry is unique
-      const uniqueMap = new Map();
-
-      // Custom/Newly added leads first
-      localEnqs.forEach((item) => {
-        const key = getEnquiryKey(item);
-        if (key && !uniqueMap.has(key)) {
-          uniqueMap.set(key, item);
-        }
-      });
-
-      // API leads
-      apiLeads.forEach((item) => {
-        const key = getEnquiryKey(item);
-        if (key && !uniqueMap.has(key)) {
-          uniqueMap.set(key, item);
-        }
-      });
-
-      const deduplicatedList = Array.from(uniqueMap.values());
-      setEnquiries(deduplicatedList);
-      setPagination((prev) => ({
-        ...prev,
-        total: deduplicatedList.length,
-        pages: Math.max(1, Math.ceil(deduplicatedList.length / (pagination.limit || 10)))
-      }));
+      if (apiLeads !== null) {
+        // Direct live DB data (empty if DB has no leads)
+        setEnquiries(apiLeads);
+        setPagination((prev) => ({
+          ...prev,
+          total: apiLeads.length,
+          pages: Math.max(1, Math.ceil(apiLeads.length / (pagination.limit || 10)))
+        }));
+        try {
+          localStorage.setItem("velora_custom_enquiries", JSON.stringify(apiLeads));
+        } catch (e) {}
+      } else {
+        // Offline fallback only
+        let localEnqs = [];
+        try {
+          const saved = localStorage.getItem("velora_custom_enquiries");
+          if (saved) localEnqs = JSON.parse(saved);
+        } catch (e) {}
+        setEnquiries(localEnqs);
+        setPagination((prev) => ({
+          ...prev,
+          total: localEnqs.length,
+          pages: Math.max(1, Math.ceil(localEnqs.length / (pagination.limit || 10)))
+        }));
+      }
     } catch (err) {
       console.error("Error in fetchEnquiries:", err);
     } finally {

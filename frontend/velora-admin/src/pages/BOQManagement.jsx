@@ -86,6 +86,12 @@ export default function BOQManagement() {
   const [successToast, setSuccessToast] = useState("");
   const [savedSuccessModal, setSavedSuccessModal] = useState(null);
 
+  // Drag and drop reordering states
+  const [draggedItemIdx, setDraggedItemIdx] = useState(null);
+  const [dragOverItemIdx, setDragOverItemIdx] = useState(null);
+  const [draggedSpaceIdx, setDraggedSpaceIdx] = useState(null);
+  const [dragOverSpaceIdx, setDragOverSpaceIdx] = useState(null);
+
   // Quotation Modal State & Print Columns Visibility Configuration
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [quotationBOQ, setQuotationBOQ] = useState(null);
@@ -727,6 +733,37 @@ export default function BOQManagement() {
       gstPercent: Number(newPercent) || 0
     });
     persistBOQChange(recalculated);
+  };
+
+  // Reorder items in current space via Drag and Drop
+  const handleReorderItems = (fromIndex, toIndex) => {
+    if (fromIndex === null || toIndex === null || fromIndex === toIndex || !activeBOQ) return;
+    const updated = JSON.parse(JSON.stringify(activeBOQ));
+    const items = updated.spaces[activeSpaceIdx]?.items || [];
+    if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length) return;
+    const [moved] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, moved);
+    updated.spaces[activeSpaceIdx].items = items;
+    persistBOQChange(recalculateBOQ(updated));
+  };
+
+  // Move item up (-1) or down (+1) via click
+  const handleMoveItem = (index, delta) => {
+    const targetIndex = index + delta;
+    handleReorderItems(index, targetIndex);
+  };
+
+  // Reorder spaces via Drag and Drop
+  const handleReorderSpaces = (fromIndex, toIndex) => {
+    if (fromIndex === null || toIndex === null || fromIndex === toIndex || !activeBOQ) return;
+    const updated = JSON.parse(JSON.stringify(activeBOQ));
+    const spaces = updated.spaces || [];
+    if (fromIndex < 0 || fromIndex >= spaces.length || toIndex < 0 || toIndex >= spaces.length) return;
+    const [moved] = spaces.splice(fromIndex, 1);
+    spaces.splice(toIndex, 0, moved);
+    updated.spaces = spaces;
+    setActiveSpaceIdx(toIndex);
+    persistBOQChange(recalculateBOQ(updated));
   };
 
   // Open Description Popup Modal
@@ -2061,22 +2098,50 @@ export default function BOQManagement() {
           {activeBOQ?.spaces?.map((space, sIdx) => {
             const isActive = sIdx === activeSpaceIdx;
             return (
-              <button
+              <div
                 key={sIdx}
-                onClick={() => setActiveSpaceIdx(sIdx)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${isActive
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-slate-900 border border-slate-200"
-                  }`}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedSpaceIdx(sIdx);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverSpaceIdx !== sIdx) setDragOverSpaceIdx(sIdx);
+                }}
+                onDragLeave={() => {
+                  if (dragOverSpaceIdx === sIdx) setDragOverSpaceIdx(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleReorderSpaces(draggedSpaceIdx, sIdx);
+                  setDraggedSpaceIdx(null);
+                  setDragOverSpaceIdx(null);
+                }}
+                onDragEnd={() => {
+                  setDraggedSpaceIdx(null);
+                  setDragOverSpaceIdx(null);
+                }}
+                className={`inline-flex items-center rounded-lg transition ${
+                  draggedSpaceIdx === sIdx ? "opacity-40 scale-95" : ""
+                } ${dragOverSpaceIdx === sIdx ? "ring-2 ring-blue-500 scale-105" : ""}`}
               >
-                <GripVertical size={12} className={isActive ? "text-stone-950/60" : "text-stone-400"} />
-                <span>{space.name}</span>
-                {space.roomTotal > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-white/20 text-white" : "bg-blue-50 text-blue-700"}`}>
-                    ₹{Math.round(space.roomTotal).toLocaleString("en-IN")}
-                  </span>
-                )}
-              </button>
+                <button
+                  onClick={() => setActiveSpaceIdx(sIdx)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer select-none ${isActive
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-slate-900 border border-slate-200"
+                    }`}
+                >
+                  <GripVertical size={12} className={isActive ? "text-stone-950/60 cursor-grab" : "text-stone-400 cursor-grab"} />
+                  <span>{space.name}</span>
+                  {space.roomTotal > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${isActive ? "bg-white/20 text-white" : "bg-blue-50 text-blue-700"}`}>
+                      ₹{Math.round(space.roomTotal).toLocaleString("en-IN")}
+                    </span>
+                  )}
+                </button>
+              </div>
             );
           })}
         </div>
@@ -2268,7 +2333,7 @@ export default function BOQManagement() {
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-extrabold text-slate-700">
               <tr>
-                <th className="py-3 px-2 w-8 text-center text-slate-400"></th>
+                <th className="py-3 px-2 w-14 text-center text-slate-400">Order</th>
                 <th className="py-3 px-3 min-w-[170px]">Component Name</th>
                 <th className="py-3 px-2 w-32">Package / Variant</th>
                 <th className="py-3 px-2 w-32">Type</th>
@@ -2301,10 +2366,84 @@ export default function BOQManagement() {
                     : ["Elite", "Premium", "Standard"];
 
                   return (
-                    <tr key={idx} className="hover:bg-blue-50/25 transition">
-                      {/* Drag Handle */}
-                      <td className="py-2.5 px-1 text-center text-slate-300">
-                        <GripVertical size={15} className="mx-auto cursor-grab" />
+                    <tr
+                      key={idx}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggedItemIdx(idx);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", String(idx));
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (dragOverItemIdx !== idx) setDragOverItemIdx(idx);
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverItemIdx === idx) setDragOverItemIdx(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleReorderItems(draggedItemIdx, idx);
+                        setDraggedItemIdx(null);
+                        setDragOverItemIdx(null);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedItemIdx(null);
+                        setDragOverItemIdx(null);
+                      }}
+                      className={`transition select-none ${
+                        draggedItemIdx === idx
+                          ? "opacity-35 bg-blue-100/70"
+                          : dragOverItemIdx === idx
+                          ? "bg-blue-100 border-y-2 border-blue-600 shadow-xs"
+                          : "hover:bg-blue-50/30"
+                      }`}
+                    >
+                      {/* Drag Handle & Up/Down Arrows */}
+                      <td className="py-2 px-1 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <div
+                            className="cursor-grab active:cursor-grabbing p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                            title="Drag to rearrange item position"
+                          >
+                            <GripVertical size={16} />
+                          </div>
+                          <div className="flex flex-col">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveItem(idx, -1);
+                              }}
+                              className={`p-0.5 rounded text-[9px] font-bold leading-none transition cursor-pointer ${
+                                idx === 0
+                                  ? "text-slate-200 cursor-not-allowed"
+                                  : "text-slate-400 hover:text-blue-700 hover:bg-blue-100"
+                              }`}
+                              title="Move component up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === currentSpace.items.length - 1}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveItem(idx, 1);
+                              }}
+                              className={`p-0.5 rounded text-[9px] font-bold leading-none transition cursor-pointer ${
+                                idx === currentSpace.items.length - 1
+                                  ? "text-slate-200 cursor-not-allowed"
+                                  : "text-slate-400 hover:text-blue-700 hover:bg-blue-100"
+                              }`}
+                              title="Move component down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
                       </td>
 
                       {/* Name with Image Thumbnail Preview & Direct Upload Option */}

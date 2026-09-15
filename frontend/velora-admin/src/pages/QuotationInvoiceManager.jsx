@@ -159,8 +159,10 @@ export default function QuotationInvoiceManager() {
             _id: inv._id || key,
             invoiceNumber: inv.invoiceNumber || key,
             formattedDate: inv.formattedDate || (inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })),
-            billedTo: inv.billTo?.name || inv.clientName || inv.projectName || "Client",
+            billedTo: inv.billedTo || inv.billTo?.name || inv.clientName || inv.projectName || "Client",
+            clientName: inv.clientName || inv.billedTo || inv.billTo?.name || "Client",
             dueAmount: inv.dueAmount !== undefined ? inv.dueAmount : (inv.totalAmount || inv.grandTotal || 0),
+            totalAmount: inv.totalAmount !== undefined ? inv.totalAmount : (inv.dueAmount || inv.grandTotal || 0),
             taxPercent: inv.taxPercent !== undefined ? inv.taxPercent : 0
           });
         }
@@ -242,6 +244,76 @@ export default function QuotationInvoiceManager() {
       window.removeEventListener("storage", handleSync);
     };
   }, [location.state]);
+
+  // Debounced Auto-Save Effect
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (viewMode !== "edit" || !autoSaveEnabled || !formData.billTo?.name?.trim()) return;
+
+    setAutoSaveStatus("saving");
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const { subTotal: st, totalTax: tt, grandTotal: gt } = calculateTotals();
+        const invoiceRecord = {
+          ...formData,
+          _id: formData._id || `inv_${Date.now()}`,
+          invoiceNumber: formData.invoiceNumber || `NCI${String(100 + invoices.length)}`,
+          clientName: formData.billTo?.name || formData.projectName || "Valued Client",
+          clientEmail: formData.billTo?.email || "",
+          clientPhone: formData.billTo?.phone || "",
+          clientAddress: formData.billTo?.address || "",
+          billedTo: formData.billTo?.name || formData.projectName || "Valued Client",
+          formattedDate: new Date(formData.invoiceDate || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          subTotal: st,
+          subtotal: st,
+          taxAmount: tt,
+          gstTotal: tt,
+          totalAmount: gt,
+          grandTotal: gt,
+          dueAmount: gt,
+          balanceDue: gt,
+          status: formData.status || "Issued",
+          items: (formData.items || []).map((it) => ({
+            ...it,
+            productName: it.serviceDescription || it.productName || "Interior Scope Item",
+            serviceDescription: it.serviceDescription || it.productName || "Interior Scope Item"
+          }))
+        };
+
+        setInvoices((prev) => {
+          const updated = [invoiceRecord, ...prev.filter((i) => i.invoiceNumber !== invoiceRecord.invoiceNumber && i._id !== invoiceRecord._id)];
+          try {
+            localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+
+        // Background sync to backend
+        if (invoiceRecord._id && !String(invoiceRecord._id).startsWith("inv_") && !String(invoiceRecord._id).startsWith("NCI")) {
+          await erpApi.updateInvoice(invoiceRecord._id, invoiceRecord).catch(() => {});
+        } else {
+          const res = await erpApi.createInvoice(invoiceRecord).catch(() => {});
+          if (res?.data?._id) {
+            setFormData((f) => ({ ...f, _id: res.data._id }));
+          }
+        }
+
+        setAutoSaveStatus("saved");
+        setTimeout(() => setAutoSaveStatus("idle"), 2500);
+      } catch (err) {
+        setAutoSaveStatus("idle");
+      }
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [formData, autoSaveEnabled, viewMode]);
 
   // Check if an enquiry already has an invoice created
   const isEnquiryInvoiced = (enq) => {
@@ -351,9 +423,9 @@ export default function QuotationInvoiceManager() {
         ...prev.items,
         {
           serviceDescription: "",
-          hsnSac: "HSN/SAC",
+          hsnSac: "9954",
           quantity: 1,
-          unit: "1",
+          unit: "Nos",
           rate: 0,
           gstPercent: 0,
           gstAmount: 0,
@@ -440,7 +512,7 @@ export default function QuotationInvoiceManager() {
 
     setIsSelectEnquiryModalOpen(false);
     setViewMode("edit");
-    showToast(`Loaded details for ${enq.name}. Now finalize and save invoice.`);
+    showToast(`Loaded details for ${enq.name}. Auto-save is active.`);
   };
 
   // Create Custom Blank Invoice (Skipping Enquiry Selection)
@@ -475,18 +547,31 @@ export default function QuotationInvoiceManager() {
       return;
     }
 
-    const { subTotal, totalTax, grandTotal } = calculateTotals();
+    const { subTotal: st, totalTax: tt, grandTotal: gt } = calculateTotals();
     const invoiceRecord = {
       ...formData,
       _id: formData._id || `inv_${Date.now()}`,
       invoiceNumber: formData.invoiceNumber || `NCI${String(100 + invoices.length)}`,
-      formattedDate: new Date(formData.invoiceDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      billedTo: formData.billTo.name,
-      subTotal,
-      taxAmount: totalTax,
-      totalAmount: grandTotal,
-      dueAmount: grandTotal,
-      status: "Issued"
+      clientName: formData.billTo.name || formData.projectName || "Valued Client",
+      clientEmail: formData.billTo.email || "",
+      clientPhone: formData.billTo.phone || "",
+      clientAddress: formData.billTo.address || "",
+      billedTo: formData.billTo.name || formData.projectName || "Valued Client",
+      formattedDate: new Date(formData.invoiceDate || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      subTotal: st,
+      subtotal: st,
+      taxAmount: tt,
+      gstTotal: tt,
+      totalAmount: gt,
+      grandTotal: gt,
+      dueAmount: gt,
+      balanceDue: gt,
+      status: formData.status || "Issued",
+      items: (formData.items || []).map((it) => ({
+        ...it,
+        productName: it.serviceDescription || it.productName || "Interior Scope Item",
+        serviceDescription: it.serviceDescription || it.productName || "Interior Scope Item"
+      }))
     };
 
     const updated = [invoiceRecord, ...invoices.filter((i) => i.invoiceNumber !== invoiceRecord.invoiceNumber && i._id !== invoiceRecord._id)];
@@ -507,7 +592,7 @@ export default function QuotationInvoiceManager() {
       }
     } catch (err) { }
 
-    showToast(`Invoice ${invoiceRecord.invoiceNumber} created and saved.`);
+    showToast(`Invoice ${invoiceRecord.invoiceNumber} saved permanently.`);
     setViewMode("list");
   };
 
@@ -519,7 +604,7 @@ export default function QuotationInvoiceManager() {
     try {
       localStorage.setItem("velora_local_invoices", JSON.stringify(updated));
       if (inv._id && !String(inv._id).startsWith("inv_") && !String(inv._id).startsWith("NCI")) {
-        await erpApi.deleteInvoice(inv._id).catch(() => {});
+        await erpApi.deleteInvoice(inv._id).catch(() => { });
       }
     } catch (err) { }
     setActiveDropdownId(null);
@@ -634,7 +719,7 @@ export default function QuotationInvoiceManager() {
       {viewMode === "edit" ? (
         <div className="space-y-6 animate-in fade-in">
           {/* Top Breadcrumb & Actions */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs">
               <button
                 onClick={() => setViewMode("list")}
@@ -649,13 +734,46 @@ export default function QuotationInvoiceManager() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Auto-Save Toggle Button */}
               <button
-                onClick={() => setViewMode("list")}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                type="button"
+                onClick={handleToggleAutoSave}
+                title="Toggle Auto-Save ON/OFF"
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer border ${
+                  autoSaveEnabled
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-2xs"
+                    : "bg-stone-100 text-stone-600 border-stone-300 hover:bg-stone-200"
+                }`}
               >
-                Back to Invoices
+                <span className={`w-2 h-2 rounded-full ${autoSaveEnabled ? "bg-emerald-500 animate-pulse" : "bg-stone-400"}`} />
+                <span>Auto-Save: {autoSaveEnabled ? "ON" : "OFF"}</span>
               </button>
+
+              {/* Real-time Status Badge */}
+              {autoSaveStatus === "saving" && (
+                <span className="text-[11px] font-bold text-amber-600 animate-pulse flex items-center gap-1 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Saving...
+                </span>
+              )}
+              {autoSaveStatus === "saved" && (
+                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                  <Check size={12} />
+                  Saved
+                </span>
+              )}
+
+              {/* Explicit Save Button */}
+              <button
+                type="button"
+                onClick={handleSaveInvoice}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                <span>Save Invoice</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -668,17 +786,25 @@ export default function QuotationInvoiceManager() {
                     paymentQrCode: paymentQrCode
                   });
                 }}
-                className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-300 transition cursor-pointer flex items-center gap-1.5"
               >
                 <Printer size={13} />
-                <span>Print Invoice</span>
+                <span>Print</span>
               </button>
+
               <button
                 onClick={() => handleOpenPdfPreview()}
-                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition cursor-pointer flex items-center gap-1.5"
               >
                 <Eye size={13} />
-                <span>Preview PDF</span>
+                <span>Preview</span>
+              </button>
+
+              <button
+                onClick={() => setViewMode("list")}
+                className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Back
               </button>
             </div>
           </div>
@@ -1124,6 +1250,42 @@ export default function QuotationInvoiceManager() {
                 />
               </div>
 
+              {/* Auto-Save & Actions Box */}
+              <div className="bg-[#faf6ed] border border-[#d4af37] rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${autoSaveEnabled ? "bg-emerald-500 animate-pulse" : "bg-stone-400"}`} />
+                    <span className="font-bold text-xs text-stone-900">
+                      Auto-Save: <strong className={autoSaveEnabled ? "text-emerald-700" : "text-stone-500"}>{autoSaveEnabled ? "ON" : "OFF"}</strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleToggleAutoSave}
+                    className="text-[11px] font-extrabold text-[#b45309] hover:underline cursor-pointer"
+                  >
+                    {autoSaveEnabled ? "Turn OFF" : "Turn ON"}
+                  </button>
+                </div>
+                <p className="text-[11px] text-stone-600 leading-relaxed">
+                  {autoSaveEnabled
+                    ? "Changes are automatically saved into your invoice database and local storage in real-time."
+                    : "Auto-save is turned off. Click the Save Invoice button below to save changes."}
+                </p>
+                {autoSaveStatus === "saving" && (
+                  <span className="text-[11px] font-bold text-amber-600 animate-pulse flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    Auto-saving changes...
+                  </span>
+                )}
+                {autoSaveStatus === "saved" && (
+                  <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                    <Check size={12} />
+                    All changes auto-saved to list
+                  </span>
+                )}
+              </div>
+
               {/* Actions */}
               <div className="flex items-center gap-3">
                 <button
@@ -1136,7 +1298,7 @@ export default function QuotationInvoiceManager() {
                 <button
                   type="button"
                   onClick={() => handleOpenPdfPreview()}
-                  className="w-2/3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-2/3 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Eye size={14} />
                   <span>Preview</span>

@@ -3633,10 +3633,10 @@ export default function BOQManagement() {
             {/* Modal Body */}
             {quotationModalTab === "preview" ? (
               <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 text-xs text-stone-800 bg-white">
-                {/* Brand Header matching Image 2 & Image 1 */}
-                <div className="flex flex-wrap items-start justify-between gap-6 pb-4 border-b border-stone-200">
+                {/* Header Row with Matching Styled Client & Company Dossier Cards */}
+                <div className="flex flex-wrap items-stretch justify-between gap-6 pb-4 border-b border-stone-200">
                   {/* Left: Prepared For Dossier Card */}
-                  <div className="bg-gradient-to-br from-amber-50/40 to-stone-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-4 space-y-1.5 max-w-sm">
+                  <div className="bg-gradient-to-br from-amber-50/50 to-stone-50 border border-amber-200 border-l-4 border-l-amber-500 rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px]">
                     <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">PREPARED EXCLUSIVELY FOR</span>
                     <h2 className="text-xl font-black text-stone-950 tracking-tight">{quotationBOQ.clientName || "Valued Client"}</h2>
                     <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-600 font-medium pt-1">
@@ -3651,29 +3651,17 @@ export default function BOQManagement() {
                     </div>
                   </div>
 
-                  {/* Right: Velora Antaraal Branding */}
-                  <div className="text-right space-y-1">
-                    <h1 className="text-2xl font-black text-amber-600 tracking-wide">VELORA ANTARAAL LLP</h1>
-                    <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">
-                      INTERIOR DESIGN | DÉCOR | RETAIL
-                    </p>
-                    <p className="text-[11px] text-stone-600">
-                      S. No. 242/1, Nr. Water Tank, Aundh Wakad Road, Wakad, Pune - 411033
-                    </p>
-                    <p className="text-[11px] text-stone-600 font-semibold">
-                      +91 80555 26603 / 77059 65556 • info@velora.family • https://velora.family
-                    </p>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
-                      Ref: {quotationBOQ.boqNumber || quotationBOQ.enquiryNo}
-                    </span>
+                  {/* Right: Company Dossier Card with same matching background */}
+                  <div className="bg-gradient-to-br from-amber-50/50 to-stone-50 border border-amber-200 border-r-4 border-r-amber-500 rounded-xl p-4 space-y-1.5 flex-1 min-w-[280px] text-right">
+                    <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest block">PREPARED BY / COMPANY</span>
+                    <h2 className="text-xl font-black text-amber-600 tracking-tight">VELORA ANTARAAL LLP</h2>
+                    <div className="grid grid-cols-1 gap-1 text-[11px] text-stone-600 font-medium pt-1">
+                      <p className="font-bold text-stone-700">INTERIOR DESIGN | DÉCOR | RETAIL</p>
+                      <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Rd, Pune - 411033</p>
+                      <p><strong>Phone:</strong> +91 80555 26603 / 77059 65556</p>
+                      <p><strong>Email / Web:</strong> info@velora.family | https://velora.family</p>
+                    </div>
                   </div>
-                </div>
-
-                {/* Central Red/Maroon ESTIMATE Banner matching Image 1 */}
-                <div className="text-center py-6">
-                  <h3 className="text-2xl sm:text-3xl font-black text-[#A83232] tracking-wider uppercase font-serif sm:font-sans">
-                    INTERIOR ESTIMATE & QUOTATION
-                  </h3>
                 </div>
 
                 {/* Space-by-Space Tables - ONLY render spaces with actual added items */}

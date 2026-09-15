@@ -839,87 +839,7 @@ export default function QuotationInvoiceManager() {
                     />
                   </div>
                 </div>
-
-                <div className="pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-stone-700">
-                    <input
-                      type="checkbox"
-                      checked={formData.sameAsBillTo}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setFormData((prev) => ({
-                          ...prev,
-                          sameAsBillTo: checked,
-                          shipTo: checked ? { ...prev.billTo } : prev.shipTo
-                        }));
-                      }}
-                      className="rounded accent-blue-600 cursor-pointer"
-                    />
-                    <span>Apply same details to ship to</span>
-                  </label>
-                </div>
               </div>
-
-              {/* Card 3: Ship To (User Details) */}
-              {!formData.sameAsBillTo && (
-                <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4 animate-in fade-in">
-                  <h3 className="font-extrabold text-sm text-stone-900 border-b border-stone-100 pb-2">Ship To (User Details)</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                    <div>
-                      <label className="block font-semibold text-stone-600 mb-1">Name</label>
-                      <input
-                        type="text"
-                        placeholder="Enter name"
-                        value={formData.shipTo.name}
-                        onChange={(e) => setFormData({ ...formData, shipTo: { ...formData.shipTo, name: e.target.value } })}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-stone-600 mb-1">Email</label>
-                      <input
-                        type="email"
-                        placeholder="Enter email"
-                        value={formData.shipTo.email}
-                        onChange={(e) => setFormData({ ...formData, shipTo: { ...formData.shipTo, email: e.target.value } })}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-stone-600 mb-1">Phone</label>
-                      <input
-                        type="text"
-                        placeholder="Enter phone"
-                        value={formData.shipTo.phone}
-                        onChange={(e) => setFormData({ ...formData, shipTo: { ...formData.shipTo, phone: e.target.value } })}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl font-mono text-stone-900 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <label className="block font-semibold text-stone-600 mb-1">GST number</label>
-                      <input
-                        type="text"
-                        placeholder="Enter GST number"
-                        value={formData.shipTo.gstin}
-                        onChange={(e) => setFormData({ ...formData, shipTo: { ...formData.shipTo, gstin: e.target.value } })}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl font-mono text-stone-900 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-stone-600 mb-1">Address</label>
-                      <input
-                        type="text"
-                        placeholder="Enter address"
-                        value={formData.shipTo.address}
-                        onChange={(e) => setFormData({ ...formData, shipTo: { ...formData.shipTo, address: e.target.value } })}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Card 4: Invoice Items */}
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
@@ -1745,38 +1665,44 @@ export default function QuotationInvoiceManager() {
                         </div>
                       </div>
 
-                      {/* Two Column Bill To & Ship To */}
-                      <div className="grid grid-cols-2 gap-8 text-xs">
-                        <div className="space-y-1">
-                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">BILL TO</span>
-                          <span className="font-bold text-sm text-stone-900 block">
-                            {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName}
-                          </span>
-                          <span className="font-mono text-stone-700 block font-medium">
-                            (+91) {previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone || "--"}
-                          </span>
-                          <span className="text-stone-600 block">
-                            {previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail || "--"}
-                          </span>
-                          <span className="text-stone-600 block text-xs leading-relaxed">
-                            {previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress || "--"}
-                          </span>
-                        </div>
-
-                        <div className="space-y-1">
-                          <span className="font-black text-stone-900 text-xs uppercase tracking-wider block">SHIP TO</span>
-                          <span className="font-bold text-sm text-stone-900 block">
-                            {previewInvoiceData.shipTo?.name || previewInvoiceData.billTo?.name || previewInvoiceData.billedTo}
-                          </span>
-                          <span className="font-mono text-stone-700 block font-medium">
-                            (+91) {previewInvoiceData.shipTo?.phone || previewInvoiceData.billTo?.phone || "--"}
-                          </span>
-                          <span className="text-stone-600 block">
-                            {previewInvoiceData.shipTo?.email || previewInvoiceData.billTo?.email || "--"}
-                          </span>
-                          <span className="text-stone-600 block text-xs leading-relaxed">
-                            {previewInvoiceData.shipTo?.address || previewInvoiceData.billTo?.address || "--"}
-                          </span>
+                      {/* Single Clean Client & Site Details Box (Added Only Once) */}
+                      <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs">
+                        <span className="font-extrabold text-stone-900 text-[11px] uppercase tracking-wider block mb-2 border-b border-stone-200 pb-1">
+                          CLIENT & PROJECT DETAILS
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-xs text-stone-900">
+                          <div>
+                            <span className="text-stone-500 font-semibold block text-[11px]">Client Name:</span>
+                            <span className="font-bold text-sm text-stone-950 block">
+                              {previewInvoiceData.billTo?.name || previewInvoiceData.billedTo || previewInvoiceData.clientName || "Valued Client"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 font-semibold block text-[11px]">Phone:</span>
+                            <span className="font-mono font-bold text-stone-900 block">
+                              {previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone ? `(+91) ${previewInvoiceData.billTo?.phone || previewInvoiceData.clientPhone}` : "--"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 font-semibold block text-[11px]">Email:</span>
+                            <span className="text-stone-900 font-medium block">
+                              {previewInvoiceData.billTo?.email || previewInvoiceData.clientEmail || "--"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 font-semibold block text-[11px]">Project Site / Address:</span>
+                            <span className="text-stone-900 font-medium block">
+                              {previewInvoiceData.billTo?.address || previewInvoiceData.clientAddress || "--"}
+                            </span>
+                          </div>
+                          {(previewInvoiceData.billTo?.gstin || previewInvoiceData.gstin) && (
+                            <div>
+                              <span className="text-stone-500 font-semibold block text-[11px]">GSTIN:</span>
+                              <span className="font-mono font-bold text-stone-900 block">
+                                {previewInvoiceData.billTo?.gstin || previewInvoiceData.gstin}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 

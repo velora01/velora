@@ -162,36 +162,35 @@ export const generateClientSideBOQPdf = async (boq, options = {}) => {
     doc.text(`Date: ${formattedDate}  |  Quotation Ref: ${boqNum}`, 50, 93);
   }
 
-  // Header Right: Velora Antaraal Branding matching Image 2
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(201, 162, 39); // Luxury Gold #C9A227
-  doc.text("VELORA ANTARAAL LLP", 555, 42, { align: "right" });
+  // Header Right: Company Dossier Card with matching background and border
+  doc.setFillColor(250, 246, 237);
+  doc.roundedRect(305, 36, 250, 78, 4, 4, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(1);
+  doc.roundedRect(305, 36, 250, 78, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
+  doc.setTextColor(158, 123, 29);
+  doc.text("PREPARED BY / COMPANY", 545, 50, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(201, 162, 39); // Luxury Gold
+  doc.text("VELORA ANTARAAL LLP", 545, 66, { align: "right" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
   doc.setTextColor(120, 113, 108);
-  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 555, 54, { align: "right" });
+  doc.text("INTERIOR DESIGN | DÉCOR | RETAIL", 545, 78, { align: "right" });
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(87, 83, 78);
-  doc.text("S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,", 555, 66, { align: "right" });
-  doc.text("Wakad, Pune - 411033, Maharashtra", 555, 77, { align: "right" });
-  doc.text("+91 80555 26603 / 77059 65556", 555, 88, { align: "right" });
-  doc.text("info@velora.family | https://velora.family", 555, 99, { align: "right" });
+  doc.setFontSize(8);
+  doc.setTextColor(75, 70, 65);
+  doc.text("S. No. 242/1, Wakad, Pune - 411033 | +91 80555 26603", 545, 90, { align: "right" });
+  doc.text("info@velora.family | https://velora.family", 545, 102, { align: "right" });
 
-  // Center Red/Maroon ESTIMATE Title matching Image 1 & 2
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(168, 50, 50); // Maroon from Image 1
-  doc.text("INTERIOR ESTIMATE & QUOTATION", 297.5, 144, { align: "center" });
-
-  doc.setDrawColor(234, 227, 210);
-  doc.setLineWidth(0.75);
-  doc.line(40, 154, 555, 154);
-
-  let currentY = 170;
+  let currentY = 126;
 
   // Build dynamic headers and column styles based on active printColumns
   const headCols = [];
@@ -872,37 +871,39 @@ export const printBOQQuotation = (boq, options = {}) => {
       font-weight: 700;
     }
     .brand-box {
+      background: linear-gradient(135deg, #faf6ed 0%, #fffdfa 100%);
+      border: 1px solid #e8dec8;
+      border-right: 4px solid #c9a227;
+      border-radius: 8px;
+      padding: 12px 18px;
+      max-width: 440px;
       text-align: right;
     }
+    .brand-box .prep-badge {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #9e7b1d;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
+    }
     .brand-box h1 {
-      margin: 0;
-      font-size: 24px;
+      margin: 2px 0 6px 0;
+      font-size: 20px;
       font-weight: 900;
       color: #c9a227;
       letter-spacing: 0.5px;
     }
-    .brand-box .tagline {
-      font-size: 11px;
-      font-weight: 800;
-      color: #78716c;
-      letter-spacing: 1px;
-      margin: 2px 0 4px 0;
-    }
-    .brand-box p {
-      margin: 1px 0;
-      font-size: 12.5px;
+    .brand-box .brand-meta-grid {
+      font-size: 11.5px;
       color: #57534e;
+      margin-top: 4px;
+      line-height: 1.4;
     }
-    .title-banner {
-      text-align: center;
-      margin: 26px 0 26px 0;
-    }
-    .title-banner h2 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 900;
-      color: #a83232;
-      letter-spacing: 1.5px;
+    .brand-box .brand-meta-grid strong {
+      color: #292524;
+      font-weight: 700;
     }
     .space-block {
       margin-bottom: 22px;
@@ -1325,18 +1326,15 @@ export const printBOQQuotation = (boq, options = {}) => {
       </div>
 
       <div class="brand-box">
+        <span class="prep-badge">PREPARED BY / COMPANY</span>
         <h1>VELORA ANTARAAL LLP</h1>
-        <div class="tagline">INTERIOR DESIGN | DÉCOR | RETAIL</div>
-        <p>S. No. 242/1, Nr. Water Tank, Aundh Wakad Road,</p>
-        <p>Wakad, Pune - 411033, Maharashtra, India</p>
-        <p>+91 80555 26603 / 77059 65556</p>
-        <p>info@velora.family | https://velora.family</p>
+        <div class="brand-meta-grid">
+          <div><strong>INTERIOR DESIGN | DÉCOR | RETAIL</strong></div>
+          <div>S. No. 242/1, Nr. Water Tank, Aundh Wakad Rd, Pune - 411033</div>
+          <div><strong>Phone:</strong> +91 80555 26603 / 77059 65556</div>
+          <div><strong>Email / Web:</strong> info@velora.family | https://velora.family</div>
+        </div>
       </div>
-    </div>
-
-    <!-- Central ESTIMATE Banner -->
-    <div class="title-banner">
-      <h2>INTERIOR ESTIMATE & QUOTATION</h2>
     </div>
 
     <!-- Space-by-Space Tables matching Image 1 to 4 -->
@@ -1704,38 +1702,32 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   doc.text("Maharashtra (27)", 545, 152, { align: "right" });
 
   // BILL TO & SHIP TO Columns
+  // Single Clean Client Details Card (Added Only Once)
   const billShipY = 175;
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(40, billShipY, 240, 68, 4, 4, "F");
-  doc.roundedRect(295, billShipY, 260, 68, 4, 4, "F");
-  doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(40, billShipY, 240, 68, 4, 4, "S");
-  doc.roundedRect(295, billShipY, 260, 68, 4, 4, "S");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...primaryBlue);
-  doc.text("BILL TO (CLIENT DETAILS)", 48, billShipY + 12);
-  doc.text("SHIP TO / SITE ADDRESS", 303, billShipY + 12);
+  doc.roundedRect(40, billShipY, 515, 48, 4, 4, "F");
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(40, billShipY, 515, 48, 4, 4, "S");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text(clientName, 48, billShipY + 24);
-  doc.text(shipName, 303, billShipY + 24);
+  doc.text("CLIENT & PROJECT DETAILS", 50, billShipY + 13);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text(clientName, 50, billShipY + 25);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.setTextColor(71, 85, 105);
-  if (clientPhone) doc.text(`Phone: ${clientPhone}`, 48, billShipY + 35);
-  if (clientEmail) doc.text(`Email: ${clientEmail}`, 48, billShipY + 45);
-  const clientAddrShort = doc.splitTextToSize(clientAddress, 224);
-  doc.text(clientAddrShort, 48, billShipY + (clientPhone && clientEmail ? 55 : 45));
-
-  if (shipPhone) doc.text(`Phone: ${shipPhone}`, 303, billShipY + 35);
-  if (shipEmail) doc.text(`Email: ${shipEmail}`, 303, billShipY + 45);
-  const shipAddrShort = doc.splitTextToSize(shipAddress, 244);
-  doc.text(shipAddrShort, 303, billShipY + (shipPhone && shipEmail ? 55 : 45));
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  let contactStr = "";
+  if (clientPhone) contactStr += `Phone: (+91) ${clientPhone}   |   `;
+  if (clientEmail) contactStr += `Email: ${clientEmail}   |   `;
+  contactStr += `Project Site / Address: ${clientAddress}`;
+  const contactLines = doc.splitTextToSize(contactStr, 495);
+  doc.text(contactLines, 50, billShipY + 36);
 
   // Line Items Table
   const rawItems = (invoice?.items && invoice.items.length > 0)
@@ -1757,7 +1749,7 @@ export const generateClientSideInvoicePdf = (invoice, isPrint = false) => {
   ]);
 
   autoTable(doc, {
-    startY: billShipY + 76,
+    startY: billShipY + 56,
     margin: { left: 40, right: 40 },
     head: [["SN", "Service / Goods Description", "HSN/SAC", "Qty", "Unit", "Rate", "GST %", "GST (Rs)", "Total Amount"]],
     body: tableBody,
@@ -2100,7 +2092,7 @@ export const printInvoice = (invoiceOrId, options = {}) => {
     }
     body {
       font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #0f172a;
+      color: #000000;
       margin: 0;
       padding: 0;
       font-size: 13px;
@@ -2111,9 +2103,9 @@ export const printInvoice = (invoiceOrId, options = {}) => {
     .page-container {
       max-width: 900px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 18px;
       box-sizing: border-box;
-      border: 1px solid #e2e8f0;
+      border: 1.5px solid #000000;
       position: relative;
     }
     .header-row {
@@ -2122,34 +2114,34 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       align-items: flex-start;
       margin-bottom: 14px;
       padding-bottom: 12px;
-      border-bottom: 1.5px solid #e2e8f0;
+      border-bottom: 1.5px solid #000000;
     }
     .brand-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 14px;
-      background: #fef3c7;
-      border: 1.5px solid #d97706;
-      border-radius: 8px;
-      color: #b45309;
+      padding: 5px 12px;
+      background: #0f172a;
+      border-radius: 6px;
+      color: #ffffff;
       font-weight: 900;
       font-size: 14px;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     .brand-subtitle {
-      font-size: 10px;
-      font-weight: 700;
-      color: #78716c;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #334155;
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
     .company-info {
       font-size: 11.5px;
-      color: #334155;
-      line-height: 1.4;
+      color: #000000;
+      line-height: 1.45;
       max-width: 420px;
+      font-weight: 500;
     }
     .invoice-title-box {
       text-align: right;
@@ -2157,24 +2149,23 @@ export const printInvoice = (invoiceOrId, options = {}) => {
     .invoice-title {
       font-size: 26px;
       font-weight: 900;
-      color: #1d4ed8;
+      color: #000000;
       letter-spacing: 1px;
       margin: 0 0 6px 0;
     }
     .total-value-banner {
-      background: #1d4ed8;
+      background: #0f172a;
       color: #fff;
-      padding: 10px 18px;
-      border-radius: 8px;
+      padding: 9px 16px;
+      border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
       margin-top: 6px;
-      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.15);
     }
     .total-value-banner .val {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       font-family: monospace;
     }
@@ -2183,60 +2174,68 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       grid-template-columns: repeat(2, 1fr);
       gap: 4px 14px;
       font-size: 12px;
-      color: #475569;
+      color: #000000;
       margin-top: 8px;
       text-align: right;
     }
     .meta-grid strong {
-      color: #0f172a;
+      color: #000000;
+      font-weight: 800;
     }
-    .party-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+    .client-details-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px 16px;
       margin-bottom: 16px;
     }
-    .party-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 12px;
-    }
-    .party-card-title {
+    .client-card-title {
       font-weight: 900;
       font-size: 11px;
-      color: #1d4ed8;
+      color: #0f172a;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
     }
-    .party-name {
-      font-size: 14px;
+    .client-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px 20px;
+      font-size: 12.5px;
+      color: #000000;
+    }
+    .client-grid .label {
+      color: #475569;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .client-grid .val {
+      color: #000000;
       font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 3px;
     }
     table.invoice-table {
       width: 100%;
       border-collapse: collapse;
-      border: 1px solid #cbd5e1;
+      border: 1.5px solid #000000;
       margin-bottom: 14px;
       font-size: 12px;
     }
     table.invoice-table th {
-      background: #1d4ed8;
+      background: #0f172a;
       color: #ffffff;
       padding: 8px 10px;
       font-weight: 800;
-      border: 1px solid #1e40af;
+      border: 1px solid #334155;
       font-size: 11.5px;
     }
     table.invoice-table td {
-      border: 1px solid #e2e8f0;
+      border: 1px solid #cbd5e1;
       padding: 8px 10px;
-      color: #1e293b;
+      color: #000000;
       vertical-align: middle;
+      font-weight: 500;
     }
     table.invoice-table tr:nth-child(even) {
       background: #f8fafc;
@@ -2461,22 +2460,14 @@ export const printInvoice = (invoiceOrId, options = {}) => {
       </div>
     </div>
 
-    <!-- Two-Column Bill To & Ship To -->
-    <div class="party-grid">
-      <div class="party-card">
-        <div class="party-card-title">Bill To (Client Details)</div>
-        <div class="party-name">${clientName}</div>
-        ${clientPhone ? `<div><strong>Phone:</strong> (+91) ${clientPhone}</div>` : ""}
-        ${clientEmail ? `<div><strong>Email:</strong> ${clientEmail}</div>` : ""}
-        <div><strong>Address:</strong> ${clientAddress}</div>
-      </div>
-
-      <div class="party-card">
-        <div class="party-card-title">Ship To / Site Details</div>
-        <div class="party-name">${shipName}</div>
-        ${shipPhone ? `<div><strong>Phone:</strong> (+91) ${shipPhone}</div>` : ""}
-        ${shipEmail ? `<div><strong>Email:</strong> ${shipEmail}</div>` : ""}
-        <div><strong>Site Address:</strong> ${shipAddress}</div>
+    <!-- Single Client & Site Details Box (Added Only Once) -->
+    <div class="client-details-card">
+      <div class="client-card-title">CLIENT & PROJECT DETAILS</div>
+      <div class="client-grid">
+        <div><span class="label">Client Name:</span> <strong class="val">${clientName}</strong></div>
+        <div><span class="label">Phone:</span> <strong class="val">${clientPhone ? `(+91) ${clientPhone}` : '--'}</strong></div>
+        <div><span class="label">Email:</span> <strong class="val">${clientEmail || '--'}</strong></div>
+        <div><span class="label">Project Site / Address:</span> <strong class="val">${clientAddress}</strong></div>
       </div>
     </div>
 

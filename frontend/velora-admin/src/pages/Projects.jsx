@@ -77,8 +77,8 @@ export default function Projects() {
   // Payment Record Form in Payments Tab
   const [paymentRecordForm, setPaymentRecordForm] = useState({
     amount: "",
-    mode: "UPI / Bank Transfer",
-    note: "Work Order Milestone",
+    mode: "UPI / NEFT / RTGS",
+    note: "",
     date: new Date().toISOString().split("T")[0]
   });
 
@@ -148,8 +148,11 @@ export default function Projects() {
         const key = getNormalizedClientKey(enq);
         if (key && !combinedMap.has(key)) {
           const customEdits = savedProjectEdits[key] || {};
-          const budgetVal = typeof enq.budget === "number" ? enq.budget : (parseInt(String(enq.budget || "").replace(/\D/g, ""), 10) * 100000 || (enq.estimatedValue ? Number(enq.estimatedValue) : 2500000));
+          const rawBudget = enq.budget || enq.approximateBudget || enq.estimatedValue || 0;
+          const budgetVal = typeof rawBudget === "number" ? rawBudget : (parseInt(String(rawBudget).replace(/\D/g, ""), 10) || 0);
           const prjNum = enq.projectNumber || (enq.enquiryNo ? enq.enquiryNo.replace("ENQ", "PRJ") : `PRJ-2026-${String(20 + idx).padStart(3, "0")}`);
+          const existingPayments = Array.isArray(customEdits.payments) ? customEdits.payments : [];
+          const calculatedPaid = existingPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
           combinedMap.set(key, {
             id: enq._id || prjNum,
@@ -172,8 +175,9 @@ export default function Projects() {
             preferredStyle: enq.preferredStyle || enq.stylePreference || "Modern Contemporary",
             status: customEdits.status || "Yet To Start",
             progressPercent: customEdits.progressPercent !== undefined ? customEdits.progressPercent : 0,
-            budget: customEdits.budget || budgetVal,
-            paidAmount: customEdits.paidAmount !== undefined ? customEdits.paidAmount : Math.round(budgetVal * 0.5),
+            budget: customEdits.budget !== undefined ? customEdits.budget : budgetVal,
+            paidAmount: customEdits.paidAmount !== undefined ? customEdits.paidAmount : calculatedPaid,
+            payments: existingPayments,
             expStartDate: enq.enquiryDate || new Date().toISOString().split("T")[0],
             expEndDate: new Date(Date.now() + 45 * 86400000).toISOString().split("T")[0],
             actualStartDate: "",
@@ -225,7 +229,9 @@ export default function Projects() {
 
   // Save project custom edits to localStorage & update list
   const saveCustomProjectEdit = (updatedItem) => {
-    const key = (updatedItem.clientPhone || updatedItem.phone || updatedItem.clientName || updatedItem.name).trim().toLowerCase();
+    const cleanPhone = (updatedItem.clientPhone || updatedItem.phone || "").replace(/\D/g, "").slice(-10);
+    const cleanName = (updatedItem.clientName || updatedItem.name || "").trim().toLowerCase();
+    const key = cleanPhone ? `phone_${cleanPhone}` : (cleanName ? `name_${cleanName}` : `id_${updatedItem.id || updatedItem._id || updatedItem.projectNumber}`);
     
     let savedEdits = {};
     try {
@@ -240,16 +246,23 @@ export default function Projects() {
 
     // Update in state
     setProjectsList((prev) =>
-      prev.map((p) =>
-        (p.phone || p.clientPhone) === (updatedItem.phone || updatedItem.clientPhone) ||
-        (p.name || p.clientName) === (updatedItem.name || updatedItem.clientName) ||
-        p.projectNumber === updatedItem.projectNumber
-          ? { ...p, ...updatedItem }
-          : p
-      )
+      prev.map((p) => {
+        const pCleanPhone = (p.clientPhone || p.phone || "").replace(/\D/g, "").slice(-10);
+        const pCleanName = (p.clientName || p.name || "").trim().toLowerCase();
+        const matches = (cleanPhone && pCleanPhone === cleanPhone) ||
+          (cleanName && pCleanName === cleanName) ||
+          p.projectNumber === updatedItem.projectNumber ||
+          p.id === updatedItem.id;
+        return matches ? { ...p, ...updatedItem } : p;
+      })
     );
 
-    if (selectedProject && (selectedProject.projectNumber === updatedItem.projectNumber || selectedProject.id === updatedItem.id)) {
+    if (selectedProject && (
+      (cleanPhone && (selectedProject.clientPhone || selectedProject.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone) ||
+      (cleanName && (selectedProject.clientName || selectedProject.name || "").trim().toLowerCase() === cleanName) ||
+      selectedProject.projectNumber === updatedItem.projectNumber ||
+      selectedProject.id === updatedItem.id
+    )) {
       setSelectedProject((prev) => ({ ...prev, ...updatedItem }));
     }
   };
@@ -323,7 +336,19 @@ export default function Projects() {
     saveCustomProjectEdit(updated);
   };
 
-  // Record Payment
+  // Update Total Estimate / Contract Budget
+  const handleUpdateEstimateBudget = (newBudget) => {
+    if (!selectedProject) return;
+    const budgetVal = Number(newBudget) || 0;
+    const updated = {
+      ...selectedProject,
+      budget: budgetVal
+    };
+    saveCustomProjectEdit(updated);
+    showToast(`Total Contract Estimate updated to ₹${budgetVal.toLocaleString("en-IN")}`);
+  };
+
+  // Record Received Client Payment
   const handleRecordPaymentSubmit = (e) => {
     e.preventDefault();
     const payAmt = Number(paymentRecordForm.amount);
@@ -332,18 +357,49 @@ export default function Projects() {
       return;
     }
 
-    const currentPaid = Number(selectedProject.paidAmount || 0);
-    const newPaid = currentPaid + payAmt;
-    const updated = { ...selectedProject, paidAmount: newPaid };
+    const existingPayments = Array.isArray(selectedProject.payments) ? selectedProject.payments : [];
+    const newRecord = {
+      id: `pay_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      amount: payAmt,
+      mode: paymentRecordForm.mode || "UPI / NEFT / RTGS",
+      date: paymentRecordForm.date || new Date().toISOString().split("T")[0],
+      note: paymentRecordForm.note?.trim() || "Client Payment",
+      recordedAt: new Date().toISOString()
+    };
+
+    const updatedPayments = [newRecord, ...existingPayments];
+    const newTotalPaid = updatedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+    const updated = {
+      ...selectedProject,
+      payments: updatedPayments,
+      paidAmount: newTotalPaid
+    };
     saveCustomProjectEdit(updated);
 
     setPaymentRecordForm({
       amount: "",
-      mode: "UPI / Bank Transfer",
-      note: "Milestone Clearance",
+      mode: "UPI / NEFT / RTGS",
+      note: "",
       date: new Date().toISOString().split("T")[0]
     });
-    showToast(`Payment of ₹${payAmt.toLocaleString("en-IN")} recorded successfully!`);
+    showToast(`Payment of ₹${payAmt.toLocaleString("en-IN")} via ${newRecord.mode} recorded successfully!`);
+  };
+
+  // Delete Payment Record
+  const handleDeletePaymentRecord = (payId) => {
+    if (!selectedProject || !window.confirm("Are you sure you want to delete this payment record?")) return;
+    const existingPayments = Array.isArray(selectedProject.payments) ? selectedProject.payments : [];
+    const updatedPayments = existingPayments.filter((p) => p.id !== payId);
+    const newTotalPaid = updatedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+    const updated = {
+      ...selectedProject,
+      payments: updatedPayments,
+      paidAmount: newTotalPaid
+    };
+    saveCustomProjectEdit(updated);
+    showToast("Payment record removed.");
   };
 
   // Delete Project / Client from list
@@ -770,162 +826,258 @@ export default function Projects() {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 3: PAYMENTS & COMMERCIALS (BUDGET, ADVANCE, PENDING) */}
+              {/* TAB 3: PAYMENTS & COMMERCIALS (REAL LEDGER, ESTIMATE INPUT, PAYMENT RECORDS) */}
               {/* ========================================================================= */}
               {activeTab === "payments" && (() => {
-                const totalBudget = Number(selectedProject.budget || 2500000);
-                const advancePaid = Number(selectedProject.paidAmount || (totalBudget * 0.5));
-                const balancePending = Math.max(0, totalBudget - advancePaid);
-                const paymentStatus = balancePending === 0 ? "Fully Paid" : (advancePaid > 0 ? "Advance Received" : "Payment Pending");
+                const currentEstimate = Number(selectedProject.budget || 0);
+                const paymentList = Array.isArray(selectedProject.payments) ? selectedProject.payments : [];
+                const totalReceived = paymentList.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                const pendingBalance = Math.max(0, currentEstimate - totalReceived);
+                const percentReceived = currentEstimate > 0 ? Math.min(100, Math.round((totalReceived / currentEstimate) * 100)) : 0;
+                const paymentStatus = (currentEstimate > 0 && pendingBalance === 0) ? "Fully Paid" : (totalReceived > 0 ? "Partially Paid" : "Payment Pending");
+
+                // Matching BOQ if any
+                const matchedBOQ = boqs.find(b => 
+                  (b.clientPhone && selectedProject.clientPhone && b.clientPhone.replace(/\D/g, '') === selectedProject.clientPhone.replace(/\D/g, '')) ||
+                  (b.clientName && selectedProject.clientName && b.clientName.trim().toLowerCase() === selectedProject.clientName.trim().toLowerCase()) ||
+                  (b.enquiryNo && selectedProject.enquiryNo && b.enquiryNo === selectedProject.enquiryNo)
+                );
 
                 return (
                   <div className="space-y-6 animate-in fade-in">
                     <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-6">
-                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-100 pb-3">
+                      
+                      {/* Header & Status */}
+                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-100 pb-4">
                         <div>
-                          <h3 className="font-extrabold text-base text-stone-900">Payment & Commercial Breakdown</h3>
-                          <span className="text-xs text-stone-500">Contract budget, advance received, and pending balances</span>
+                          <h3 className="font-extrabold text-lg text-stone-900">Payment & Commercial Breakdown</h3>
+                          <span className="text-xs text-stone-500">Track client estimate, real-time received payment transactions, and remaining balance</span>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                          paymentStatus === "Fully Paid"
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                            : "bg-blue-50 text-blue-800 border-blue-200"
-                        }`}>
-                          {paymentStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                            paymentStatus === "Fully Paid"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                              : paymentStatus === "Partially Paid"
+                                ? "bg-blue-50 text-blue-800 border-blue-200"
+                                : "bg-amber-50 text-amber-800 border-amber-200"
+                          }`}>
+                            {paymentStatus}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* 3 Summary Cards */}
+                      {/* 3 Interactive Commercial Cards */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
-                          <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">
-                            TOTAL CONTRACT BUDGET
-                          </span>
-                          <span className="font-mono text-xl font-black text-stone-900 block">
-                            ₹{totalBudget.toLocaleString("en-IN")}
-                          </span>
-                          <span className="text-[10px] text-stone-500">100% Total Project Scope</span>
+                        
+                        {/* Card 1: Total Contract Estimate with Editable Input Box */}
+                        <div className="p-4 bg-stone-50/80 rounded-2xl border border-stone-200 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                              TOTAL CONTRACT ESTIMATE
+                            </span>
+                            {matchedBOQ?.grandTotal > 0 && matchedBOQ.grandTotal !== currentEstimate && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateEstimateBudget(matchedBOQ.grandTotal)}
+                                className="text-[10px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 cursor-pointer transition"
+                                title="Copy Grand Total from linked BOQ"
+                              >
+                                Sync BOQ: ₹{matchedBOQ.grandTotal.toLocaleString("en-IN")}
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-stone-400 text-sm">₹</span>
+                              <input
+                                type="number"
+                                placeholder="Enter total estimate..."
+                                value={selectedProject.budget !== undefined && selectedProject.budget !== null ? selectedProject.budget : ""}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  setSelectedProject((prev) => ({ ...prev, budget: val }));
+                                }}
+                                onBlur={(e) => {
+                                  handleUpdateEstimateBudget(Number(e.target.value));
+                                }}
+                                className="w-full pl-7 pr-3 py-1.5 bg-white border border-stone-300 rounded-xl font-mono text-base font-black text-stone-900 focus:outline-none focus:border-blue-500 shadow-2xs"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateEstimateBudget(selectedProject.budget || 0)}
+                              className="px-3 py-1.5 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl transition cursor-pointer shrink-0 shadow-2xs"
+                            >
+                              Set
+                            </button>
+                          </div>
+                          <span className="text-[10px] text-stone-500 block">Total project scope value agreed with client</span>
                         </div>
 
-                        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
-                          <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">
-                            ADVANCE / PAID AMOUNT
+                        {/* Card 2: Advance / Total Paid Amount */}
+                        <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2">
+                          <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                            TOTAL RECEIVED AMOUNT
                           </span>
-                          <span className="font-mono text-xl font-black text-emerald-800 block">
-                            ₹{advancePaid.toLocaleString("en-IN")}
+                          <span className="font-mono text-2xl font-black text-emerald-800 block">
+                            ₹{totalReceived.toLocaleString("en-IN")}
                           </span>
-                          <span className="text-[10px] text-emerald-700 font-bold">
-                            {Math.round((advancePaid / totalBudget) * 100)}% Received
-                          </span>
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-emerald-700 font-bold">{percentReceived}% Received</span>
+                            <span className="text-emerald-600 font-medium">{paymentList.length} Payment(s)</span>
+                          </div>
                         </div>
 
-                        <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 space-y-1">
-                          <span className="text-[11px] font-bold text-rose-700 uppercase tracking-wider block">
+                        {/* Card 3: Pending Balance Due */}
+                        <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-200 space-y-2">
+                          <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider block">
                             PENDING BALANCE DUE
                           </span>
-                          <span className="font-mono text-xl font-black text-rose-900 block">
-                            ₹{balancePending.toLocaleString("en-IN")}
+                          <span className="font-mono text-2xl font-black text-rose-900 block">
+                            ₹{pendingBalance.toLocaleString("en-IN")}
                           </span>
-                          <span className="text-[10px] text-rose-700 font-bold">
-                            {Math.round((balancePending / totalBudget) * 100)}% Remaining Balance
+                          <span className="text-[10px] text-rose-700 font-bold block">
+                            {currentEstimate > 0 ? `${100 - percentReceived}% Remaining Balance` : "No estimate set yet"}
                           </span>
                         </div>
                       </div>
 
-                      {/* Milestone Schedule */}
+                      {/* Real Payment Records Table (Replaces Milestone Schedule) */}
                       <div className="space-y-3 pt-2">
-                        <h4 className="font-extrabold text-xs text-stone-900">Milestone Payment Schedule</h4>
-                        <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-2xs">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-black text-sm text-stone-900">Payment Transaction Records</h4>
+                            <p className="text-[11px] text-stone-500">Every payment installment received from the client with payment mode & date</p>
+                          </div>
+                          <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2.5 py-1 rounded-lg">
+                            Total Entries: {paymentList.length}
+                          </span>
+                        </div>
+
+                        <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-2xs bg-white">
                           <table className="w-full text-left text-xs border-collapse">
                             <thead>
-                              <tr className="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
-                                <th className="py-3 px-4">Milestone Stage</th>
-                                <th className="py-3 px-3">Percentage</th>
-                                <th className="py-3 px-3 text-right">Amount (₹)</th>
-                                <th className="py-3 px-4 text-center">Status</th>
+                              <tr className="bg-stone-50/90 text-stone-700 font-extrabold border-b border-stone-200">
+                                <th className="py-3 px-4 w-12 text-center">#</th>
+                                <th className="py-3 px-4">Payment Date</th>
+                                <th className="py-3 px-4 font-mono">Amount Paid (₹)</th>
+                                <th className="py-3 px-4">Payment Mode</th>
+                                <th className="py-3 px-4 min-w-[180px]">Note / Reference</th>
+                                <th className="py-3 px-4 text-right font-mono">Pending Balance (₹)</th>
+                                <th className="py-3 px-4 text-center w-20">Action</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-stone-100 text-stone-700">
-                              <tr>
-                                <td className="py-3 px-4 font-bold text-stone-900">1. Advance Work Order Confirmation</td>
-                                <td className="py-3 px-3 font-mono font-bold">50%</td>
-                                <td className="py-3 px-3 text-right font-mono font-bold">
-                                  ₹{(totalBudget * 0.5).toLocaleString("en-IN")}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    Received
-                                  </span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td className="py-3 px-4 font-bold text-stone-900">2. Factory Production & Dispatch Clearance</td>
-                                <td className="py-3 px-3 font-mono font-bold">40%</td>
-                                <td className="py-3 px-3 text-right font-mono font-bold">
-                                  ₹{(totalBudget * 0.4).toLocaleString("en-IN")}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                                    {advancePaid >= totalBudget * 0.9 ? "Cleared" : "Pending Clearance"}
-                                  </span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td className="py-3 px-4 font-bold text-stone-900">3. Final Snag Handover</td>
-                                <td className="py-3 px-3 font-mono font-bold">10%</td>
-                                <td className="py-3 px-3 text-right font-mono font-bold">
-                                  ₹{(totalBudget * 0.1).toLocaleString("en-IN")}
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-600 border border-stone-200">
-                                    Final Snag
-                                  </span>
-                                </td>
-                              </tr>
+                              {paymentList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={7} className="py-10 text-center text-stone-400 font-medium">
+                                    <CreditCard size={28} className="mx-auto mb-2 text-stone-300" />
+                                    No payments recorded yet. Add the first payment below.
+                                  </td>
+                                </tr>
+                              ) : (
+                                paymentList.map((pay, pIdx) => {
+                                  return (
+                                    <tr key={pay.id || pIdx} className="hover:bg-stone-50/60 transition">
+                                      <td className="py-3 px-4 text-center font-bold text-stone-400">
+                                        {pIdx + 1}
+                                      </td>
+                                      <td className="py-3 px-4 font-semibold text-stone-900">
+                                        {pay.date || new Date().toLocaleDateString("en-IN")}
+                                      </td>
+                                      <td className="py-3 px-4 font-mono font-black text-emerald-700 text-sm">
+                                        ₹{Number(pay.amount || 0).toLocaleString("en-IN")}
+                                      </td>
+                                      <td className="py-3 px-4">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                          {pay.mode || "UPI / NEFT / RTGS"}
+                                        </span>
+                                      </td>
+                                      <td className="py-3 px-4 text-stone-600 font-medium">
+                                        {pay.note || "Client Payment"}
+                                      </td>
+                                      <td className="py-3 px-4 text-right font-mono font-bold text-stone-800">
+                                        ₹{pendingBalance.toLocaleString("en-IN")}
+                                      </td>
+                                      <td className="py-3 px-4 text-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeletePaymentRecord(pay.id)}
+                                          className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                          title="Delete Payment Entry"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
                             </tbody>
                           </table>
                         </div>
                       </div>
 
-                      {/* Record Payment Form */}
-                      <form onSubmit={handleRecordPaymentSubmit} className="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-3">
-                        <h4 className="font-extrabold text-xs text-stone-900 flex items-center gap-1.5">
-                          <CreditCard size={14} className="text-blue-600" />
-                          <span>Record Received Client Payment</span>
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Record Received Client Payment Form */}
+                      <form onSubmit={handleRecordPaymentSubmit} className="p-5 bg-stone-50/80 border border-stone-200 rounded-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
+                          <h4 className="font-extrabold text-xs text-stone-900 flex items-center gap-2">
+                            <CreditCard size={15} className="text-blue-600" />
+                            <span>Record Received Client Payment</span>
+                          </h4>
+                          <span className="text-[11px] text-stone-500 font-medium">Auto-calculates new paid total and pending balance</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                           <div>
-                            <label className="block text-[11px] font-semibold text-stone-700 mb-1">Amount (₹)</label>
+                            <label className="block text-[11px] font-bold text-stone-700 mb-1">Amount (₹) *</label>
                             <input
                               type="number"
                               required
+                              min="1"
                               placeholder="e.g. 500000"
                               value={paymentRecordForm.amount}
                               onChange={(e) => setPaymentRecordForm({ ...paymentRecordForm, amount: e.target.value })}
-                              className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-mono font-bold text-stone-900 focus:outline-none focus:border-blue-500"
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-xl text-xs font-mono font-bold text-stone-900 focus:outline-none focus:border-blue-500 shadow-2xs"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-semibold text-stone-700 mb-1">Payment Mode</label>
+                            <label className="block text-[11px] font-bold text-stone-700 mb-1">Payment Mode *</label>
                             <select
                               value={paymentRecordForm.mode}
                               onChange={(e) => setPaymentRecordForm({ ...paymentRecordForm, mode: e.target.value })}
-                              className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:border-blue-500 cursor-pointer"
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-xl text-xs font-semibold text-stone-900 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                             >
-                              <option value="UPI / Bank Transfer">UPI / NEFT / RTGS</option>
+                              <option value="UPI / NEFT / RTGS">UPI / NEFT / RTGS</option>
+                              <option value="Bank Transfer">Direct Bank Transfer</option>
                               <option value="Cheque">Cheque Deposit</option>
+                              <option value="Cash">Cash Payment</option>
                               <option value="Credit Card">Credit Card</option>
+                              <option value="Debit Card">Debit Card</option>
                             </select>
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-semibold text-stone-700 mb-1">Payment Date</label>
+                            <label className="block text-[11px] font-bold text-stone-700 mb-1">Payment Date *</label>
                             <input
                               type="date"
+                              required
                               value={paymentRecordForm.date}
                               onChange={(e) => setPaymentRecordForm({ ...paymentRecordForm, date: e.target.value })}
-                              className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:border-blue-500"
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-xl text-xs font-semibold text-stone-900 focus:outline-none focus:border-blue-500 shadow-2xs"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-700 mb-1">Note / Reference (Optional)</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Booking Advance, UTR 9823..."
+                              value={paymentRecordForm.note || ""}
+                              onChange={(e) => setPaymentRecordForm({ ...paymentRecordForm, note: e.target.value })}
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-xl text-xs text-stone-900 focus:outline-none focus:border-blue-500 shadow-2xs"
                             />
                           </div>
                         </div>
@@ -933,9 +1085,10 @@ export default function Projects() {
                         <div className="flex justify-end pt-1">
                           <button
                             type="submit"
-                            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
                           >
-                            Add Payment Record
+                            <Plus size={14} />
+                            <span>Add Payment Record</span>
                           </button>
                         </div>
                       </form>
@@ -1514,7 +1667,7 @@ export default function Projects() {
                   <label className="block font-semibold text-stone-700 mb-1">Total Contract Budget (₹)</label>
                   <input
                     type="number"
-                    value={editFormData.budget || 2500000}
+                    value={editFormData.budget !== undefined && editFormData.budget !== null ? editFormData.budget : ""}
                     onChange={(e) => setEditFormData({ ...editFormData, budget: Number(e.target.value) })}
                     className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl font-mono text-stone-900 focus:outline-none focus:border-blue-500"
                   />

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Lead from "../models/Lead.js";
 import WebsiteLead from "../models/WebsiteLead.js";
 import Client from "../models/Client.js";

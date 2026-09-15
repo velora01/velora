@@ -283,14 +283,36 @@ export default function BOQManagement() {
     try {
       const res = await erpApi.getBOQs({ search, page: pagination.page, limit: 100 });
       if (res?.success && Array.isArray(res.data)) {
-        setBoqList(res.data);
+        const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+        const merged = res.data.map((b) => {
+          const matchedLocal = localBOQs.find(
+            (l) => l._id === b._id || (l.enquiryNo && b.enquiryNo && l.enquiryNo === b.enquiryNo)
+          );
+          if (matchedLocal && matchedLocal.spaces?.some((s) => s.items?.length > 0)) {
+            const localItemCount = matchedLocal.spaces.reduce((acc, s) => acc + (s.items?.length || 0), 0);
+            const serverItemCount = (b.spaces || []).reduce((acc, s) => acc + (s.items?.length || 0), 0);
+            if (localItemCount >= serverItemCount) {
+              return { ...b, ...matchedLocal };
+            }
+          }
+          return b;
+        });
+
+        // Also add any local-only BOQs not yet in server list
+        localBOQs.forEach((l) => {
+          if (!merged.some((m) => m._id === l._id || (m.enquiryNo && l.enquiryNo && m.enquiryNo === l.enquiryNo))) {
+            merged.unshift(l);
+          }
+        });
+
+        setBoqList(merged);
         setPagination((p) => ({
           ...p,
-          total: res.data.length,
-          pages: Math.max(1, Math.ceil(res.data.length / (p.limit || 10)))
+          total: merged.length,
+          pages: Math.max(1, Math.ceil(merged.length / (p.limit || 10)))
         }));
         try {
-          localStorage.setItem("velora_custom_boqs", JSON.stringify(res.data));
+          localStorage.setItem("velora_custom_boqs", JSON.stringify(merged));
         } catch (e) {}
       } else {
         const localBOQs = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
@@ -372,6 +394,56 @@ export default function BOQManagement() {
     }
   }, [urlId]);
 
+  // Core persistence function: instantly updates activeBOQ, boqList in state and localStorage, and syncs to MongoDB
+  const persistBOQChange = useCallback((newBOQ) => {
+    if (!newBOQ) return;
+    setActiveBOQ(newBOQ);
+
+    // 1. Instantly update boqList in React state so any navigation / tab switch has the latest data
+    setBoqList((prev) => {
+      const idx = prev.findIndex((b) => b._id === newBOQ._id || (b.enquiryNo && b.enquiryNo === newBOQ.enquiryNo));
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newBOQ;
+        return copy;
+      }
+      return [newBOQ, ...prev];
+    });
+
+    // 2. Instantly update localStorage
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const filteredLocal = existingLocal.filter((b) => b._id !== newBOQ._id && (!newBOQ.enquiryNo || b.enquiryNo !== newBOQ.enquiryNo));
+      localStorage.setItem("velora_custom_boqs", JSON.stringify([newBOQ, ...filteredLocal]));
+    } catch (e) {}
+
+    // 3. Immediately send to backend MongoDB (non-blocking)
+    if (newBOQ._id && !String(newBOQ._id).startsWith("temp_") && !String(newBOQ._id).startsWith("boq_")) {
+      erpApi.updateBOQ(newBOQ._id, newBOQ).catch((err) => console.warn("Auto-save updateBOQ error:", err));
+    } else {
+      erpApi.createBOQ(newBOQ).then((res) => {
+        if (res?.data?._id) {
+          const syncedBOQ = { ...newBOQ, _id: res.data._id };
+          setActiveBOQ(syncedBOQ);
+          setBoqList((prev) => {
+            const idx = prev.findIndex((b) => b._id === newBOQ._id || b.enquiryNo === newBOQ.enquiryNo);
+            if (idx >= 0) {
+              const copy = [...prev];
+              copy[idx] = syncedBOQ;
+              return copy;
+            }
+            return [syncedBOQ, ...prev];
+          });
+          try {
+            const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+            const filteredLocal = existingLocal.filter((b) => b._id !== syncedBOQ._id && (!syncedBOQ.enquiryNo || b.enquiryNo !== syncedBOQ.enquiryNo));
+            localStorage.setItem("velora_custom_boqs", JSON.stringify([syncedBOQ, ...filteredLocal]));
+          } catch (e) {}
+        }
+      }).catch((err) => console.warn("Auto-save createBOQ error:", err));
+    }
+  }, []);
+
   const loadSpecificBOQ = async (idOrEnquiry) => {
     try {
       const res = await erpApi.getBOQById(idOrEnquiry);
@@ -387,7 +459,8 @@ export default function BOQManagement() {
     } catch {
       // Look up locally
     }
-    const found = boqList.find((b) => b._id === idOrEnquiry || b.enquiryNo === idOrEnquiry);
+    const localList = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+    const found = localList.find((b) => b._id === idOrEnquiry || b.enquiryNo === idOrEnquiry) || boqList.find((b) => b._id === idOrEnquiry || b.enquiryNo === idOrEnquiry);
     if (found) {
       setActiveBOQ({
         ...found,
@@ -400,9 +473,18 @@ export default function BOQManagement() {
 
   // Open Builder for a given BOQ row
   const handleOpenBuilder = (boqItem) => {
+    let target = boqItem;
+    try {
+      const localList = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const foundLocal = localList.find((b) => b._id === boqItem._id || (b.enquiryNo && b.enquiryNo === boqItem.enquiryNo));
+      if (foundLocal && foundLocal.spaces && foundLocal.spaces.some((s) => s.items?.length > 0)) {
+        target = foundLocal;
+      }
+    } catch (e) {}
+
     setActiveBOQ({
-      ...boqItem,
-      spaces: boqItem.spaces && boqItem.spaces.length > 0 ? boqItem.spaces : defaultStandardSpaces
+      ...target,
+      spaces: target.spaces && target.spaces.length > 0 ? target.spaces : defaultStandardSpaces
     });
     setActiveSpaceIdx(0);
     setViewMode("builder");
@@ -662,7 +744,7 @@ export default function BOQManagement() {
     if (targetSpace && targetSpace.items[itemIdx]) {
       targetSpace.items[itemIdx][field] = value;
       const recalculated = recalculateBOQ(updated);
-      setActiveBOQ(recalculated);
+      persistBOQChange(recalculated);
     }
   };
 
@@ -749,7 +831,7 @@ export default function BOQManagement() {
     }
 
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setSuccessToast(`Added ${customConfig?.name || comp.name} (${customConfig?.packageVariant || targetVariant || selectedPackage}) to ${targetSpace.name}!`);
     setTimeout(() => setSuccessToast(""), 2000);
   };
@@ -809,7 +891,7 @@ export default function BOQManagement() {
     }
 
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setSuccessToast(`Switched ${item.name} to ${newVariant} (Rate: ₹${item.rate}/sqft)`);
     setTimeout(() => setSuccessToast(""), 2000);
   };
@@ -878,7 +960,7 @@ export default function BOQManagement() {
     }
 
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setTimeout(() => setSuccessToast(""), 2500);
 
   };
@@ -1076,7 +1158,7 @@ export default function BOQManagement() {
         }
 
         const recalculated = recalculateBOQ(updated);
-        setActiveBOQ(recalculated);
+        persistBOQChange(recalculated);
         setSuccessToast(`Photo uploaded and attached to ${item.name}!`);
         setTimeout(() => setSuccessToast(""), 2500);
       }
@@ -1199,7 +1281,7 @@ export default function BOQManagement() {
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     updated.spaces[activeSpaceIdx].items.splice(itemIdx, 1);
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
   };
 
   // Add New Space / Room Tab manually
@@ -1222,7 +1304,7 @@ export default function BOQManagement() {
     });
 
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setActiveSpaceIdx(updated.spaces.length - 1);
     setNewSpaceName("");
     setIsAddSpaceOpen(false);
@@ -1238,7 +1320,7 @@ export default function BOQManagement() {
     cloned.name = `${currentSpace.name} (Copy)`;
     updated.spaces.push(cloned);
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setActiveSpaceIdx(updated.spaces.length - 1);
   };
 
@@ -1252,7 +1334,7 @@ export default function BOQManagement() {
     const updated = JSON.parse(JSON.stringify(activeBOQ));
     updated.spaces.splice(activeSpaceIdx, 1);
     const recalculated = recalculateBOQ(updated);
-    setActiveBOQ(recalculated);
+    persistBOQChange(recalculated);
     setActiveSpaceIdx(Math.max(0, activeSpaceIdx - 1));
   };
 
@@ -1884,7 +1966,7 @@ export default function BOQManagement() {
               if (window.confirm("Clear all items in current space?")) {
                 const updated = JSON.parse(JSON.stringify(activeBOQ));
                 updated.spaces[activeSpaceIdx].items = [];
-                setActiveBOQ(recalculateBOQ(updated));
+                persistBOQChange(recalculateBOQ(updated));
               }
             }}
             className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"

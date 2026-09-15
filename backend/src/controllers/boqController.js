@@ -318,7 +318,29 @@ export const createBOQ = async (req, res) => {
 // PUT /api/erp/boq/:id
 export const updateBOQ = async (req, res) => {
   try {
-    const boq = await BOQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const param = req.params.id;
+    let boq = null;
+
+    if (param && mongoose.Types.ObjectId.isValid(param)) {
+      boq = await BOQ.findByIdAndUpdate(param, req.body, { new: true });
+    }
+
+    if (!boq && param) {
+      boq = await BOQ.findOneAndUpdate(
+        { $or: [{ enquiryNo: param }, { boqNumber: param }, { lead: param }] },
+        req.body,
+        { new: true }
+      );
+    }
+
+    if (!boq && req.body.enquiryNo) {
+      boq = await BOQ.findOneAndUpdate(
+        { enquiryNo: req.body.enquiryNo },
+        req.body,
+        { new: true, upsert: true }
+      );
+    }
+
     if (!boq) return res.status(404).json({ success: false, message: "BOQ not found" });
 
     const synced = await syncClientCommercialsFromBOQ(boq);

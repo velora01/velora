@@ -131,6 +131,28 @@ export default function QuotationInvoiceManager() {
 
   const [formData, setFormData] = useState(initialInvoiceForm);
 
+  // Auto-Save feature state (Defaults to ON, persisted in localStorage)
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
+    try {
+      return localStorage.getItem("velora_invoice_autosave") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  const [autoSaveStatus, setAutoSaveStatus] = useState("idle"); // "idle" | "saving" | "saved"
+  const autoSaveTimerRef = useRef(null);
+  const isInitialMount = useRef(true);
+
+  // Toggle Auto-Save ON/OFF
+  const handleToggleAutoSave = () => {
+    const nextVal = !autoSaveEnabled;
+    setAutoSaveEnabled(nextVal);
+    try {
+      localStorage.setItem("velora_invoice_autosave", String(nextVal));
+    } catch (e) {}
+    showToast(nextVal ? "Auto-Save is ON. Invoices will automatically save as you type." : "Auto-Save is OFF. Use the Save Invoice button to save.");
+  };
+
   // Load All Invoices and Enquiries
   const loadData = async () => {
     setLoading(true);

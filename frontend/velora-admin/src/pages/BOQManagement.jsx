@@ -202,6 +202,7 @@ export default function BOQManagement() {
       const eNo = (enquiry.enquiryNo || "").trim().toLowerCase();
       const eId = String(enquiry._id || "");
       const ePhone = (enquiry.phone || "").replace(/\D/g, "");
+      const eName = (enquiry.name || "").trim().toLowerCase();
 
       return boqList.some((b) => {
         if (b.lead && eId && String(b.lead) === eId) return true;
@@ -209,6 +210,7 @@ export default function BOQManagement() {
         if (eNo && b.enquiryNo && b.enquiryNo.trim().toLowerCase() === eNo) return true;
         const bPhone = (b.clientPhone || "").replace(/\D/g, "");
         if (bPhone && ePhone && bPhone.length >= 7 && bPhone === ePhone) return true;
+        if (eName && eName !== "client" && b.clientName && b.clientName.trim().toLowerCase() === eName) return true;
         return false;
       });
     },
@@ -421,8 +423,48 @@ export default function BOQManagement() {
     setIsSelectClientModalOpen(true);
   };
 
-  // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Directly Open Builder in Feet.inch
-  const handleSelectEnquiryToCreateBOQ = (enquiry) => {
+  // Auto-Save BOQ whenever activeBOQ is updated in the builder
+  useEffect(() => {
+    if (!activeBOQ || !activeBOQ._id || viewMode !== "builder") return;
+
+    // 1. Instantly sync to boqList state & localStorage
+    setBoqList((prev) => {
+      const idx = prev.findIndex((b) => b._id === activeBOQ._id || b.enquiryNo === activeBOQ.enquiryNo);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = activeBOQ;
+        return copy;
+      }
+      return [activeBOQ, ...prev];
+    });
+
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const filteredLocal = existingLocal.filter((b) => b._id !== activeBOQ._id && b.enquiryNo !== activeBOQ.enquiryNo);
+      localStorage.setItem("velora_custom_boqs", JSON.stringify([activeBOQ, ...filteredLocal]));
+    } catch (e) {}
+
+    // 2. Debounced sync to backend MongoDB
+    const timer = setTimeout(async () => {
+      try {
+        if (activeBOQ._id && !activeBOQ._id.startsWith("temp_") && !activeBOQ._id.startsWith("boq_")) {
+          await erpApi.updateBOQ(activeBOQ._id, activeBOQ);
+        } else {
+          const res = await erpApi.createBOQ(activeBOQ);
+          if (res?.data?._id) {
+            setActiveBOQ((prev) => (prev ? { ...prev, _id: res.data._id } : null));
+          }
+        }
+      } catch (err) {
+        console.warn("Auto-save sync warning:", err);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [activeBOQ, viewMode]);
+
+  // When user clicks an Enquiry Card in the "Select Enquiry" modal -> Directly Open Builder & Auto-Save
+  const handleSelectEnquiryToCreateBOQ = async (enquiry) => {
     setIsSelectClientModalOpen(false);
     const targetEnquiry = enquiry || { name: "Client", enquiryNo: "" };
     
@@ -431,11 +473,13 @@ export default function BOQManagement() {
       const eNo = (targetEnquiry.enquiryNo || "").trim().toLowerCase();
       const eId = String(targetEnquiry._id || "");
       const ePhone = (targetEnquiry.phone || "").replace(/\D/g, "");
+      const eName = (targetEnquiry.name || "").trim().toLowerCase();
       if (b.lead && eId && String(b.lead) === eId) return true;
       if (b._id && eId && String(b._id) === eId) return true;
       if (eNo && b.enquiryNo && b.enquiryNo.trim().toLowerCase() === eNo) return true;
       const bPhone = (b.clientPhone || "").replace(/\D/g, "");
       if (bPhone && ePhone && bPhone.length >= 7 && bPhone === ePhone) return true;
+      if (eName && eName !== "client" && b.clientName && b.clientName.trim().toLowerCase() === eName) return true;
       return false;
     });
 
@@ -448,12 +492,10 @@ export default function BOQManagement() {
     const boqNumber = `BOQ-2026-${randomSuffix}`;
     const enquiryNo = targetEnquiry.enquiryNo || (targetEnquiry._id ? `ENQ-${String(targetEnquiry._id).slice(-4)}` : boqNumber);
 
-    // Create BOQ draft populated with standard spaces ready to customize (Feet & Inches by default)
-    const newBOQ = {
-      _id: `temp_${Date.now()}`,
+    let initialBOQ = {
       boqNumber,
       enquiryNo,
-      lead: targetEnquiry._id,
+      lead: targetEnquiry._id || null,
       enquiryDate: targetEnquiry.enquiryDate || new Date().toISOString().split("T")[0],
       clientName: targetEnquiry.name || "Client",
       clientEmail: targetEnquiry.email || "",
@@ -465,13 +507,35 @@ export default function BOQManagement() {
       gstTotal: 0,
       grandTotal: 0,
       spaces: JSON.parse(JSON.stringify(defaultStandardSpaces)),
-      isDraft: true
+      isDraft: false
     };
 
-    setActiveBOQ(newBOQ);
+    try {
+      const res = await erpApi.createBOQ(initialBOQ);
+      if (res?.data?._id) {
+        initialBOQ = { ...initialBOQ, ...res.data };
+      }
+    } catch (err) {
+      console.warn("Instant createBOQ warning:", err);
+      initialBOQ._id = `boq_${Date.now()}`;
+    }
+
+    // Instantly update boqList in state and localStorage so it immediately appears in BOQ section table!
+    setBoqList((prev) => {
+      const filtered = prev.filter((b) => b._id !== initialBOQ._id && b.enquiryNo !== initialBOQ.enquiryNo);
+      return [initialBOQ, ...filtered];
+    });
+
+    try {
+      const existingLocal = JSON.parse(localStorage.getItem("velora_custom_boqs") || "[]");
+      const filteredLocal = existingLocal.filter((b) => b._id !== initialBOQ._id && b.enquiryNo !== initialBOQ.enquiryNo);
+      localStorage.setItem("velora_custom_boqs", JSON.stringify([initialBOQ, ...filteredLocal]));
+    } catch (e) {}
+
+    setActiveBOQ(initialBOQ);
     setActiveSpaceIdx(0);
     setViewMode("builder");
-    setSuccessToast(`Draft BOQ initialized for ${targetEnquiry.name || "Client"}. Add items and click Save!`);
+    setSuccessToast(`BOQ initialized & saved for ${targetEnquiry.name || "Client"}`);
     setTimeout(() => setSuccessToast(""), 3500);
   };
 
@@ -1344,11 +1408,12 @@ export default function BOQManagement() {
     });
   }, [libraryComponents, currentSpace, componentSearch, relevantComponents]);
 
-  // Filtered Enquiries in Modal: Show all enquiries created in CRM
+  // Filtered Enquiries in Modal: ONLY show enquiries that do NOT already have a BOQ in the BOQ section
   const filteredEnquiries = useMemo(() => {
-    if (!clientSearchQuery || !clientSearchQuery.trim()) return enquiryList || [];
+    const unassigned = (enquiryList || []).filter((enquiry) => !hasSavedBOQ(enquiry));
+    if (!clientSearchQuery || !clientSearchQuery.trim()) return unassigned;
     const q = clientSearchQuery.toLowerCase().trim();
-    return (enquiryList || []).filter(
+    return unassigned.filter(
       (c) =>
         c.name?.toLowerCase().includes(q) ||
         c.phone?.toLowerCase().includes(q) ||
@@ -1356,7 +1421,7 @@ export default function BOQManagement() {
         c.enquiryNo?.toLowerCase().includes(q) ||
         c.projectType?.toLowerCase().includes(q)
     );
-  }, [enquiryList, clientSearchQuery]);
+  }, [enquiryList, hasSavedBOQ, clientSearchQuery]);
 
   // Format Date Helper
   const formatDate = (dateStr) => {
@@ -1646,49 +1711,39 @@ export default function BOQManagement() {
                   Select Enquiry to continue
                 </span>
                 <span className="text-[10.5px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
-                  {filteredEnquiries.length} Enquiries Available
+                  {filteredEnquiries.length} Available without BOQ
                 </span>
               </div>
 
               {/* Enquiry Cards List */}
               <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                {filteredEnquiries.map((enquiry) => {
-                  const hasBOQ = hasSavedBOQ(enquiry);
-                  return (
-                    <div
-                      key={enquiry._id || enquiry.enquiryNo}
-                      onClick={() => handleSelectEnquiryToCreateBOQ(enquiry)}
-                      className="p-3.5 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
-                    >
-                      {/* Circle Avatar with First Letter */}
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-blue-600 group-hover:text-white transition">
-                        {enquiry.name ? enquiry.name.charAt(0) : "E"}
-                      </div>
-
-                      {/* Name and Enquiry Number */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition">
-                            {enquiry.name || "Client"}
-                          </h4>
-                          {hasBOQ && (
-                            <span className="px-1.5 py-0.2 text-[9.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
-                              ✓ Saved BOQ
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-mono truncate mt-0.5">
-                          {enquiry.enquiryNo || (enquiry._id ? `ENQ-${String(enquiry._id).slice(-4)}` : "-")}
-                          {enquiry.phone ? ` • ${enquiry.phone}` : ""}
-                        </p>
-                      </div>
-
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg transition group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600">
-                        {hasBOQ ? "Open BOQ →" : "Create BOQ →"}
-                      </span>
+                {filteredEnquiries.map((enquiry) => (
+                  <div
+                    key={enquiry._id || enquiry.enquiryNo}
+                    onClick={() => handleSelectEnquiryToCreateBOQ(enquiry)}
+                    className="p-3.5 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl flex items-center gap-3.5 cursor-pointer transition shadow-2xs group"
+                  >
+                    {/* Circle Avatar with First Letter */}
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm shrink-0 uppercase group-hover:bg-blue-600 group-hover:text-white transition">
+                      {enquiry.name ? enquiry.name.charAt(0) : "E"}
                     </div>
-                  );
-                })}
+
+                    {/* Name and Enquiry Number */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600 transition">
+                        {enquiry.name || "Client"}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-mono truncate mt-0.5">
+                        {enquiry.enquiryNo || (enquiry._id ? `ENQ-${String(enquiry._id).slice(-4)}` : "-")}
+                        {enquiry.phone ? ` • ${enquiry.phone}` : ""}
+                      </p>
+                    </div>
+
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg transition group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600">
+                      Create BOQ →
+                    </span>
+                  </div>
+                ))}
 
                 {filteredEnquiries.length === 0 && (
                   <div className="p-6 text-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3">
@@ -1697,12 +1752,12 @@ export default function BOQManagement() {
                     </div>
                     <div>
                       <p className="font-bold text-slate-900">
-                        {clientSearchQuery ? `No enquiries found matching "${clientSearchQuery}"` : "No enquiries found in database"}
+                        {clientSearchQuery ? `No enquiries found matching "${clientSearchQuery}"` : "All enquiries already have saved BOQs!"}
                       </p>
                       <p className="text-[11px] text-slate-500 mt-1">
                         {clientSearchQuery
                           ? "Try searching by another name, email or phone."
-                          : "Create a new enquiry in the Enquiry section to start creating BOQs."}
+                          : "All client enquiries currently have active BOQs in the BOQ section."}
                       </p>
                     </div>
                     {!clientSearchQuery && (

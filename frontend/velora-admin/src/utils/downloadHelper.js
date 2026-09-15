@@ -2851,3 +2851,299 @@ export const downloadCsv = (filename, columns, data) => {
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   triggerBlobDownload(blob, `${filename.replace(/\.csv$/, "")}.csv`);
 };
+
+/**
+ * Client-Side Luxury Payment History & Financial Statement PDF Generator
+ */
+export const downloadPaymentHistoryPdf = (projectOrClient, options = {}) => {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "a4"
+  });
+
+  const clientName = projectOrClient?.clientName || projectOrClient?.name || "Valued Client";
+  const clientPhone = projectOrClient?.clientPhone || projectOrClient?.phone || "-";
+  const clientEmail = projectOrClient?.clientEmail || projectOrClient?.email || "-";
+  const siteAddress = projectOrClient?.siteLocation || projectOrClient?.address || projectOrClient?.siteAddress || "Pune, Maharashtra";
+  const projectNumber = projectOrClient?.projectNumber || projectOrClient?.enquiryNo || "PRJ-2026";
+  const projectType = projectOrClient?.projectType || "Residential Turnkey";
+  const preferredStyle = projectOrClient?.preferredStyle || "Modern Contemporary";
+  const handledBy = projectOrClient?.handledBy || "Velora Lead Consultant";
+
+  const totalEstimate = Number(projectOrClient?.budget || 0);
+  const paymentList = Array.isArray(projectOrClient?.payments) ? projectOrClient.payments : [];
+  const totalReceived = paymentList.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const pendingBalance = Math.max(0, totalEstimate - totalReceived);
+  const percentPaid = totalEstimate > 0 ? Math.min(100, Math.round((totalReceived / totalEstimate) * 100)) : 0;
+  const paymentStatus = (totalEstimate > 0 && pendingBalance === 0) ? "FULLY PAID" : (totalReceived > 0 ? `PARTIALLY PAID (${percentPaid}%)` : "PAYMENT PENDING");
+
+  // Page dimensions
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 40;
+  const contentWidth = pageWidth - (margin * 2);
+
+  // 1. Top Gold Brand Accent Bar
+  doc.setFillColor(197, 160, 89);
+  doc.rect(margin, 30, contentWidth, 4, "F");
+
+  // 2. Brand Header
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(158, 123, 29); // Velora Gold
+  doc.text("VELORA LUXURY INTERIORS", margin, 58);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text("CLIENT PAYMENT STATEMENT & FINANCIAL LEDGER", margin, 73);
+
+  // Right Header Info
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`STATEMENT REF: ${projectNumber}`, pageWidth - margin, 55, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`DATE GENERATED: ${new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`, pageWidth - margin, 70, { align: "right" });
+
+  // Divider line
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(1);
+  doc.line(margin, 85, pageWidth - margin, 85);
+
+  // 3. Client & Project Details Card
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(margin, 95, contentWidth, 75, 6, 6, "F");
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, 95, contentWidth, 75, 6, 6, "S");
+
+  // Left Column - Client Details
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text("BILLED TO / CLIENT:", margin + 15, 112);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(15, 23, 42);
+  doc.text(clientName.toUpperCase(), margin + 15, 128);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Phone: ${clientPhone}  |  Email: ${clientEmail}`, margin + 15, 143);
+  doc.text(`Site Address: ${siteAddress}`, margin + 15, 157);
+
+  // Right Column - Project Info
+  const rightColX = margin + (contentWidth / 2) + 15;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text("PROJECT SCOPE & CONSULTANT:", rightColX, 112);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${projectType} (${preferredStyle})`, rightColX, 128);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Designated Lead: ${handledBy}`, rightColX, 143);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(paymentStatus.includes("FULLY") ? 5 : (paymentStatus.includes("PARTIALLY") ? 37 : 180), paymentStatus.includes("FULLY") ? 150 : (paymentStatus.includes("PARTIALLY") ? 99 : 83), paymentStatus.includes("FULLY") ? 105 : (paymentStatus.includes("PARTIALLY") ? 235 : 9));
+  doc.text(`Account Status: ${paymentStatus}`, rightColX, 157);
+
+  // 4. Three Commercial Summary KPI Boxes
+  const cardY = 180;
+  const cardHeight = 52;
+  const cardWidth = (contentWidth - 20) / 3;
+
+  // Box 1: Total Estimate
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(margin, cardY, cardWidth, cardHeight, 6, 6, "F");
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(margin, cardY, cardWidth, cardHeight, 6, 6, "S");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("TOTAL CONTRACT ESTIMATE", margin + 12, cardY + 16);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`Rs. ${totalEstimate.toLocaleString("en-IN")}`, margin + 12, cardY + 36);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text("100% Total Project Scope", margin + 12, cardY + 47);
+
+  // Box 2: Total Received
+  const card2X = margin + cardWidth + 10;
+  doc.setFillColor(236, 253, 245);
+  doc.roundedRect(card2X, cardY, cardWidth, cardHeight, 6, 6, "F");
+  doc.setDrawColor(167, 243, 208);
+  doc.roundedRect(card2X, cardY, cardWidth, cardHeight, 6, 6, "S");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(6, 95, 70);
+  doc.text("TOTAL RECEIVED AMOUNT", card2X + 12, cardY + 16);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(5, 150, 105);
+  doc.text(`Rs. ${totalReceived.toLocaleString("en-IN")}`, card2X + 12, cardY + 36);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(5, 150, 105);
+  doc.text(`${percentPaid}% Received (${paymentList.length} Installments)`, card2X + 12, cardY + 47);
+
+  // Box 3: Pending Balance
+  const card3X = margin + (cardWidth * 2) + 20;
+  doc.setFillColor(255, 241, 242);
+  doc.roundedRect(card3X, cardY, cardWidth, cardHeight, 6, 6, "F");
+  doc.setDrawColor(254, 205, 211);
+  doc.roundedRect(card3X, cardY, cardWidth, cardHeight, 6, 6, "S");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(159, 18, 57);
+  doc.text("PENDING BALANCE DUE", card3X + 12, cardY + 16);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(225, 29, 72);
+  doc.text(`Rs. ${pendingBalance.toLocaleString("en-IN")}`, card3X + 12, cardY + 36);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(225, 29, 72);
+  doc.text(totalEstimate > 0 ? `${100 - percentPaid}% Remaining Balance` : "No estimate set", card3X + 12, cardY + 47);
+
+  // 5. Section Header for Transactions Table
+  const tableTitleY = cardY + cardHeight + 22;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text("PAYMENT TRANSACTION LEDGER & RECEIPT HISTORY", margin, tableTitleY);
+
+  // 6. Build AutoTable Data
+  const tableRows = paymentList.length > 0
+    ? paymentList.map((pay, idx) => [
+        String(idx + 1),
+        pay.date || new Date().toLocaleDateString("en-IN"),
+        `Rs. ${Number(pay.amount || 0).toLocaleString("en-IN")}`,
+        pay.mode || "UPI / NEFT / RTGS",
+        pay.note || "Client Payment Installment",
+        `Rs. ${pendingBalance.toLocaleString("en-IN")}`,
+        "SUCCESS"
+      ])
+    : [
+        ["-", "-", "Rs. 0", "No Transactions", "No payments recorded to date", `Rs. ${totalEstimate.toLocaleString("en-IN")}`, "-"]
+      ];
+
+  // AutoTable
+  autoTable(doc, {
+    startY: tableTitleY + 8,
+    margin: { left: margin, right: margin },
+    head: [["#", "Payment Date", "Amount Received", "Payment Mode", "Note / Reference", "Pending Balance", "Status"]],
+    body: tableRows,
+    theme: "grid",
+    headStyles: {
+      fillColor: [30, 41, 59], // Dark Slate
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8.5,
+      halign: "center",
+      cellPadding: 6
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: [51, 65, 85],
+      cellPadding: 5
+    },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 25 },
+      1: { halign: "center", cellWidth: 70 },
+      2: { halign: "right", fontStyle: "bold", textColor: [5, 150, 105], cellWidth: 85 },
+      3: { halign: "center", fontStyle: "bold", cellWidth: 85 },
+      4: { halign: "left" },
+      5: { halign: "right", fontStyle: "bold", textColor: [30, 41, 59], cellWidth: 80 },
+      6: { halign: "center", fontStyle: "bold", textColor: [5, 150, 105], cellWidth: 50 }
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252]
+    },
+    foot: [
+      [
+        { content: "COMMERCIAL TOTALS", colSpan: 2, styles: { halign: "right", fontStyle: "bold", fillColor: [241, 245, 249] } },
+        { content: `Rs. ${totalReceived.toLocaleString("en-IN")}`, styles: { halign: "right", fontStyle: "bold", textColor: [5, 150, 105], fillColor: [241, 245, 249] } },
+        { content: `${paymentList.length} Total Records`, styles: { halign: "center", fontStyle: "bold", fillColor: [241, 245, 249] } },
+        { content: "REMAINING BALANCE DUE:", styles: { halign: "right", fontStyle: "bold", fillColor: [241, 245, 249] } },
+        { content: `Rs. ${pendingBalance.toLocaleString("en-IN")}`, styles: { halign: "right", fontStyle: "bold", textColor: [225, 29, 72], fillColor: [241, 245, 249] } },
+        { content: "", styles: { fillColor: [241, 245, 249] } }
+      ]
+    ]
+  });
+
+  const finalY = (doc.lastAutoTable?.finalY || 450) + 25;
+
+  // 7. Terms / Official Footer & Authorization Box
+  if (finalY + 80 < pageHeight - 35) {
+    // Payment Policy Note Box
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(margin, finalY, contentWidth - 160, 60, 4, 4, "F");
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, finalY, contentWidth - 160, 60, 4, 4, "S");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text("PAYMENT TERMS & VERIFICATION:", margin + 10, finalY + 14);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("1. All payments recorded herein are officially credited to the client's project account.", margin + 10, finalY + 27);
+    doc.text("2. Bank transfers and cheque clearances are subject to bank settlement confirmation.", margin + 10, finalY + 38);
+    doc.text("3. For any invoice queries or discrepancies, please contact finance@velorainteriors.com.", margin + 10, finalY + 49);
+
+    // Authorized Seal / Signatory Box
+    const signX = margin + contentWidth - 145;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(30, 41, 59);
+    doc.text("FOR VELORA INTERIORS", signX, finalY + 14);
+
+    doc.setDrawColor(203, 213, 225);
+    doc.line(signX, finalY + 44, signX + 140, finalY + 44);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Authorized Signatory & Seal", signX, finalY + 55);
+  }
+
+  // 8. Footer on every page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text("Velora Luxury Interiors  |  www.velorainteriors.com  |  Support: +91 98765 43210", margin, pageHeight - 20);
+    doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 20, { align: "right" });
+  }
+
+  // Save PDF with sanitized client name
+  const cleanClientName = clientName.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const filename = `${cleanClientName}_Payment_Statement.pdf`;
+  doc.save(filename);
+};

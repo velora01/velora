@@ -49,7 +49,7 @@ import {
   FileCheck2,
   Save
 } from "lucide-react";
-import { downloadBOQPdf, downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
+import { downloadBOQPdf, downloadInvoicePdf, printInvoice, downloadPaymentHistoryPdf } from "../utils/downloadHelper";
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -854,6 +854,19 @@ export default function Projects() {
                           <span className="text-xs text-stone-500">Track client estimate, real-time received payment transactions, and remaining balance</span>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              downloadPaymentHistoryPdf(selectedProject);
+                              showToast(`Downloading payment statement PDF for ${selectedProject.clientName || selectedProject.name}...`);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                            title="Download Payment Statement & Ledger PDF"
+                          >
+                            <Download size={13} />
+                            <span>Download Payment PDF</span>
+                          </button>
+
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                             paymentStatus === "Fully Paid"
                               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
@@ -950,9 +963,23 @@ export default function Projects() {
                             <h4 className="font-black text-sm text-stone-900">Payment Transaction Records</h4>
                             <p className="text-[11px] text-stone-500">Every payment installment received from the client with payment mode & date</p>
                           </div>
-                          <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2.5 py-1 rounded-lg">
-                            Total Entries: {paymentList.length}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                downloadPaymentHistoryPdf(selectedProject);
+                                showToast(`Downloading payment statement PDF for ${selectedProject.clientName || selectedProject.name}...`);
+                              }}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-lg transition cursor-pointer"
+                              title="Export PDF Statement"
+                            >
+                              <FileText size={12} className="text-blue-600" />
+                              <span>Export Statement PDF</span>
+                            </button>
+                            <span className="text-xs font-bold text-stone-600 bg-stone-100 px-2.5 py-1 rounded-lg">
+                              Total Entries: {paymentList.length}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="border border-stone-200 rounded-2xl overflow-hidden shadow-2xs bg-white">

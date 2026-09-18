@@ -412,52 +412,38 @@ export default function Projects() {
     showToast("Project record removed.");
   };
 
-  // Documents
+  // Documents (Real uploaded files only - no dummy fallback)
   const getClientDocumentsList = () => {
     if (!selectedProject) return [];
-    const key = selectedProject.projectNumber || selectedProject.clientPhone || selectedProject.phone;
-    const existing = projectDocuments[key];
-    if (existing && existing.length > 0) return existing;
-
-    return [
-      {
-        id: "doc_1",
-        title: "2D Architectural Floor Plan & Room Dimensions",
-        category: "Floor Plans",
-        fileName: `${(selectedProject.clientName || selectedProject.name || "Client").replace(/\s+/g, "_")}_2D_Layout.pdf`,
-        fileSize: "3.2 MB",
-        date: "Sep 2, 2026"
-      },
-      {
-        id: "doc_2",
-        title: "3D Perspective Visualizations & Material Moodboard",
-        category: "3D Renders",
-        fileName: `${(selectedProject.clientName || selectedProject.name || "Client").replace(/\s+/g, "_")}_3D_Renders.pdf`,
-        fileSize: "8.6 MB",
-        date: "Sep 2, 2026"
-      },
-      {
-        id: "doc_3",
-        title: "Initial Site Measurement & Snag Checklist",
-        category: "Site Photos",
-        fileName: "Initial_Site_Measurement_Checklist.pdf",
-        fileSize: "1.4 MB",
-        date: "Sep 1, 2026"
-      }
-    ];
+    const key = selectedProject.projectNumber || selectedProject.clientPhone || selectedProject.phone || selectedProject._id;
+    return projectDocuments[key] || [];
   };
 
-  const handleUploadProjectDoc = (e) => {
+  const handleUploadProjectDoc = async (e) => {
     e.preventDefault();
     if (!selectedProject || !newDocTitle.trim()) return;
-    const key = selectedProject.projectNumber || selectedProject.clientPhone || selectedProject.phone;
+    const key = selectedProject.projectNumber || selectedProject.clientPhone || selectedProject.phone || selectedProject._id;
     const existing = getClientDocumentsList();
+
+    let fileUrl = "";
+    if (selectedFileObj) {
+      try {
+        fileUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target.result);
+          reader.onerror = () => resolve("");
+          reader.readAsDataURL(selectedFileObj);
+        });
+      } catch (e) {}
+    }
+
     const newDoc = {
       id: "doc_" + Date.now(),
       title: newDocTitle.trim(),
       category: newDocCategory,
       fileName: selectedFileObj ? selectedFileObj.name : `${newDocTitle.replace(/\s+/g, "_")}.pdf`,
-      fileSize: selectedFileObj ? `${(selectedFileObj.size / 1024).toFixed(1)} KB` : "1.8 MB",
+      fileSize: selectedFileObj ? `${(selectedFileObj.size / (1024 * 1024)).toFixed(2)} MB` : "1.8 MB",
+      url: fileUrl,
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     };
 
@@ -469,6 +455,47 @@ export default function Projects() {
     setNewDocTitle("");
     setSelectedFileObj(null);
     showToast(`Document "${newDoc.title}" uploaded!`);
+  };
+
+  const handleDeleteProjectDoc = (docId) => {
+    if (!selectedProject) return;
+    const key = selectedProject.projectNumber || selectedProject.clientPhone || selectedProject.phone || selectedProject._id;
+    const existing = getClientDocumentsList();
+    const updatedDocs = existing.filter((d) => d.id !== docId);
+    const updated = { ...projectDocuments, [key]: updatedDocs };
+    setProjectDocuments(updated);
+    try {
+      localStorage.setItem("velora_project_documents", JSON.stringify(updated));
+    } catch (err) {}
+    showToast("Document deleted");
+  };
+
+  const handleDownloadProjectFile = (doc) => {
+    if (doc.url && (doc.url.startsWith("data:") || doc.url.startsWith("blob:"))) {
+      const a = document.createElement("a");
+      a.href = doc.url;
+      a.download = doc.fileName || `${doc.title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast(`Downloaded ${doc.fileName || doc.title}`);
+      return;
+    }
+    if (doc.url && (doc.url.startsWith("http://") || doc.url.startsWith("https://"))) {
+      window.open(doc.url, "_blank");
+      showToast(`Opened ${doc.fileName || doc.title}`);
+      return;
+    }
+    const blob = new Blob([`Velora Interior Project Document: ${doc.title}\nCategory: ${doc.category}\nDate: ${doc.date}`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.fileName || `${doc.title}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Downloaded ${doc.fileName || doc.title}`);
   };
 
   // Find linked BOQ
@@ -1296,28 +1323,46 @@ export default function Projects() {
                     </form>
 
                     {/* Files List */}
-                    <div className="divide-y divide-stone-100">
-                      {getClientDocumentsList().map((doc) => (
-                        <div key={doc.id} className="py-3 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <FileText size={20} className="text-blue-600" />
-                            <div>
-                              <span className="font-bold text-xs text-stone-900 block">{doc.title}</span>
-                              <span className="text-[11px] text-stone-400">
-                                {doc.category} • {doc.fileSize} • {doc.date}
-                              </span>
+                    {getClientDocumentsList().length > 0 ? (
+                      <div className="divide-y divide-stone-100">
+                        {getClientDocumentsList().map((doc) => (
+                          <div key={doc.id} className="py-3 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <FileText size={20} className="text-blue-600 shrink-0" />
+                              <div>
+                                <span className="font-bold text-xs text-stone-900 block">{doc.title}</span>
+                                <span className="text-[11px] text-stone-400">
+                                  {doc.category} • {doc.fileName} • {doc.fileSize} • {doc.date}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleDownloadProjectFile(doc)}
+                                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer flex items-center gap-1.5"
+                                title="Download File"
+                              >
+                                <Download size={12} />
+                                <span>Download</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProjectDoc(doc.id)}
+                                className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                title="Delete Document"
+                              >
+                                <Trash2 size={13} />
+                              </button>
                             </div>
                           </div>
-                          <button
-                            onClick={() => showToast(`Downloading ${doc.fileName}...`)}
-                            className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs rounded-xl border border-stone-200 transition cursor-pointer flex items-center gap-1.5"
-                          >
-                            <Download size={12} />
-                            <span>Download</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                        <FolderOpen size={30} className="mx-auto text-stone-300" />
+                        <p className="text-xs font-bold text-stone-600">No project files uploaded yet</p>
+                        <p className="text-[11px] text-stone-400">Select a file and click "Upload File" to attach floor plans, 3D renders, or contracts.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

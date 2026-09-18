@@ -307,7 +307,7 @@ export default function Clients() {
     }
   };
 
-  // Get isolated documents for currently selected client
+  // Get isolated documents for currently selected client (No dummy/mock data - only real uploaded files)
   const getSelectedClientDocuments = () => {
     if (!selectedClient) return [];
     const clientKey = selectedClient._id || selectedClient.clientCode || selectedClient.clientId || (selectedClient.phone ? `p_${selectedClient.phone}` : "default");
@@ -330,46 +330,6 @@ export default function Clients() {
       if (!exists) {
         combined.push(doc);
       }
-    }
-
-    // Default sample files if this client has 0 documents yet
-    if (combined.length === 0) {
-      const defaultDocs = [
-        {
-          id: `def_1_${clientKey}`,
-          title: `${selectedClient.name} - 2D CAD Layout & Floor Plan`,
-          fileName: `${(selectedClient.name || "Client").toLowerCase().replace(/[^a-z0-9]/g, "_")}_floor_plan_2d.pdf`,
-          fileType: "PDF",
-          category: "2D Layout & Floor Plans",
-          fileSize: "2.8 MB",
-          uploadedBy: "Architectural Lead",
-          uploadedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-          url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
-        },
-        {
-          id: `def_2_${clientKey}`,
-          title: `Living Room & Master Suite 3D Photorealistic Render`,
-          fileName: "living_master_suite_3d_render.jpg",
-          fileType: "JPG",
-          category: "3D Designs & Renders",
-          fileSize: "5.4 MB",
-          uploadedBy: "Senior 3D Visualizer",
-          uploadedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-          url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80"
-        },
-        {
-          id: `def_3_${clientKey}`,
-          title: `Velora Luxury Turnkey Contract & Scope Agreement`,
-          fileName: "velora_signed_contract_agreement.pdf",
-          fileType: "PDF",
-          category: "Contracts & Agreements",
-          fileSize: "1.2 MB",
-          uploadedBy: "Admin",
-          uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-          url: ""
-        }
-      ];
-      return defaultDocs;
     }
 
     return combined;

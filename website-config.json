@@ -7,13 +7,13 @@
     "status": "production-ready"
   },
   "company": {
-    "founded": 2015,
-    "yearsInBusiness": 8,
+    "founded": 2026,
+    "yearsInBusiness": 1,
     "team": {
-      "total": 25,
-      "designers": 12,
-      "consultants": 8,
-      "support": 5
+      "total": 5,
+      "designers": 2,
+      "consultants": 1,
+      "support": 2
     },
     "awards": [
       "Best Interior Design Studio 2023",

@@ -28,22 +28,15 @@
     ]
   },
   "contact": {
-    "email": "hello@velora.com",
-    "phone": "+1 (555) 123-4567",
-    "address": "12 Velvet Lane, Interior District, City Center",
-    "website": "https://velora.com",
+    "email": "info@velora.famoily",
+    "phone": "+91 8055526603",
+    "address": "wakad chauk , pune",
+    "website": "https://velora.family",
     "hours": {
       "weekday": "9:00 AM - 6:00 PM",
       "weekend": "By Appointment",
       "timezone": "EST"
     }
-  },
-  "social": {
-    "instagram": "https://instagram.com/velora_design",
-    "facebook": "https://facebook.com/veloradesign",
-    "linkedin": "https://linkedin.com/company/velora-design",
-    "pinterest": "https://pinterest.com/veloradesign",
-    "twitter": "https://twitter.com/veloradesign"
   },
   "services": [
     {
@@ -54,7 +47,11 @@
       "priceCurrency": "USD",
       "estimatedDuration": "3-6 months",
       "description": "Complete design solution from concept to execution",
-      "targetClients": ["Homeowners", "Property Developers", "Hospitality Businesses"]
+      "targetClients": [
+        "Homeowners",
+        "Property Developers",
+        "Hospitality Businesses"
+      ]
     },
     {
       "name": "Furniture Curation",
@@ -64,7 +61,11 @@
       "priceCurrency": "USD",
       "estimatedDuration": "2-4 weeks",
       "description": "Expert selection of premium furniture pieces",
-      "targetClients": ["Residential", "Commercial", "Hospitality"]
+      "targetClients": [
+        "Residential",
+        "Commercial",
+        "Hospitality"
+      ]
     },
     {
       "name": "Space Planning & Layout",
@@ -74,7 +75,9 @@
       "priceCurrency": "USD",
       "estimatedDuration": "1-2 weeks",
       "description": "Strategic space optimization and planning",
-      "targetClients": ["All"]
+      "targetClients": [
+        "All"
+      ]
     },
     {
       "name": "Color & Material Consultation",
@@ -84,7 +87,11 @@
       "priceCurrency": "USD",
       "estimatedDuration": "1 week",
       "description": "Expert guidance on colors, textures, and materials",
-      "targetClients": ["DIY Projects", "Renovations", "Professional Designers"]
+      "targetClients": [
+        "DIY Projects",
+        "Renovations",
+        "Professional Designers"
+      ]
     },
     {
       "name": "Lighting Design",
@@ -94,7 +101,11 @@
       "priceCurrency": "USD",
       "estimatedDuration": "2-3 weeks",
       "description": "Sophisticated lighting solutions and design",
-      "targetClients": ["Residential", "Commercial", "Retail"]
+      "targetClients": [
+        "Residential",
+        "Commercial",
+        "Retail"
+      ]
     },
     {
       "name": "Styling & Accessories",
@@ -104,7 +115,9 @@
       "priceCurrency": "USD",
       "estimatedDuration": "1-2 weeks",
       "description": "Curated accessories and professional styling",
-      "targetClients": ["All"]
+      "targetClients": [
+        "All"
+      ]
     }
   ],
   "projects": {
@@ -166,7 +179,11 @@
     "accentColorName": "Cream",
     "fontFamily": "Inter, Segoe UI, Roboto",
     "borderRadius": "24px",
-    "logoFormats": ["PNG", "SVG", "WEBP"]
+    "logoFormats": [
+      "PNG",
+      "SVG",
+      "WEBP"
+    ]
   },
   "seo": {
     "keywords": [
@@ -258,7 +275,11 @@
       "framework": "React 19",
       "buildTool": "Vite",
       "hosting": "Recommended: Vercel, Netlify, or AWS",
-      "optimization": ["Code Splitting", "Image Optimization", "Caching"]
+      "optimization": [
+        "Code Splitting",
+        "Image Optimization",
+        "Caching"
+      ]
     },
     "backend": {
       "runtime": "Node.js",

@@ -382,6 +382,7 @@ export default function Clients() {
         uploadedBy: "Admin",
         uploadedAt: new Date().toISOString()
       };
+      
 
       // 1. If client exists on backend, post to API
       if (selectedClient._id) {

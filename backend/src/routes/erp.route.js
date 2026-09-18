@@ -9,6 +9,7 @@ import { getProjects, createProject, updateProject, updateProjectStage, deletePr
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
 import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
 import { getComponents, createComponent, updateComponent, deleteComponent } from "../controllers/componentController.js";
+import { getSpaces, createSpace, updateSpace, deleteSpace } from "../controllers/spaceController.js";
 import { getInvoices, getInvoiceById, createInvoice, updateInvoice, deleteInvoice, exportInvoicePdf, getQuotations, createQuotation, updateQuotation, deleteQuotation } from "../controllers/quotationInvoiceController.js";
 import { getPayments, createPayment, exportReceiptPdf } from "../controllers/paymentController.js";
 import { getMaterials, createMaterial, getVendors, createVendor } from "../controllers/inventoryController.js";
@@ -85,6 +86,12 @@ router.get("/components", getComponents);
 router.post("/components", checkRole(["Admin", "Designer", "Super Admin"]), createComponent);
 router.put("/components/:id", checkRole(["Admin", "Designer", "Super Admin"]), updateComponent);
 router.delete("/components/:id", checkRole(["Admin", "Super Admin"]), deleteComponent);
+
+// Library Spaces
+router.get("/spaces", getSpaces);
+router.post("/spaces", checkRole(["Admin", "Designer", "Super Admin"]), createSpace);
+router.put("/spaces/:id", checkRole(["Admin", "Designer", "Super Admin"]), updateSpace);
+router.delete("/spaces/:id", checkRole(["Admin", "Super Admin"]), deleteSpace);
 
 router.get("/quotations", getQuotations);
 router.post("/quotations", createQuotation);

@@ -11,6 +11,7 @@ import Projects from "./pages/Projects";
 import TaskManagement from "./pages/TaskManagement";
 import BOQManagement from "./pages/BOQManagement";
 import LibraryComponents from "./pages/LibraryComponents";
+import LibrarySpace from "./pages/LibrarySpace";
 import QuotationInvoiceManager from "./pages/QuotationInvoiceManager";
 import ProductionFactory from "./pages/ProductionFactory";
 import InventoryMaterials from "./pages/InventoryMaterials";
@@ -67,6 +68,8 @@ function App() {
                   <Route path="/boq" element={<BOQManagement />} />
                   <Route path="/boq/:id" element={<BOQManagement />} />
                   <Route path="/library" element={<LibraryComponents />} />
+                  <Route path="/library/space" element={<LibrarySpace />} />
+                  <Route path="/library/area" element={<LibrarySpace />} />
                   <Route path="/library/component" element={<LibraryComponents />} />
                   <Route path="/library/components" element={<LibraryComponents />} />
                   <Route path="/library/:sub" element={<LibraryComponents />} />

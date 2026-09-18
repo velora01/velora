@@ -30,9 +30,12 @@ const componentSchema = new mongoose.Schema(
       trim: true
     },
     relevantSpace: {
-      type: String,
-      default: "General",
-      trim: true
+      type: mongoose.Schema.Types.Mixed,
+      default: "General"
+    },
+    relevantSpaces: {
+      type: [String],
+      default: []
     },
     selectedVariants: {
       type: [String],

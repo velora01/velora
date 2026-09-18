@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import erpApi from "../services/erpService";
+import { isAdmin, getUserRole } from "../services/authService";
 import { downloadBOQPdf, downloadInvoicePdf, printInvoice, printBOQQuotation, DEFAULT_BOQ_PRINT_COLUMNS } from "../utils/downloadHelper";
 import {
   DEFAULT_TERMS_AND_CONDITIONS_TEMPLATE,
@@ -82,6 +83,7 @@ export default function BOQManagement() {
   const [componentSearch, setComponentSearch] = useState("");
   const [isComponentSearchFocused, setIsComponentSearchFocused] = useState(false);
   const [libraryComponents, setLibraryComponents] = useState([]);
+  const [availableSpacesList, setAvailableSpacesList] = useState([]);
   const [autoSave, setAutoSave] = useState(true);
   const [successToast, setSuccessToast] = useState("");
   const [savedSuccessModal, setSavedSuccessModal] = useState(null);
@@ -173,6 +175,8 @@ export default function BOQManagement() {
   // New Space modal state
   const [isAddSpaceOpen, setIsAddSpaceOpen] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
+  const [isAddSpaceDropdownOpen, setIsAddSpaceDropdownOpen] = useState(false);
+  const [customSpaceInput, setCustomSpaceInput] = useState("");
 
   // Description Edit Popup Modal State (Spacious modal with quick specs)
   const [descriptionModal, setDescriptionModal] = useState({
@@ -192,6 +196,7 @@ export default function BOQManagement() {
   const getDefaultItemsForSpace = () => [];
 
   const defaultStandardSpaces = [
+    { name: "ALL", roomTotal: 0, items: [] },
     { name: "Entrance", roomTotal: 0, items: [] },
     { name: "Living Room", roomTotal: 0, items: [] },
     { name: "Modular Kitchen", roomTotal: 0, items: [] },
@@ -223,9 +228,17 @@ export default function BOQManagement() {
     [boqList]
   );
 
-  // Delete BOQ handler
+  // Delete BOQ handler (Admin only)
   const handleDeleteBOQ = async (boqToDelete, e) => {
     if (e) e.stopPropagation();
+
+    if (!isAdmin()) {
+      const currentRole = getUserRole();
+      toast.error(`Permission Denied: Only Admin role can delete BOQs. (Your current role is: ${currentRole})`);
+      alert(`Permission Denied: Only Admin can delete BOQs. Your current role is "${currentRole}".`);
+      return;
+    }
+
     const identifier = boqToDelete.clientName || boqToDelete.boqNumber || boqToDelete.enquiryNo || "BOQ";
     const detail = boqToDelete.enquiryNo || boqToDelete.boqNumber ? ` (${boqToDelete.enquiryNo || boqToDelete.boqNumber})` : "";
     if (!window.confirm(`Are you sure you want to delete BOQ for ${identifier}${detail}? This will permanently delete the entry from the database.`)) {
@@ -239,6 +252,10 @@ export default function BOQManagement() {
       }
     } catch (err) {
       console.warn("API deleteBOQ error:", err);
+      if (err.response?.status === 403) {
+        toast.error(err.response?.data?.message || "Permission Denied: Only Admin can delete BOQs.");
+        return;
+      }
     }
 
     // Remove from local storage
@@ -381,9 +398,28 @@ export default function BOQManagement() {
         { name: "Kitchen Base Cabinet", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Loft", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
         { name: "Kitchen SS Trolly", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1800 } },
-        { name: "Kitchen Overhead Storage", relevantSpace: "Modular Kitchen", variant: "Box", standard: { rate: 1500 } },
-        { name: "Kitchen Wall Unit- Open", relevantSpace: "Modular Kitchen", variant: "Open Box", standard: { rate: 1500 } }
       ]);
+    }
+  }, []);
+
+  // Fetch Dynamic Space Library for Room Presets
+  const fetchAvailableSpaces = useCallback(async () => {
+    try {
+      const res = await erpApi.getSpaces({ limit: 100 });
+      if (res?.success && res.data && res.data.length > 0) {
+        const visible = res.data.filter((s) => s.visibility !== false);
+        setAvailableSpacesList(visible);
+      } else {
+        const local = JSON.parse(localStorage.getItem("velora_custom_spaces") || "[]");
+        if (local && local.length > 0) {
+          setAvailableSpacesList(local.filter((s) => s.visibility !== false));
+        }
+      }
+    } catch {
+      const local = JSON.parse(localStorage.getItem("velora_custom_spaces") || "[]");
+      if (local && local.length > 0) {
+        setAvailableSpacesList(local.filter((s) => s.visibility !== false));
+      }
     }
   }, []);
 
@@ -391,7 +427,8 @@ export default function BOQManagement() {
     fetchBOQList();
     fetchAvailableEnquiries();
     fetchLibraryComponents();
-  }, [fetchBOQList, fetchAvailableEnquiries, fetchLibraryComponents]);
+    fetchAvailableSpaces();
+  }, [fetchBOQList, fetchAvailableEnquiries, fetchLibraryComponents, fetchAvailableSpaces]);
 
   // Check URL param or initialize builder
   useEffect(() => {
@@ -663,15 +700,32 @@ export default function BOQManagement() {
   // Search filtered components for clean left search panel
   const filteredSearchResults = useMemo(() => {
     if (!libraryComponents || libraryComponents.length === 0) return [];
+    const activeSpaceName = (currentSpace?.name || "").toLowerCase();
+    const isAllSpace = activeSpaceName === "all" || activeSpaceName === "all spaces" || activeSpaceName === "general";
+
     if (!componentSearch || componentSearch.trim() === "") {
-      const activeSpaceName = currentSpace?.name?.toLowerCase() || "";
-      const matched = libraryComponents.filter((c) => (c.relevantSpace || "").toLowerCase().includes(activeSpaceName) || activeSpaceName.includes((c.relevantSpace || "").toLowerCase()));
-      return matched.length > 0 ? matched : libraryComponents.slice(0, 10);
+      if (isAllSpace) {
+        return libraryComponents;
+      }
+      const matched = libraryComponents.filter((c) => {
+        const compSpace = (
+          Array.isArray(c.relevantSpaces) && c.relevantSpaces.length > 0
+            ? c.relevantSpaces.join(" ")
+            : (Array.isArray(c.relevantSpace) ? c.relevantSpace.join(" ") : (c.relevantSpace || ""))
+        ).toLowerCase();
+        return compSpace.includes("all") || compSpace.includes(activeSpaceName) || activeSpaceName.includes(compSpace);
+      });
+      return matched.length > 0 ? matched : libraryComponents;
     }
     const q = componentSearch.toLowerCase().trim();
-    return libraryComponents.filter(
-      (c) => c.name?.toLowerCase().includes(q) || c.relevantSpace?.toLowerCase().includes(q)
-    );
+    return libraryComponents.filter((c) => {
+      const compSpace = (
+        Array.isArray(c.relevantSpaces) && c.relevantSpaces.length > 0
+          ? c.relevantSpaces.join(" ")
+          : (Array.isArray(c.relevantSpace) ? c.relevantSpace.join(" ") : (c.relevantSpace || ""))
+      ).toLowerCase();
+      return c.name?.toLowerCase().includes(q) || compSpace.includes(q) || c.variant?.toLowerCase().includes(q);
+    });
   }, [libraryComponents, componentSearch, currentSpace]);
 
   // Recalculate Sqft, Amount, Space Total, Discount, Taxable Amt, GST (CGST+SGST) and Grand Total
@@ -1334,9 +1388,21 @@ export default function BOQManagement() {
   };
 
   // Add New Space / Room Tab manually
-  const handleAddNewSpace = () => {
-    if (!newSpaceName.trim() || !activeBOQ) return;
-    const name = newSpaceName.trim();
+  const handleAddNewSpace = (spaceNameParam = null) => {
+    const rawName = spaceNameParam || newSpaceName;
+    if (!rawName || !rawName.trim() || !activeBOQ) return;
+    const name = rawName.trim();
+    const isAll = name.toUpperCase() === "ALL";
+
+    // If ALL is already in spaces, navigate to it
+    const existingIdx = (activeBOQ.spaces || []).findIndex((s) => s.name?.toUpperCase() === "ALL");
+    if (isAll && existingIdx >= 0) {
+      setActiveSpaceIdx(existingIdx);
+      setIsAddSpaceOpen(false);
+      setIsAddSpaceDropdownOpen(false);
+      return;
+    }
+
     const updated = JSON.parse(JSON.stringify(activeBOQ));
 
     // Automatically populate preset pre-priced items for this room type
@@ -1356,8 +1422,10 @@ export default function BOQManagement() {
     persistBOQChange(recalculated);
     setActiveSpaceIdx(updated.spaces.length - 1);
     setNewSpaceName("");
+    setCustomSpaceInput("");
     setIsAddSpaceOpen(false);
-    setSuccessToast(`Added ${name} space with pre-set items!`);
+    setIsAddSpaceDropdownOpen(false);
+    setSuccessToast(`Added ${name} space!`);
     setTimeout(() => setSuccessToast(""), 2500);
   };
 
@@ -1489,8 +1557,13 @@ export default function BOQManagement() {
     if (!componentSearch || !componentSearch.trim()) return [];
     const q = componentSearch.trim().toLowerCase();
     return libraryComponents.filter((c) => {
+      const compSpace = (
+        Array.isArray(c.relevantSpaces) && c.relevantSpaces.length > 0
+          ? c.relevantSpaces.join(" ")
+          : (Array.isArray(c.relevantSpace) ? c.relevantSpace.join(" ") : (c.relevantSpace || ""))
+      ).toLowerCase();
       const nameMatch = c.name?.toLowerCase().includes(q);
-      const spaceMatch = c.relevantSpace?.toLowerCase().includes(q);
+      const spaceMatch = compSpace.includes(q);
       const variantMatch = c.variant?.toLowerCase().includes(q);
       return nameMatch || spaceMatch || variantMatch;
     });
@@ -1499,22 +1572,36 @@ export default function BOQManagement() {
   // Filtered Component Palette with Smart Fuzzy Room Matching
   const relevantComponents = useMemo(() => {
     const spaceName = (currentSpace?.name || "").toLowerCase();
+    const isAllSpace = spaceName === "all" || spaceName === "all spaces" || spaceName === "general";
+
+    if (isAllSpace) {
+      return libraryComponents.filter((c) =>
+        !componentSearch || c.name.toLowerCase().includes(componentSearch.toLowerCase())
+      );
+    }
+
     const matched = libraryComponents.filter((c) => {
       const matchesSearch =
         !componentSearch || c.name.toLowerCase().includes(componentSearch.toLowerCase());
-      const relSpace = (c.relevantSpace || "").toLowerCase();
+      const relSpace = (
+        Array.isArray(c.relevantSpaces) && c.relevantSpaces.length > 0
+          ? c.relevantSpaces.join(" ")
+          : (Array.isArray(c.relevantSpace) ? c.relevantSpace.join(" ") : (c.relevantSpace || ""))
+      ).toLowerCase();
 
       const isRelevant =
+        relSpace.includes("all") ||
         relSpace.includes(spaceName) ||
         spaceName.includes(relSpace) ||
-        (spaceName.includes("entrance") && relSpace.includes("entrance")) ||
-        (spaceName.includes("foyer") && relSpace.includes("entrance")) ||
+        (spaceName.includes("entrance") && (relSpace.includes("entrance") || relSpace.includes("foyer"))) ||
+        (spaceName.includes("foyer") && (relSpace.includes("entrance") || relSpace.includes("foyer"))) ||
         (spaceName.includes("kitchen") && relSpace.includes("kitchen")) ||
         (spaceName.includes("living") && relSpace.includes("living")) ||
         (spaceName.includes("bed") && relSpace.includes("bed")) ||
         (spaceName.includes("dining") && relSpace.includes("dining")) ||
-        (spaceName.includes("puja") && relSpace.includes("puja")) ||
-        (spaceName.includes("pooja") && relSpace.includes("pooja"));
+        (spaceName.includes("puja") && (relSpace.includes("puja") || relSpace.includes("pooja"))) ||
+        (spaceName.includes("pooja") && (relSpace.includes("puja") || relSpace.includes("pooja"))) ||
+        (spaceName.includes("bath") && relSpace.includes("bath"));
 
       return matchesSearch && isRelevant;
     });
@@ -2144,6 +2231,95 @@ export default function BOQManagement() {
               </div>
             );
           })}
+
+          {/* Add Space Button & Popover */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsAddSpaceDropdownOpen(!isAddSpaceDropdownOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900 border border-blue-200 transition cursor-pointer shadow-2xs"
+            >
+              <Plus size={13} />
+              <span>Add Space / Room</span>
+              <ChevronDown size={13} className={`transition-transform ${isAddSpaceDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {isAddSpaceDropdownOpen && (
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-2 animate-in zoom-in-95 duration-150">
+                <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  Select Room / Space
+                </div>
+
+                <div className="max-h-48 overflow-y-auto space-y-0.5">
+                  {(() => {
+                    const basePresets = availableSpacesList.length > 0
+                      ? [
+                          { name: "ALL", desc: "Contains all components" },
+                          ...availableSpacesList.filter((s) => s.name?.toUpperCase() !== "ALL")
+                        ]
+                      : [
+                          { name: "ALL", desc: "Contains all components" },
+                          { name: "PUJA ROOM" },
+                          { name: "Modular Kitchen" },
+                          { name: "Living Room" },
+                          { name: "Dining Area" },
+                          { name: "Master Bedroom" },
+                          { name: "Kids Bedroom" },
+                          { name: "Parents Bedroom" },
+                          { name: "Foyer Area" },
+                          { name: "Bathroom" },
+                          { name: "Wash Basin Area" },
+                          { name: "Balcony" },
+                          { name: "General" }
+                        ];
+                    return basePresets.map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => handleAddNewSpace(preset.name)}
+                        className={`w-full text-left px-2.5 py-1.5 hover:bg-blue-50 rounded-lg text-xs font-semibold text-slate-800 transition flex items-center justify-between cursor-pointer ${
+                          preset.name === "ALL" ? "bg-purple-50/70 text-purple-900 hover:bg-purple-100" : ""
+                        }`}
+                      >
+                        <span className={preset.name === "ALL" ? "font-bold text-purple-700" : ""}>{preset.name}</span>
+                        {preset.desc && (
+                          <span className="text-[9px] bg-purple-100 text-purple-800 px-1 py-0.2 rounded font-bold">
+                            All Comps
+                          </span>
+                        )}
+                      </button>
+                    ));
+                  })()}
+                </div>
+
+                <div className="pt-1.5 border-t border-slate-100 space-y-1.5">
+                  <div className="text-[10px] font-bold text-slate-400 px-1">Custom Space Name:</div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="e.g. Study Room, Terrace..."
+                      value={customSpaceInput}
+                      onChange={(e) => setCustomSpaceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && customSpaceInput.trim()) {
+                          handleAddNewSpace(customSpaceInput);
+                        }
+                      }}
+                      className="flex-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white"
+                    />
+                    <button
+                      type="button"
+                      disabled={!customSpaceInput.trim()}
+                      onClick={() => handleAddNewSpace(customSpaceInput)}
+                      className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

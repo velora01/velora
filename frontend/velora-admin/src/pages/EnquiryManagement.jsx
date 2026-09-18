@@ -32,6 +32,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import erpApi from "../services/erpService";
+import { isAdmin, getUserRole } from "../services/authService";
 import BulkUploadModal from "../components/BulkUploadModal";
 
 export default function EnquiryManagement() {
@@ -350,8 +351,15 @@ export default function EnquiryManagement() {
     setViewMode("edit");
   };
 
-  // Delete Enquiry
+  // Delete Enquiry (Admin only)
   const handleDeleteEnquiry = async (id, rowData = null) => {
+    if (!isAdmin()) {
+      const currentRole = getUserRole();
+      toast.error(`Permission Denied: Only Admin role can delete enquiries. (Your current role is: ${currentRole})`);
+      alert(`Permission Denied: Only Admin can delete enquiries. Your current role is "${currentRole}".`);
+      return;
+    }
+
     const item = rowData || enquiries.find((e) => e._id === id) || {};
     const name = item.name || "Enquiry";
     const ref = item.enquiryNo ? ` (${item.enquiryNo})` : item.phone ? ` (${item.phone})` : "";
@@ -367,6 +375,10 @@ export default function EnquiryManagement() {
       }
     } catch (err) {
       console.warn("Backend deleteLead error:", err);
+      if (err.response?.status === 403) {
+        toast.error(err.response?.data?.message || "Permission Denied: Only Admin can delete enquiries.");
+        return;
+      }
     }
 
     // Clean from local storage
@@ -402,9 +414,16 @@ export default function EnquiryManagement() {
     window.dispatchEvent(new Event("storage"));
   };
 
-  // Bulk Delete Selected Enquiries
+  // Bulk Delete Selected Enquiries (Admin only)
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
+    if (!isAdmin()) {
+      const currentRole = getUserRole();
+      toast.error(`Permission Denied: Only Admin role can delete enquiries. (Your current role is: ${currentRole})`);
+      alert(`Permission Denied: Only Admin can delete enquiries. Your current role is "${currentRole}".`);
+      return;
+    }
+
     if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected enquiries from the database?`)) {
       return;
     }

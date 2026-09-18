@@ -30,9 +30,12 @@ export default function LibraryComponents() {
   const [errorMsg, setErrorMsg] = useState("");
   const [uploadingVariant, setUploadingVariant] = useState(null); // 'elite', 'premium', 'standard'
   const [isVariantDropdownOpen, setIsVariantDropdownOpen] = useState(false);
+  const [isSpaceDropdownOpen, setIsSpaceDropdownOpen] = useState(false);
+  const [filterSpace, setFilterSpace] = useState("ALL");
   const [previewImageModal, setPreviewImageModal] = useState(null); // url to view in lightbox
 
   const variantDropdownRef = useRef(null);
+  const spaceDropdownRef = useRef(null);
 
   const availableVariantKeys = ["Elite", "Premium", "Standard"];
 
@@ -55,6 +58,7 @@ export default function LibraryComponents() {
   const initialForm = {
     name: "",
     relevantSpace: "Modular Kitchen",
+    relevantSpaces: ["Modular Kitchen"],
     selectedVariants: ["Elite", "Premium", "Standard"],
     elite: defaultVariantConfig(2200),
     premium: defaultVariantConfig(1800),
@@ -66,20 +70,52 @@ export default function LibraryComponents() {
 
   const [formData, setFormData] = useState(initialForm);
 
-  const spacesList = [
-    "Entrance",
+  const [dynamicSpaces, setDynamicSpaces] = useState([
+    "ALL",
+    "PUJA ROOM",
     "Modular Kitchen",
     "Living Room",
     "Dining Area",
-    "PUJA ROOM",
     "Master Bedroom",
     "Kids Bedroom",
     "Parents Bedroom",
     "Guest Bedroom",
+    "Foyer Area",
     "Bathroom",
+    "Wash Basin Area",
     "Balcony",
     "General"
-  ];
+  ]);
+
+  // Fetch available spaces from API / Storage dynamically
+  const fetchSpacesList = useCallback(async () => {
+    try {
+      const res = await erpApi.getSpaces({ limit: 100 });
+      if (res?.success && res.data && res.data.length > 0) {
+        const names = res.data.filter((s) => s.visibility !== false).map((s) => s.name);
+        const combined = Array.from(new Set(["ALL", ...names]));
+        setDynamicSpaces(combined);
+      } else {
+        const local = JSON.parse(localStorage.getItem("velora_custom_spaces") || "[]");
+        if (local && local.length > 0) {
+          const names = local.filter((s) => s.visibility !== false).map((s) => s.name);
+          const combined = Array.from(new Set(["ALL", ...names]));
+          setDynamicSpaces(combined);
+        }
+      }
+    } catch {
+      const local = JSON.parse(localStorage.getItem("velora_custom_spaces") || "[]");
+      if (local && local.length > 0) {
+        const names = local.filter((s) => s.visibility !== false).map((s) => s.name);
+        const combined = Array.from(new Set(["ALL", ...names]));
+        setDynamicSpaces(combined);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSpacesList();
+  }, [fetchSpacesList]);
 
   const typesList = [
     "Box",
@@ -93,11 +129,14 @@ export default function LibraryComponents() {
     "Fluted Panel"
   ];
 
-  // Close variant dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (variantDropdownRef.current && !variantDropdownRef.current.contains(event.target)) {
         setIsVariantDropdownOpen(false);
+      }
+      if (spaceDropdownRef.current && !spaceDropdownRef.current.contains(event.target)) {
+        setIsSpaceDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -108,7 +147,8 @@ export default function LibraryComponents() {
   const fetchComponents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await erpApi.getComponents({ search, page: pagination.page, limit: pagination.limit });
+      const spaceParam = filterSpace === "ALL" ? "" : filterSpace;
+      const res = await erpApi.getComponents({ search, space: spaceParam, page: pagination.page, limit: pagination.limit });
       if (res?.success) {
         setComponents(res.data || []);
         if (res.pagination) {
@@ -125,7 +165,7 @@ export default function LibraryComponents() {
     } finally {
       setLoading(false);
     }
-  }, [search, pagination.page, pagination.limit]);
+  }, [search, filterSpace, pagination.page, pagination.limit]);
 
   useEffect(() => {
     fetchComponents();
@@ -165,14 +205,27 @@ export default function LibraryComponents() {
       };
     };
 
-    const selectedVariants = comp.selectedVariants?.length
-      ? comp.selectedVariants
-      : ["Elite", "Premium", "Standard"];
+    let parsedSpaces = [];
+    if (Array.isArray(comp.relevantSpaces) && comp.relevantSpaces.length > 0) {
+      parsedSpaces = comp.relevantSpaces;
+    } else if (comp.relevantSpace) {
+      if (Array.isArray(comp.relevantSpace)) {
+        parsedSpaces = comp.relevantSpace;
+      } else if (typeof comp.relevantSpace === "string") {
+        if (comp.relevantSpace.toUpperCase() === "ALL") {
+          parsedSpaces = ["ALL"];
+        } else {
+          parsedSpaces = comp.relevantSpace.split(",").map((s) => s.trim()).filter(Boolean);
+        }
+      }
+    }
+    if (parsedSpaces.length === 0) parsedSpaces = ["Modular Kitchen"];
 
     setFormData({
       name: comp.name || "",
       variant: comp.variant || "Box",
-      relevantSpace: comp.relevantSpace || "Modular Kitchen",
+      relevantSpace: parsedSpaces.includes("ALL") ? "ALL" : parsedSpaces.join(", "),
+      relevantSpaces: parsedSpaces,
       selectedVariants,
       elite: parseVariant(comp.elite, 2200),
       premium: parseVariant(comp.premium, 1800),
@@ -182,6 +235,55 @@ export default function LibraryComponents() {
     });
     setErrorMsg("");
     setIsAddModalOpen(true);
+  };
+
+  // Space Multi-Select Checkbox Handler
+  const handleToggleSpaceSelection = (spaceName) => {
+    if (spaceName === "ALL") {
+      setFormData((prev) => {
+        const isAllSelected = prev.relevantSpaces?.includes("ALL");
+        const nextSpaces = isAllSelected ? ["General"] : ["ALL"];
+        return {
+          ...prev,
+          relevantSpaces: nextSpaces,
+          relevantSpace: nextSpaces.join(", ")
+        };
+      });
+      return;
+    }
+
+    setFormData((prev) => {
+      let current = (prev.relevantSpaces || []).filter((s) => s !== "ALL");
+      if (current.includes(spaceName)) {
+        current = current.filter((s) => s !== spaceName);
+        if (current.length === 0) current = ["General"];
+      } else {
+        current = [...current, spaceName];
+      }
+      return {
+        ...prev,
+        relevantSpaces: current,
+        relevantSpace: current.join(", ")
+      };
+    });
+  };
+
+  // Select all spaces
+  const handleSelectAllSpaces = () => {
+    setFormData((prev) => ({
+      ...prev,
+      relevantSpaces: ["ALL"],
+      relevantSpace: "ALL"
+    }));
+  };
+
+  // Clear spaces
+  const handleClearSpaces = () => {
+    setFormData((prev) => ({
+      ...prev,
+      relevantSpaces: ["General"],
+      relevantSpace: "General"
+    }));
   };
 
   // Delete Component
@@ -349,7 +451,12 @@ export default function LibraryComponents() {
       return;
     }
 
-    // Collect all images across variants for the main images gallery field as well
+    const relevantSpaceStr = formData.relevantSpaces?.includes("ALL")
+      ? "ALL"
+      : (formData.relevantSpaces && formData.relevantSpaces.length > 0
+          ? formData.relevantSpaces.join(", ")
+          : formData.relevantSpace || "General");
+
     const allGalleryImages = [
       ...(formData.elite?.images || []),
       ...(formData.premium?.images || []),
@@ -359,6 +466,8 @@ export default function LibraryComponents() {
     const payload = {
       ...formData,
       name: formData.name.trim(),
+      relevantSpace: relevantSpaceStr,
+      relevantSpaces: formData.relevantSpaces || [relevantSpaceStr],
       images: allGalleryImages
     };
 
@@ -394,16 +503,32 @@ export default function LibraryComponents() {
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
         {/* Toolbar Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          {/* Left: Search input */}
-          <div className="relative w-full sm:w-80">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by component name"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition"
-            />
+          {/* Left: Search input & Space filter */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1 max-w-xl">
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by component name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:bg-white transition shadow-2xs"
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 hidden sm:inline">Space:</span>
+              <select
+                value={filterSpace}
+                onChange={(e) => setFilterSpace(e.target.value)}
+                className="h-9 px-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white transition cursor-pointer shadow-2xs"
+              >
+                {dynamicSpaces.map((sp) => (
+                  <option key={sp} value={sp}>
+                    {sp === "ALL" ? "ALL Spaces" : sp}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Right: Count & + New Component button */}
@@ -477,16 +602,16 @@ export default function LibraryComponents() {
               ) : components.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400">
-                    No components found. Click "+ New Component" to add one.
+                    No components found. Click "+ New Component" to create one.
                   </td>
                 </tr>
               ) : (
                 components.map((comp, idx) => {
                   const totalImages = [
-                    ...(comp.elite?.images || []),
-                    ...(comp.premium?.images || []),
-                    ...(comp.standard?.images || []),
-                    ...(comp.images || [])
+                    comp.elite?.images?.length || 0,
+                    comp.premium?.images?.length || 0,
+                    comp.standard?.images?.length || 0,
+                    comp.images?.length || 0
                   ].filter(Boolean).length;
 
                   return (
@@ -501,18 +626,38 @@ export default function LibraryComponents() {
 
                       {/* Component Name & Space Badge & Image Badges */}
                       <td className="py-3 px-4 font-semibold text-slate-900">
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span
                             className="hover:text-blue-600 transition cursor-pointer"
                             onClick={() => handleOpenEdit(comp)}
                           >
                             {comp.name}
                           </span>
-                          {comp.relevantSpace && (
-                            <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-md font-medium">
-                              {comp.relevantSpace}
-                            </span>
-                          )}
+                          {/* Space Badges */}
+                          {(() => {
+                            const spaces = Array.isArray(comp.relevantSpaces) && comp.relevantSpaces.length > 0
+                              ? comp.relevantSpaces
+                              : comp.relevantSpace
+                              ? (Array.isArray(comp.relevantSpace) ? comp.relevantSpace : String(comp.relevantSpace).split(","))
+                              : [];
+                            return spaces.map((s, sIdx) => {
+                              const trimmed = String(s).trim();
+                              if (!trimmed) return null;
+                              const isAll = trimmed.toUpperCase() === "ALL";
+                              return (
+                                <span
+                                  key={sIdx}
+                                  className={`text-[10px] border px-1.5 py-0.5 rounded-md font-bold ${
+                                    isAll
+                                      ? "bg-purple-50 text-purple-700 border-purple-200"
+                                      : "bg-blue-50 text-blue-700 border-blue-200"
+                                  }`}
+                                >
+                                  {trimmed}
+                                </span>
+                              );
+                            });
+                          })()}
                           {totalImages > 0 && (
                             <span
                               onClick={() => {
@@ -757,20 +902,86 @@ export default function LibraryComponents() {
                   )}
                 </div>
 
-                {/* Relevant Space Dropdown */}
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1.5">Relevant Space</label>
-                  <select
-                    value={formData.relevantSpace}
-                    onChange={(e) => setFormData({ ...formData, relevantSpace: e.target.value })}
-                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
+                {/* Relevant Space Multi-Select Dropdown (Matches Reference UI) */}
+                <div className="relative" ref={spaceDropdownRef}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-semibold text-slate-700">Relevant Space</label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllSpaces}
+                        className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-slate-300 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={handleClearSpaces}
+                        className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsSpaceDropdownOpen(!isSpaceDropdownOpen)}
+                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 flex items-center justify-between focus:outline-none focus:border-blue-500 transition shadow-2xs cursor-pointer"
                   >
-                    {spacesList.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="truncate">
+                      {formData.relevantSpaces?.includes("ALL")
+                        ? "ALL (All Spaces)"
+                        : formData.relevantSpaces?.length > 0
+                        ? formData.relevantSpaces.join(", ")
+                        : "Select Relevant Space"}
+                    </span>
+                    <ChevronDown size={15} className={`text-slate-400 transition-transform ${isSpaceDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Multi-Select Space Popover Dropdown */}
+                  {isSpaceDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 p-2 space-y-1 max-h-60 overflow-y-auto animate-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-slate-100 text-[10px] text-slate-400 font-semibold sticky top-0 bg-white z-10">
+                        <span>Select Relevant Spaces</span>
+                        <button
+                          type="button"
+                          onClick={handleSelectAllSpaces}
+                          className="text-blue-600 hover:underline cursor-pointer"
+                        >
+                          ALL Spaces
+                        </button>
+                      </div>
+                      {dynamicSpaces.map((s) => {
+                        const isAllSelected = formData.relevantSpaces?.includes("ALL");
+                        const isChecked = s === "ALL" ? isAllSelected : (isAllSelected || formData.relevantSpaces?.includes(s));
+                        return (
+                          <div
+                            key={s}
+                            onClick={() => handleToggleSpaceSelection(s)}
+                            className={`flex items-center gap-2.5 px-3 py-2 hover:bg-blue-50 rounded-lg cursor-pointer text-xs font-medium select-none transition ${
+                              isChecked ? "bg-blue-50/60 text-blue-900 font-semibold" : "text-slate-700"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={!!isChecked}
+                              readOnly
+                              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 pointer-events-none"
+                            />
+                            <span className={s === "ALL" ? "font-bold text-blue-700 flex items-center gap-1.5" : ""}>
+                              {s}
+                              {s === "ALL" && (
+                                <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-bold">
+                                  All Spaces
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 

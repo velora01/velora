@@ -179,10 +179,18 @@ export const getComponents = async (req, res) => {
       query.$or = [
         { name: new RegExp(search, "i") },
         { relevantSpace: new RegExp(search, "i") },
+        { relevantSpaces: new RegExp(search, "i") },
         { description: new RegExp(search, "i") }
       ];
     }
-    if (space) query.relevantSpace = space;
+    if (space && space.toUpperCase() !== "ALL") {
+      query.$or = [
+        { relevantSpace: new RegExp(space, "i") },
+        { relevantSpace: /ALL/i },
+        { relevantSpaces: new RegExp(space, "i") },
+        { relevantSpaces: /ALL/i }
+      ];
+    }
     if (variant) query.variant = variant;
 
     const pageNum = parseInt(page) || 1;

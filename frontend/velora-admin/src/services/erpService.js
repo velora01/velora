@@ -86,6 +86,12 @@ export const erpApi = {
     return `${API_BASE_URL}/erp/boq/${id}/pdf${token ? `?token=${encodeURIComponent(token)}` : ""}`;
   },
 
+  // Library Spaces
+  getSpaces: async (params) => (await api.get("/erp/spaces", { params })).data,
+  createSpace: async (data) => (await api.post("/erp/spaces", data)).data,
+  updateSpace: async (id, data) => (await api.put(`/erp/spaces/${id}`, data)).data,
+  deleteSpace: async (id) => (await api.delete(`/erp/spaces/${id}`)).data,
+
   // Library Components
   getComponents: async (params) => (await api.get("/erp/components", { params })).data,
   createComponent: async (data) => (await api.post("/erp/components", data)).data,

@@ -13,7 +13,8 @@ export const checkRole = (allowedRoles = []) => {
 
     if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
       return res.status(403).json({
-        message: `Forbidden: Access restricted to roles [${allowedRoles.join(", ")}]. Current role: ${userRole}`
+        success: false,
+        message: `Permission Denied: Only Admin can perform this action (requires [${allowedRoles.join(", ")}]). Your current role is: ${userRole}`
       });
     }
 

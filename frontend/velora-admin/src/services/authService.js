@@ -75,6 +75,18 @@ export const isAuthenticated = () => {
   return !!(localStorage.getItem("velora_admin_token") || localStorage.getItem("velora_token"));
 };
 
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  const role = (user.role || "").trim().toLowerCase();
+  return role === "admin" || role === "super admin" || role === "owner";
+};
+
+export const getUserRole = () => {
+  const user = getCurrentUser();
+  return user?.role || "Staff";
+};
+
 export const updateCurrentUser = (user) => {
   localStorage.setItem("velora_admin_user", JSON.stringify(user));
   window.dispatchEvent(new Event("velora_user_updated"));

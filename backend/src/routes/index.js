@@ -53,7 +53,12 @@ router.get("/", (req, res) => {
 });
 
 router.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", service: "velora-backend" });
+  res.status(200).json({
+    status: "ok",
+    service: "velora-backend",
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;

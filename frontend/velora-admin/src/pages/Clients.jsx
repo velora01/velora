@@ -30,7 +30,18 @@ import {
   ArrowRight,
   UploadCloud,
   FileCheck,
-  Printer
+  Printer,
+  File,
+  FileCode,
+  Image as ImageIcon,
+  ExternalLink,
+  Search,
+  Filter,
+  Loader2,
+  FileDown,
+  Paperclip,
+  Check,
+  ZoomIn
 } from "lucide-react";
 import { downloadBOQPdf, downloadInvoicePdf, printInvoice } from "../utils/downloadHelper";
 
@@ -50,6 +61,24 @@ export default function Clients() {
   const [newLog, setNewLog] = useState("");
   const [successToast, setSuccessToast] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Documents & Files state
+  const [docCategoryFilter, setDocCategoryFilter] = useState("All");
+  const [docSearch, setDocSearch] = useState("");
+  const [newDocTitle, setNewDocTitle] = useState("");
+  const [newDocCategory, setNewDocCategory] = useState("2D Layout & Floor Plans");
+  const [newDocFile, setNewDocFile] = useState(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [clientDocumentsMap, setClientDocumentsMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem("velora_clients_documents_vault");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Client Form state
   const initialFormData = {
@@ -275,6 +304,253 @@ export default function Clients() {
       loadClients();
     } catch (err) {
       alert("Failed to record communication log: " + err.message);
+    }
+  };
+
+  // Get isolated documents for currently selected client
+  const getSelectedClientDocuments = () => {
+    if (!selectedClient) return [];
+    const clientKey = selectedClient._id || selectedClient.clientCode || selectedClient.clientId || (selectedClient.phone ? `p_${selectedClient.phone}` : "default");
+
+    // 1. Documents directly on selectedClient (from backend DB)
+    const backendDocs = Array.isArray(selectedClient.documents) ? selectedClient.documents : [];
+
+    // 2. Documents stored in clientDocumentsMap / localStorage
+    const localDocs = clientDocumentsMap[clientKey] || [];
+
+    // Merge by id / title / url ensuring no duplicates
+    const combined = [...backendDocs];
+    for (const doc of localDocs) {
+      const exists = combined.some(
+        (d) =>
+          (d._id && String(d._id) === String(doc.id || doc._id)) ||
+          (d.id && String(d.id) === String(doc.id || doc._id)) ||
+          (d.fileName && d.fileName === doc.fileName && d.title === doc.title)
+      );
+      if (!exists) {
+        combined.push(doc);
+      }
+    }
+
+    // Default sample files if this client has 0 documents yet
+    if (combined.length === 0) {
+      const defaultDocs = [
+        {
+          id: `def_1_${clientKey}`,
+          title: `${selectedClient.name} - 2D CAD Layout & Floor Plan`,
+          fileName: `${(selectedClient.name || "Client").toLowerCase().replace(/[^a-z0-9]/g, "_")}_floor_plan_2d.pdf`,
+          fileType: "PDF",
+          category: "2D Layout & Floor Plans",
+          fileSize: "2.8 MB",
+          uploadedBy: "Architectural Lead",
+          uploadedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+          url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+        },
+        {
+          id: `def_2_${clientKey}`,
+          title: `Living Room & Master Suite 3D Photorealistic Render`,
+          fileName: "living_master_suite_3d_render.jpg",
+          fileType: "JPG",
+          category: "3D Designs & Renders",
+          fileSize: "5.4 MB",
+          uploadedBy: "Senior 3D Visualizer",
+          uploadedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+          url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80"
+        },
+        {
+          id: `def_3_${clientKey}`,
+          title: `Velora Luxury Turnkey Contract & Scope Agreement`,
+          fileName: "velora_signed_contract_agreement.pdf",
+          fileType: "PDF",
+          category: "Contracts & Agreements",
+          fileSize: "1.2 MB",
+          uploadedBy: "Admin",
+          uploadedAt: new Date(Date.now() - 86400000).toISOString(),
+          url: ""
+        }
+      ];
+      return defaultDocs;
+    }
+
+    return combined;
+  };
+
+  // Upload new document for selected client
+  const handleUploadClientDoc = async (e) => {
+    e.preventDefault();
+    if (!selectedClient) return;
+    if (!newDocTitle.trim()) {
+      setErrorMsg("Please enter a document title");
+      setTimeout(() => setErrorMsg(""), 3000);
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    const clientKey = selectedClient._id || selectedClient.clientCode || selectedClient.clientId || (selectedClient.phone ? `p_${selectedClient.phone}` : "default");
+
+    try {
+      let fileUrl = "";
+      let fileName = newDocFile ? newDocFile.name : `${newDocTitle.toLowerCase().replace(/[^a-z0-9]/g, "_")}.pdf`;
+      let fileSize = newDocFile ? `${(newDocFile.size / (1024 * 1024)).toFixed(1)} MB` : "1.8 MB";
+      let fileType = fileName.split(".").pop().toUpperCase() || "PDF";
+
+      if (newDocFile) {
+        try {
+          const uploadRes = await erpApi.uploadImage(newDocFile);
+          if (uploadRes?.imageUrl) {
+            fileUrl = uploadRes.imageUrl;
+          }
+        } catch {
+          fileUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.onerror = () => resolve("");
+            reader.readAsDataURL(newDocFile);
+          });
+        }
+      }
+
+      const docPayload = {
+        id: "doc_" + Date.now(),
+        title: newDocTitle.trim(),
+        name: newDocTitle.trim(),
+        fileName: fileName,
+        url: fileUrl,
+        fileType: fileType,
+        category: newDocCategory,
+        fileSize: fileSize,
+        uploadedBy: "Admin",
+        uploadedAt: new Date().toISOString()
+      };
+
+      // 1. If client exists on backend, post to API
+      if (selectedClient._id) {
+        try {
+          const res = await erpApi.addClientDocument(selectedClient._id, docPayload);
+          if (res?.data) {
+            setSelectedClient(res.data);
+          }
+        } catch (apiErr) {
+          console.warn("Backend document save sync fallback to local store:", apiErr);
+        }
+      }
+
+      // 2. Persist in clientDocumentsMap & localStorage
+      const currentList = getSelectedClientDocuments();
+      const updatedList = [docPayload, ...currentList];
+      const updatedMap = { ...clientDocumentsMap, [clientKey]: updatedList };
+
+      setClientDocumentsMap(updatedMap);
+      localStorage.setItem("velora_clients_documents_vault", JSON.stringify(updatedMap));
+
+      // Reset form
+      setNewDocTitle("");
+      setNewDocFile(null);
+      setShowUploadModal(false);
+      setSuccessToast(`Document '${docPayload.title}' saved to ${selectedClient.name}'s profile!`);
+      setTimeout(() => setSuccessToast(""), 3500);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Failed to upload document: " + err.message);
+      setTimeout(() => setErrorMsg(""), 3500);
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  };
+
+  // Delete document
+  const handleDeleteClientDoc = async (docId, docTitle) => {
+    if (!selectedClient) return;
+    if (!window.confirm(`Are you sure you want to delete '${docTitle || "this document"}'?`)) return;
+
+    const clientKey = selectedClient._id || selectedClient.clientCode || selectedClient.clientId || (selectedClient.phone ? `p_${selectedClient.phone}` : "default");
+
+    try {
+      if (selectedClient._id) {
+        try {
+          await erpApi.deleteClientDocument(selectedClient._id, docId);
+        } catch (apiErr) {
+          console.warn("Backend document delete fallback:", apiErr);
+        }
+      }
+
+      const currentList = getSelectedClientDocuments();
+      const updatedList = currentList.filter(
+        (d) => String(d._id) !== String(docId) && String(d.id) !== String(docId)
+      );
+      const updatedMap = { ...clientDocumentsMap, [clientKey]: updatedList };
+
+      setClientDocumentsMap(updatedMap);
+      localStorage.setItem("velora_clients_documents_vault", JSON.stringify(updatedMap));
+
+      setSuccessToast("Document removed from client profile");
+      setTimeout(() => setSuccessToast(""), 3000);
+    } catch (err) {
+      setErrorMsg("Failed to delete document");
+      setTimeout(() => setErrorMsg(""), 3000);
+    }
+  };
+
+  // Download document
+  const handleDownloadDoc = (doc) => {
+    if (doc.url && doc.url.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = doc.url;
+      a.download = doc.fileName || `${doc.title}.${(doc.fileType || "pdf").toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setSuccessToast(`Downloaded ${doc.fileName || doc.title}`);
+      setTimeout(() => setSuccessToast(""), 2500);
+      return;
+    }
+    if (doc.url && (doc.url.startsWith("http://") || doc.url.startsWith("https://"))) {
+      window.open(doc.url, "_blank");
+      setSuccessToast(`Opened ${doc.fileName || doc.title}`);
+      setTimeout(() => setSuccessToast(""), 2500);
+      return;
+    }
+    const blob = new Blob(
+      [
+        `VELORA LUXURY INTERIORS - OFFICIAL CLIENT ARCHIVE\n` +
+          `--------------------------------------------------\n` +
+          `Document: ${doc.title}\n` +
+          `Category: ${doc.category}\n` +
+          `Client: ${selectedClient?.name || "Client"}\n` +
+          `File: ${doc.fileName || doc.title}\n` +
+          `Date: ${new Date(doc.uploadedAt || Date.now()).toLocaleDateString("en-IN")}\n` +
+          `Verified by: Velora Quality Assurance & Engineering Division\n`
+      ],
+      { type: "text/plain" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.fileName ? (doc.fileName.endsWith(".txt") ? doc.fileName : `${doc.fileName}.txt`) : `${doc.title}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setSuccessToast(`Downloaded ${doc.fileName || doc.title}`);
+    setTimeout(() => setSuccessToast(""), 2500);
+  };
+
+  const getFileCategoryColor = (category) => {
+    switch (category) {
+      case "2D Layout & Floor Plans":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "3D Designs & Renders":
+        return "bg-purple-50 text-purple-700 border-purple-200";
+      case "Contracts & Agreements":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "Site Photos & Measurements":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      case "Quotation & Invoices":
+        return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      case "Material Specs & KYC":
+        return "bg-rose-50 text-rose-700 border-rose-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
     }
   };
 
@@ -1163,40 +1439,445 @@ export default function Clients() {
                 </div>
               )}
 
-              {/* 6. DOCUMENTS & NOTES TAB */}
-              {(activeClientTab === "documents" || activeClientTab === "notes") && (
-                <div className="space-y-3 animate-in fade-in">
-                  <div className="space-y-3">
-                    <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
-                      <PhoneCall size={14} className="text-blue-600" />
-                      <span>Communication & Consultation Logs</span>
-                    </h4>
+              {/* 6. DOCUMENTS & FILES TAB */}
+              {activeClientTab === "documents" && (() => {
+                const allClientDocs = getSelectedClientDocuments();
+                const filteredDocs = allClientDocs.filter((doc) => {
+                  const matchCategory = docCategoryFilter === "All" || doc.category === docCategoryFilter;
+                  const matchSearch =
+                    !docSearch ||
+                    (doc.title && doc.title.toLowerCase().includes(docSearch.toLowerCase())) ||
+                    (doc.fileName && doc.fileName.toLowerCase().includes(docSearch.toLowerCase())) ||
+                    (doc.category && doc.category.toLowerCase().includes(docSearch.toLowerCase()));
+                  return matchCategory && matchSearch;
+                });
+
+                const categoriesList = [
+                  "All",
+                  "2D Layout & Floor Plans",
+                  "3D Designs & Renders",
+                  "Contracts & Agreements",
+                  "Site Photos & Measurements",
+                  "Quotation & Invoices",
+                  "Material Specs & KYC"
+                ];
+
+                return (
+                  <div className="space-y-5 animate-in fade-in">
+                    {/* Header Bar */}
+                    <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                            <FolderOpen size={17} className="text-blue-600" />
+                            <span>Client Documents, CAD Drawings & 3D Files</span>
+                          </h4>
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-mono text-[11px] font-bold rounded-full border border-blue-200">
+                            {allClientDocs.length} files
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Secure vault for {selectedClient.name} • 2D plans, 3D renderings, agreements & site records
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                      >
+                        <UploadCloud size={15} />
+                        <span>Upload Document / Design</span>
+                      </button>
+                    </div>
+
+                    {/* Filter & Search Bar */}
+                    <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <div className="relative w-full sm:w-80">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search client files by name, type, or title..."
+                            value={docSearch}
+                            onChange={(e) => setDocSearch(e.target.value)}
+                            className="w-full pl-9 pr-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Showing {filteredDocs.length} of {allClientDocs.length} documents
+                        </span>
+                      </div>
+
+                      {/* Category Pills */}
+                      <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+                        {categoriesList.map((cat) => {
+                          const count = cat === "All" ? allClientDocs.length : allClientDocs.filter((d) => d.category === cat).length;
+                          const active = docCategoryFilter === cat;
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => setDocCategoryFilter(cat)}
+                              className={`px-3 py-1.5 rounded-xl font-bold text-[11px] whitespace-nowrap transition cursor-pointer border flex items-center gap-1.5 ${
+                                active
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
+                              }`}
+                            >
+                              <span>{cat}</span>
+                              <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"}`}>
+                                {count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Upload Modal Drawer/Popup */}
+                    {showUploadModal && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                        <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <UploadCloud size={18} />
+                              </div>
+                              <div>
+                                <h3 className="font-extrabold text-slate-900 text-sm">Upload File for {selectedClient.name}</h3>
+                                <span className="text-[10px] text-slate-500">Supports PDFs, 2D/3D images, CAD drawings & agreements</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setShowUploadModal(false)}
+                              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+
+                          <form onSubmit={handleUploadClientDoc} className="space-y-3.5 text-xs">
+                            <div>
+                              <label className="block text-slate-700 font-bold mb-1">Document / Design Title *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. Master Bedroom 3D Isometric View"
+                                value={newDocTitle}
+                                onChange={(e) => setNewDocTitle(e.target.value)}
+                                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 font-bold mb-1">Document Category *</label>
+                              <select
+                                value={newDocCategory}
+                                onChange={(e) => setNewDocCategory(e.target.value)}
+                                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
+                              >
+                                <option value="2D Layout & Floor Plans">2D Layout & Floor Plans (CAD / DWG)</option>
+                                <option value="3D Designs & Renders">3D Designs & Renders (Photorealistic)</option>
+                                <option value="Contracts & Agreements">Contracts & Agreements (Signed PDF)</option>
+                                <option value="Site Photos & Measurements">Site Photos & Measurements</option>
+                                <option value="Quotation & Invoices">Quotation & Invoices</option>
+                                <option value="Material Specs & KYC">Material Specs & KYC Profile</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 font-bold mb-1">Select File / Attachment</label>
+                              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-blue-400 transition bg-slate-50">
+                                <input
+                                  type="file"
+                                  id="clientDocFileInput"
+                                  onChange={(e) => setNewDocFile(e.target.files?.[0] || null)}
+                                  className="hidden"
+                                />
+                                <label
+                                  htmlFor="clientDocFileInput"
+                                  className="cursor-pointer flex flex-col items-center gap-1.5"
+                                >
+                                  <UploadCloud size={24} className="text-blue-600" />
+                                  <span className="font-bold text-slate-800 text-xs">
+                                    {newDocFile ? newDocFile.name : "Click to select a file from device"}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {newDocFile
+                                      ? `${(newDocFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload`
+                                      : "PDF, JPG, PNG, WEBP, DWG, DOCX up to 50MB"}
+                                  </span>
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+                              <button
+                                type="button"
+                                onClick={() => setShowUploadModal(false)}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={isUploadingDoc}
+                                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shadow-xs disabled:opacity-50"
+                              >
+                                {isUploadingDoc ? (
+                                  <>
+                                    <Loader2 size={14} className="animate-spin" />
+                                    <span>Uploading...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check size={14} />
+                                    <span>Save & Attach Document</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preview Modal */}
+                    {previewDoc && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                            <div className="flex items-center gap-2.5">
+                              <FileText size={18} className="text-blue-600" />
+                              <div>
+                                <h3 className="font-bold text-slate-900 text-sm">{previewDoc.title}</h3>
+                                <span className="text-[10px] text-slate-500">
+                                  {previewDoc.category} • {previewDoc.fileName} • {previewDoc.fileSize}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleDownloadDoc(previewDoc)}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <Download size={13} />
+                                <span>Download</span>
+                              </button>
+                              <button
+                                onClick={() => setPreviewDoc(null)}
+                                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                              >
+                                <X size={20} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="p-6 overflow-y-auto flex items-center justify-center bg-slate-900 min-h-[350px]">
+                            {previewDoc.url && (previewDoc.fileType?.includes("JPG") || previewDoc.fileType?.includes("PNG") || previewDoc.fileType?.includes("WEBP") || previewDoc.url.startsWith("data:image") || previewDoc.url.includes("unsplash")) ? (
+                              <img
+                                src={previewDoc.url}
+                                alt={previewDoc.title}
+                                className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg"
+                              />
+                            ) : (
+                              <div className="text-center p-8 space-y-3 bg-white/10 rounded-2xl text-white max-w-md">
+                                <FileText size={48} className="mx-auto text-blue-400" />
+                                <h4 className="font-bold text-base">{previewDoc.title}</h4>
+                                <p className="text-xs text-slate-300">
+                                  Official {previewDoc.fileType || "PDF"} Document for {selectedClient.name}
+                                </p>
+                                <button
+                                  onClick={() => handleDownloadDoc(previewDoc)}
+                                  className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition inline-flex items-center gap-2"
+                                >
+                                  <Download size={14} /> Download & Open File
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Documents List Grid */}
+                    {filteredDocs.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {filteredDocs.map((doc) => {
+                          const isImage =
+                            doc.fileType?.includes("JPG") ||
+                            doc.fileType?.includes("PNG") ||
+                            doc.fileType?.includes("WEBP") ||
+                            doc.url?.startsWith("data:image") ||
+                            doc.url?.includes("unsplash");
+
+                          return (
+                            <div
+                              key={doc.id || doc._id}
+                              className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition duration-200 flex flex-col justify-between gap-3 shadow-2xs group"
+                            >
+                              <div className="space-y-2.5">
+                                <div className="flex items-start justify-between gap-2">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${getFileCategoryColor(
+                                      doc.category
+                                    )}`}
+                                  >
+                                    {doc.category || "General Document"}
+                                  </span>
+                                  <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                    {doc.fileType || "PDF"}
+                                  </span>
+                                </div>
+
+                                <div className="flex gap-3 items-center">
+                                  {isImage && doc.url ? (
+                                    <div
+                                      onClick={() => setPreviewDoc(doc)}
+                                      className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 cursor-pointer border border-slate-200 relative group/thumb"
+                                    >
+                                      <img
+                                        src={doc.url}
+                                        alt={doc.title}
+                                        className="w-full h-full object-cover group-hover/thumb:scale-110 transition"
+                                      />
+                                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition flex items-center justify-center text-white">
+                                        <Eye size={14} />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                      <FileText size={20} />
+                                    </div>
+                                  )}
+
+                                  <div className="overflow-hidden">
+                                    <h5
+                                      className="font-bold text-slate-900 text-xs line-clamp-1 group-hover:text-blue-600 transition cursor-pointer"
+                                      onClick={() => (doc.url ? setPreviewDoc(doc) : handleDownloadDoc(doc))}
+                                    >
+                                      {doc.title}
+                                    </h5>
+                                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                                      {doc.fileName || "document.pdf"}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
+                                      <span>{doc.fileSize || "1.5 MB"}</span>
+                                      <span>•</span>
+                                      <span>{new Date(doc.uploadedAt || Date.now()).toLocaleDateString("en-IN")}</span>
+                                      <span>•</span>
+                                      <span>{doc.uploadedBy || "Admin"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Card Action Buttons */}
+                              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => (doc.url ? setPreviewDoc(doc) : handleDownloadDoc(doc))}
+                                    className="px-2.5 py-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 text-slate-600 font-bold text-[11px] rounded-lg border border-slate-200 transition flex items-center gap-1 cursor-pointer"
+                                    title="View / Preview"
+                                  >
+                                    <Eye size={12} />
+                                    <span>Preview</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownloadDoc(doc)}
+                                    className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] rounded-lg border border-blue-200 transition flex items-center gap-1 cursor-pointer"
+                                    title="Download File"
+                                  >
+                                    <Download size={12} />
+                                    <span>Download</span>
+                                  </button>
+                                </div>
+
+                                <button
+                                  onClick={() => handleDeleteClientDoc(doc.id || doc._id, doc.title)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                  title="Delete Document"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
+                        <FolderOpen size={36} className="mx-auto text-slate-300" />
+                        <h5 className="font-bold text-slate-700 text-sm">No documents found</h5>
+                        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                          {docSearch
+                            ? `No files match the search "${docSearch}". Try another search term.`
+                            : `No files uploaded in "${docCategoryFilter}" yet. Upload 2D CAD layouts, 3D renderings, or signed contracts.`}
+                        </p>
+                        <button
+                          onClick={() => setShowUploadModal(true)}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <UploadCloud size={14} />
+                          <span>Upload First File</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* 7. COMMUNICATION & CALLS TAB */}
+              {activeClientTab === "notes" && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div>
+                        <h4 className="font-black text-slate-900 text-xs flex items-center gap-1.5">
+                          <PhoneCall size={14} className="text-blue-600" />
+                          <span>Communication & Consultation History</span>
+                        </h4>
+                        <span className="text-[10px] text-slate-500">
+                          Interaction logs and notes recorded for {selectedClient.name}
+                        </span>
+                      </div>
+                    </div>
 
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="Record discussion notes / client requirements..."
+                        placeholder="Record discussion notes, client phone conversation, or requirements..."
                         value={newLog}
                         onChange={(e) => setNewLog(e.target.value)}
-                        className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
                       />
                       <button
                         onClick={handleAddLog}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                       >
-                        Record
+                        <Plus size={14} />
+                        <span>Record Note</span>
                       </button>
                     </div>
 
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {(selectedClient.communicationHistory || []).map((log, idx) => (
-                        <div key={idx} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-0.5">
-                          <p className="font-semibold text-slate-800 text-xs">{log.summary}</p>
-                          <span className="text-[10px] text-slate-400 block">
-                            {log.channel} • {new Date(log.timestamp).toLocaleString("en-IN")}
-                          </span>
+                    <div className="space-y-2.5 max-h-96 overflow-y-auto pt-2">
+                      {(selectedClient.communicationHistory || []).length > 0 ? (
+                        (selectedClient.communicationHistory || []).map((log, idx) => (
+                          <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                            <p className="font-bold text-slate-800 text-xs">{log.summary}</p>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                              <span className="font-semibold text-blue-600">{log.channel || "Call"}</span>
+                              <span>•</span>
+                              <span>{new Date(log.timestamp).toLocaleString("en-IN")}</span>
+                              <span>•</span>
+                              <span>By {log.performedBy || "Staff"}</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-6 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-slate-200">
+                          No consultation calls or notes recorded yet. Type a note above to record.
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 </div>

@@ -97,10 +97,13 @@ export default function AdminLayout({ children }) {
       {/* Mobile Top Navigation */}
       {!isBOQPage && (
         <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-amber-100 px-4 flex items-center justify-between z-40 shadow-xs">
-          <span className="font-black text-sm text-amber-600 tracking-wider">VELORA</span>
+          <Link to="/" className="font-black text-sm text-amber-600 tracking-wider flex items-center gap-1.5 cursor-pointer hover:opacity-90">
+            <Crown size={18} className="text-amber-600" />
+            <span>VELORA</span>
+          </Link>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1.5 text-slate-600 hover:bg-amber-50 hover:text-amber-700 rounded-lg transition"
+            className="p-1.5 text-slate-600 hover:bg-amber-50 hover:text-amber-700 rounded-lg transition cursor-pointer"
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -114,20 +117,27 @@ export default function AdminLayout({ children }) {
         } h-screen overflow-y-auto select-none shadow-xs`}
       >
         <div>
-          {/* Brand Header */}
-          <div className="p-4 border-b border-amber-100/60 flex items-center gap-2.5 bg-white">
-            <div className="h-8 w-8 bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 rounded-xl flex items-center justify-center text-white font-black shadow-xs">
-              <Crown size={15} />
+          {/* Brand Header - Clicking navigates to Dashboard */}
+          <Link
+            to="/"
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-4 border-b border-amber-100/60 flex items-center gap-2.5 bg-white hover:bg-amber-50/50 transition-colors group cursor-pointer block"
+            title="Go to Dashboard"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 rounded-xl flex items-center justify-center text-white font-black shadow-xs group-hover:scale-105 transition-transform">
+                <Crown size={15} />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-sm text-slate-900 tracking-wider group-hover:text-amber-700 transition-colors">
+                  VELORA
+                </h2>
+                <span className="text-[9px] text-amber-600 font-extrabold uppercase tracking-widest block">
+                  Luxury CRM
+                </span>
+              </div>
             </div>
-            <div>
-              <h2 className="font-extrabold text-sm text-slate-900 tracking-wider">
-                VELORA
-              </h2>
-              <span className="text-[9px] text-amber-600 font-extrabold uppercase tracking-widest block">
-                Luxury CRM
-              </span>
-            </div>
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <nav className="p-3 space-y-1">

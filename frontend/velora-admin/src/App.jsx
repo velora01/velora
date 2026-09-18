@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -30,6 +31,19 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
+  useEffect(() => {
+    // Warm up and keep Render backend awake
+    const backendUrl = import.meta.env.VITE_API_URL || "https://velora-backend-usq1.onrender.com/api";
+    const healthEndpoint = `${backendUrl.replace(/\/$/, "")}/health`;
+
+    const ping = () => {
+      fetch(healthEndpoint, { mode: "cors" }).catch(() => {});
+    };
+
+    ping();
+    const interval = setInterval(ping, 4 * 60 * 1000); // 4 minutes
+    return () => clearInterval(interval);
+  }, []);
   return (
     <>
       <ToastContainer

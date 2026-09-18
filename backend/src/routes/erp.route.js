@@ -4,7 +4,16 @@ import { checkRole } from "../middleware/rbac.middleware.js";
 
 import { getLeads, createLead, updateLead, deleteLead, exportLeadsExcel, bulkUploadLeads } from "../controllers/leadController.js";
 import { getWebsiteLeads, createWebsiteLead, convertWebsiteLead } from "../controllers/websiteLeadController.js";
-import { getClients, getClientById, createClient, updateClient, deleteClient, addClientCommunication } from "../controllers/clientController.js";
+import {
+  getClients,
+  getClientById,
+  createClient,
+  updateClient,
+  deleteClient,
+  addClientCommunication,
+  addClientDocument,
+  deleteClientDocument
+} from "../controllers/clientController.js";
 import { getProjects, createProject, updateProject, updateProjectStage, deleteProject } from "../controllers/projectController.js";
 import { getTasks, createTask, updateTask, deleteTask } from "../controllers/taskController.js";
 import { getBOQs, getBOQById, createBOQ, updateBOQ, deleteBOQ, exportBOQPdf } from "../controllers/boqController.js";
@@ -60,6 +69,8 @@ router.post("/clients", checkRole(["Admin", "Sales", "Super Admin"]), createClie
 router.put("/clients/:id", checkRole(["Admin", "Sales", "Super Admin"]), updateClient);
 router.delete("/clients/:id", checkRole(["Admin", "Super Admin"]), deleteClient);
 router.post("/clients/:id/communication", addClientCommunication);
+router.post("/clients/:id/documents", addClientDocument);
+router.delete("/clients/:id/documents/:docId", deleteClientDocument);
 
 // Projects
 router.get("/projects", getProjects);

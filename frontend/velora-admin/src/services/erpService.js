@@ -55,6 +55,8 @@ export const erpApi = {
   updateClient: async (id, data) => (await api.put(`/erp/clients/${id}`, data)).data,
   deleteClient: async (id) => (await api.delete(`/erp/clients/${id}`)).data,
   addClientCommunication: async (id, data) => (await api.post(`/erp/clients/${id}/communication`, data)).data,
+  addClientDocument: async (id, data) => (await api.post(`/erp/clients/${id}/documents`, data)).data,
+  deleteClientDocument: async (id, docId) => (await api.delete(`/erp/clients/${id}/documents/${docId}`)).data,
 
   // Projects
   getProjects: async (params) => (await api.get("/erp/projects", { params })).data,

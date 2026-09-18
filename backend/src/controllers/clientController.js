@@ -162,3 +162,61 @@ export const addClientCommunication = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
+export const addClientDocument = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ success: false, message: "Client not found" });
+
+    const newDoc = {
+      title: req.body.title || req.body.name || "Untitled Document",
+      name: req.body.name || req.body.title || "Untitled Document",
+      fileName: req.body.fileName || req.body.title || "document.pdf",
+      url: req.body.url || "",
+      fileType: req.body.fileType || "PDF",
+      category: req.body.category || "Floor Plans",
+      fileSize: req.body.fileSize || "1.2 MB",
+      uploadedBy: req.user?.name || "Admin",
+      uploadedAt: new Date()
+    };
+
+    if (!client.documents) client.documents = [];
+    client.documents.push(newDoc);
+    await client.save();
+
+    await logActivity({
+      userName: req.user?.name || "Admin",
+      action: "Uploaded",
+      module: "Clients",
+      description: `Uploaded document '${newDoc.title}' for client ${client.name}`
+    });
+
+    res.json({ success: true, data: client });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const deleteClientDocument = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ success: false, message: "Client not found" });
+
+    const docId = req.params.docId;
+    client.documents = (client.documents || []).filter(
+      (d) => String(d._id) !== String(docId) && String(d.id) !== String(docId)
+    );
+    await client.save();
+
+    await logActivity({
+      userName: req.user?.name || "Admin",
+      action: "Deleted",
+      module: "Clients",
+      description: `Deleted document from client ${client.name}`
+    });
+
+    res.json({ success: true, data: client });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};

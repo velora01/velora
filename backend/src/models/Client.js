@@ -69,7 +69,19 @@ const clientSchema = new mongoose.Schema(
         timestamp: { type: Date, default: Date.now }
       }
     ],
-    documents: [{ name: String, url: String, uploadedAt: { type: Date, default: Date.now } }],
+    documents: [
+      {
+        title: { type: String, default: "" },
+        name: { type: String, default: "" },
+        fileName: { type: String, default: "" },
+        url: { type: String, default: "" },
+        fileType: { type: String, default: "" },
+        category: { type: String, default: "Floor Plans" },
+        fileSize: { type: String, default: "" },
+        uploadedBy: { type: String, default: "Admin" },
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ],
     gallery: [{ title: String, url: String, uploadedAt: { type: Date, default: Date.now } }]
   },
   { timestamps: true }

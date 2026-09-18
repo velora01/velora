@@ -39,6 +39,16 @@ const Navbar = () => {
               </NavLink>
             </li>
           ))}
+          <li>
+            <a
+              href="https://velora-crm.pages.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-1.5 rounded-full bg-white text-[#c9a227] font-bold text-xs uppercase tracking-wider shadow-sm hover:bg-amber-50 hover:shadow transition duration-300 inline-block"
+            >
+              CRM
+            </a>
+          </li>
         </ul>
 
         {/* Mobile Menu Button */}
@@ -68,6 +78,17 @@ const Navbar = () => {
                 </NavLink>
               </li>
             ))}
+            <li className="pt-1">
+              <a
+                href="https://velora-crm.pages.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsOpen(false)}
+                className="block py-2.5 px-4 rounded-xl text-sm font-bold bg-white text-[#c9a227] hover:bg-amber-50 transition text-center shadow-sm"
+              >
+                CRM Portal
+              </a>
+            </li>
           </ul>
         </div>
       )}

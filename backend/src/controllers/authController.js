@@ -129,10 +129,10 @@ export const login = async (req, res) => {
       });
     }
 
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
     const user = await User.findOne({
       $or: [
-        { email: cleanEmail.toLowerCase() },
+        { email: cleanEmail },
         { email: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }
       ]
     });
@@ -141,6 +141,13 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
+      });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "Your staff account has been deactivated. Please contact an administrator.",
       });
     }
 

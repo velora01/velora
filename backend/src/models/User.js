@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     passwordResetToken: String,
     passwordResetExpires: Date,
   },
@@ -63,18 +67,31 @@ userSchema.pre("save", async function () {
 userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password || !candidatePassword) return false;
   
+  const rawInput = String(candidatePassword);
+  const trimmedInput = rawInput.trim();
+
   // If stored password is plain text (not a bcrypt hash)
   if (!this.password.startsWith("$2a$") && !this.password.startsWith("$2b$") && !this.password.startsWith("$2y$")) {
-    if (this.password === candidatePassword) {
+    if (this.password === rawInput || this.password === trimmedInput) {
       // Re-hash to bcrypt and persist
-      this.password = candidatePassword;
+      this.password = trimmedInput;
       await this.save();
       return true;
     }
     return false;
   }
   
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    const isMatch = await bcrypt.compare(rawInput, this.password);
+    if (isMatch) return true;
+    if (rawInput !== trimmedInput) {
+      return await bcrypt.compare(trimmedInput, this.password);
+    }
+    return false;
+  } catch (err) {
+    console.error("User comparePassword error:", err);
+    return false;
+  }
 };
 
 export default mongoose.model("User", userSchema);

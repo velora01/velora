@@ -16,7 +16,10 @@ import {
   Crown,
   Sparkles,
   Users,
-  KeyRound
+  KeyRound,
+  Eye,
+  EyeOff,
+  Loader2
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { Drawer } from "../components/Modal";
@@ -43,6 +46,8 @@ export default function UserManagement() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "success" });
 
   const loggedInUser = getCurrentUser() || { name: "Admin", role: "Super Admin" };
@@ -84,6 +89,7 @@ export default function UserManagement() {
   const openCreateDrawer = () => {
     setIsEditMode(false);
     setSelectedUserId(null);
+    setShowPassword(false);
     setFormData({
       name: "",
       email: "",
@@ -98,6 +104,7 @@ export default function UserManagement() {
   const openEditDrawer = (user) => {
     setIsEditMode(true);
     setSelectedUserId(user._id);
+    setShowPassword(false);
     setFormData({
       name: user.name || "",
       email: user.email || "",
@@ -111,6 +118,7 @@ export default function UserManagement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       if (isEditMode && selectedUserId) {
         await erpApi.updateUser(selectedUserId, formData);
@@ -123,6 +131,8 @@ export default function UserManagement() {
       loadUsers();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to save user account", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -349,7 +359,7 @@ export default function UserManagement() {
 
         <button
           onClick={openCreateDrawer}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition-all cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] active:translate-y-0.5 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs hover:shadow-md transition-all duration-150 cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Staff Account</span>
@@ -468,14 +478,21 @@ export default function UserManagement() {
             </label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required={!isEditMode}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500"
+                className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-none focus:border-blue-500 transition"
               />
-              <KeyRound size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 p-1 rounded-lg transition-colors cursor-pointer"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
@@ -509,9 +526,17 @@ export default function UserManagement() {
           <div className="pt-4 border-t border-slate-100">
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-xs transition-all cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:from-blue-800 active:to-indigo-800 active:scale-[0.98] active:translate-y-0.5 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isEditMode ? "Save Changes" : "Create Staff Account"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>{isEditMode ? "Saving Changes..." : "Creating Account..."}</span>
+                </>
+              ) : (
+                <span>{isEditMode ? "Save Changes" : "Create Account"}</span>
+              )}
             </button>
           </div>
         </form>

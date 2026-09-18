@@ -21,8 +21,8 @@ authRoute.post(
   "/register",
   [
     body("name").trim().notEmpty().withMessage("Name is required"),
-    body("email").isEmail().withMessage("Valid email is required").normalizeEmail(),
-    body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
+    body("email").trim().isEmail().withMessage("Valid email is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
   ],
   register
 );
@@ -31,8 +31,8 @@ authRoute.post(
   "/register-admin",
   [
     body("name").trim().notEmpty().withMessage("Name is required"),
-    body("email").isEmail().withMessage("Valid email is required").normalizeEmail(),
-    body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
+    body("email").trim().isEmail().withMessage("Valid email is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
   ],
   registerAdmin
 );
@@ -40,7 +40,7 @@ authRoute.post(
 authRoute.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Valid email is required").normalizeEmail(),
+    body("email").trim().notEmpty().withMessage("Email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
   login
